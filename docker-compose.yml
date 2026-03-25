@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: team6-backend
+    environment:
+      POSTGRES_DB: team6_db
+      POSTGRES_USER: team6
+      POSTGRES_PASSWORD: team6-backend
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
