@@ -1,0 +1,35 @@
+# Maven
+target/
+
+# Java
+*.class
+*.log
+
+# IntelliJ
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+application-local.yml
+application-local.properties
+
+# Docker
+docker-compose.override.yml
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+
+# Coverage
+/coverage/
+jacoco.exec
+
+# Frontend
+node_modules/
