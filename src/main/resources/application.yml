@@ -32,9 +32,20 @@ spring:
               - read:user
               - user:email
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+
 server:
   port: 8080
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: documents
