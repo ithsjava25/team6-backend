@@ -8,6 +8,7 @@ import org.example.team6backend.repository.AppUserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,7 +40,7 @@ public class UserService {
             user.setName(name);
             user.setGithubLogin(githubLogin);
             user.setAvatarUrl(avatarUrl);
-            log.info("Updated existing user: {}", email);
+            log.info("Updated existing user: {} (role: {})", email, user.getRole());
             return userRepository.save(user);
         } else {
             AppUser newUser = new AppUser();
@@ -47,9 +48,30 @@ public class UserService {
             newUser.setName(name);
             newUser.setGithubLogin(githubLogin);
             newUser.setAvatarUrl(avatarUrl);
-            newUser.setRole(UserRole.RESIDENT);
-            log.info("Created new user: {} with role RESIDENT", email);
+            newUser.setRole(UserRole.PENDING);
+            log.info("Created new user: {} with role PENDING (awaiting approval)", email);
             return userRepository.save(newUser);
         }
+    }
+
+    public AppUser getUserById(String id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    }
+
+    public List<AppUser> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public List<AppUser> getUsersByRole(UserRole role) {
+        return userRepository.findByRole(role);
+    }
+
+    @Transactional
+    public AppUser updateUserRole(String userId, UserRole newRole) {
+        AppUser user = getUserById(userId);
+        user.setRole(newRole);
+        log.info("Updated role for user {} to {}", userId, newRole);
+        return userRepository.save(user);
     }
 }
