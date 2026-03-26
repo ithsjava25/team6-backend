@@ -1,6 +1,7 @@
 package org.example.team6backend.entity;
 
 public enum UserRole {
+    PENDING("Pending", "Awaiting approval, cannot access system"),
     RESIDENT("Resident", "Can create and view own incidents"),
     HANDLER("Handler", "Can manage assigned incidents"),
     ADMIN("Admin", "Full access to the system");
