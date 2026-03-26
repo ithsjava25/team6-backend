@@ -1,6 +1,7 @@
 package org.example.team6backend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.entity.AppUser;
 import org.example.team6backend.entity.UserRole;
 import org.example.team6backend.repository.AppUserRepository;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final AppUserRepository userRepository;
@@ -23,6 +25,13 @@ public class UserService {
         String name = (String) attributes.get("name");
         String avatarUrl = (String) attributes.get("avatar_url");
 
+        log.info("GitHub user data - login: {}, email: {}, name: {}", githubLogin, email, name);
+
+        if (email == null || email.isEmpty()) {
+            email = githubLogin + "@users.noreply.github.com";
+            log.warn("Email was null for user {}, using fallback: {}", githubLogin, email);
+        }
+
         Optional<AppUser> existingUser = userRepository.findByEmail(email);
 
         if (existingUser.isPresent()) {
@@ -30,6 +39,7 @@ public class UserService {
             user.setName(name);
             user.setGithubLogin(githubLogin);
             user.setAvatarUrl(avatarUrl);
+            log.info("Updated existing user: {}", email);
             return userRepository.save(user);
         } else {
             AppUser newUser = new AppUser();
@@ -38,6 +48,7 @@ public class UserService {
             newUser.setGithubLogin(githubLogin);
             newUser.setAvatarUrl(avatarUrl);
             newUser.setRole(UserRole.RESIDENT);
+            log.info("Created new user: {} with role RESIDENT", email);
             return userRepository.save(newUser);
         }
     }
