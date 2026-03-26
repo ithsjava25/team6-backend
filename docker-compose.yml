@@ -21,9 +21,6 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - minio_data:/data
 
 volumes:
   postgres_data:
-  minio_data:
