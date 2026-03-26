@@ -4,7 +4,7 @@ public enum IncidentStatus {
     OPEN("Open", "Incident has been reported"),
     IN_PROGRESS("In Progress", "Work is ongoing"),
     RESOLVED("Resolved", "Issue has been fixed"),
-    CLOSED("Closes", "Incident is closed");
+    CLOSED("Closed", "Incident is closed");
 
     private final String displayName;
     private final String description;
