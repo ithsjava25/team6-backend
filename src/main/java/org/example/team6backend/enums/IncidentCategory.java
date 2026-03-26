@@ -2,7 +2,7 @@ package org.example.team6backend.enums;
 
 public enum IncidentCategory {
     LAUNDRY_ROOM("Laundry Room"),
-    NOICE_DISTURBANCE("Noice Disturbance"),
+    NOISE_DISTURBANCE("Noise Disturbance"),
     DAMAGE("Damage"),
     OTHER("Other");
 
