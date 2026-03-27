@@ -6,15 +6,17 @@ import org.example.team6backend.entity.AppUser;
 import org.example.team6backend.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    @GetMapping("/api/me")
-    public UserResponse me(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    @GetMapping("/me")
+    public UserResponse getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         AppUser user = userDetails.getUser();
         return UserResponse.fromEntity(user);
     }
