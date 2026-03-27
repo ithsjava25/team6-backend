@@ -28,8 +28,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
     Page<AppUser> findByRole(UserRole role, Pageable pageable);
 
     @Query("SELECT u FROM AppUser u WHERE " +
-            "(:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
-            "(:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+            "(:email IS NULL OR LOWER(CAST(u.email AS string)) LIKE LOWER(CONCAT('%', CAST(:email AS string), '%'))) AND " +
+            "(:name IS NULL OR LOWER(CAST(u.name AS string)) LIKE LOWER(CONCAT('%', CAST(:name AS string), '%'))) AND " +
             "(:role IS NULL OR u.role = :role) AND " +
             "(:active IS NULL OR u.active = :active)")
     Page<AppUser> findAllWithFilters(@Param("email") String email,
@@ -39,8 +39,9 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
                                      Pageable pageable);
 
     @Query("SELECT u FROM AppUser u WHERE " +
-            "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(u.githubLogin) LIKE LOWER(CONCAT('%', :search, '%'))")
+            "(:search IS NULL OR " +
+            "LOWER(CAST(u.email AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
+            "LOWER(CAST(u.name AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
+            "LOWER(CAST(u.githubLogin AS string)) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))")
     Page<AppUser> searchUsers(@Param("search") String search, Pageable pageable);
 }

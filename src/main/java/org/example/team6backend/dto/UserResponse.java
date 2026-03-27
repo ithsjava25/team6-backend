@@ -1,6 +1,5 @@
 package org.example.team6backend.dto;
 
-import jakarta.annotation.Nullable;
 import lombok.Data;
 import org.example.team6backend.entity.AppUser;
 import org.example.team6backend.entity.UserRole;
@@ -15,8 +14,7 @@ public class UserResponse {
     private String avatarUrl;
     private boolean active;
 
-    public static @Nullable UserResponse fromEntity(@Nullable AppUser user) {
-        if (user == null) {return null;}
+    public static UserResponse fromEntity(AppUser user) {
 
         UserResponse response = new UserResponse();
         response.setId(user.getId());
