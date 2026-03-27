@@ -1,8 +1,8 @@
-package org.example.team6backend.dto;
+package org.example.team6backend.user.dto;
 
 import lombok.Data;
-import org.example.team6backend.entity.AppUser;
-import org.example.team6backend.entity.UserRole;
+import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.entity.UserRole;
 
 @Data
 public class UserResponse {

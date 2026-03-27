@@ -1,4 +1,4 @@
-package org.example.team6backend.entity;
+package org.example.team6backend.user.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

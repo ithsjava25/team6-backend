@@ -1,7 +1,7 @@
-package org.example.team6backend.repository;
+package org.example.team6backend.user.repository;
 
-import org.example.team6backend.entity.AppUser;
-import org.example.team6backend.entity.UserRole;
+import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.entity.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package org.example.team6backend.entity;
+package org.example.team6backend.incident.entity;
 
 public enum IncidentCategory {
     LAUNDRY_ROOM("Laundry Room"),

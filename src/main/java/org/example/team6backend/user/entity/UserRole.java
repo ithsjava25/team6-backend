@@ -1,4 +1,4 @@
-package org.example.team6backend.entity;
+package org.example.team6backend.user.entity;
 
 public enum UserRole {
     PENDING("Pending", "Awaiting approval, cannot access system"),

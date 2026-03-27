@@ -1,8 +1,8 @@
-package org.example.team6backend.controller;
+package org.example.team6backend.user.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.team6backend.dto.UserResponse;
-import org.example.team6backend.entity.AppUser;
+import org.example.team6backend.user.dto.UserResponse;
+import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
