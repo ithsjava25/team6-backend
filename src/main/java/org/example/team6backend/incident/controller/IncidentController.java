@@ -1,5 +1,6 @@
 package org.example.team6backend.incident.controller;
 
+import jakarta.validation.Valid;
 import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.dto.IncidentResponse;
 import org.example.team6backend.incident.entity.Incident;
@@ -19,7 +20,7 @@ public class IncidentController {
     }
 
     @PostMapping
-    public IncidentResponse createIncident(@RequestBody IncidentRequest incidentRequest) {
+    public IncidentResponse createIncident(@Valid @RequestBody IncidentRequest incidentRequest) {
         Incident incident = new Incident();
         incident.setSubject(incidentRequest.getSubject());
         incident.setDescription(incidentRequest.getDescription());
