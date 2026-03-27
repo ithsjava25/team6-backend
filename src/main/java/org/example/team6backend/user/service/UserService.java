@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
 import org.example.team6backend.user.repository.AppUserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,5 +75,28 @@ public class UserService {
         user.setRole(newRole);
         log.info("Updated role for user {} to {}", userId, newRole);
         return userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppUser> getAllUsersPaginated(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppUser> getUsersByRolePaginated(UserRole role, Pageable pageable) {
+        return userRepository.findByRole(role, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppUser> getUsersWithFilters(String email, String name, UserRole role, Boolean active, Pageable pageable) {
+        return userRepository.findAllWithFilters(email, name, role, active, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppUser> searchUsers(String search, Pageable pageable) {
+        if (search == null || search.trim().isEmpty()) {
+            return userRepository.findAll(pageable);
+        }
+        return userRepository.searchUsers(search.trim(), pageable);
     }
 }

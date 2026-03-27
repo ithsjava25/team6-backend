@@ -15,6 +15,7 @@ public class UserResponse {
     private boolean active;
 
     public static UserResponse fromEntity(AppUser user) {
+
         UserResponse response = new UserResponse();
         response.setId(user.getId());
         response.setEmail(user.getEmail());
