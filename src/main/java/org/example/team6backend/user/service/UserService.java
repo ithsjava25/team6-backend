@@ -1,10 +1,10 @@
-package org.example.team6backend.service;
+package org.example.team6backend.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.team6backend.entity.AppUser;
-import org.example.team6backend.entity.UserRole;
-import org.example.team6backend.repository.AppUserRepository;
+import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.entity.UserRole;
+import org.example.team6backend.user.repository.AppUserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

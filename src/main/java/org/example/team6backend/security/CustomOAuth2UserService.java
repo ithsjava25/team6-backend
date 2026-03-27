@@ -2,8 +2,8 @@ package org.example.team6backend.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.team6backend.entity.AppUser;
-import org.example.team6backend.service.UserService;
+import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.service.UserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;

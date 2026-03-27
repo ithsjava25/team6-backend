@@ -1,6 +1,6 @@
 package org.example.team6backend.security;
 
-import org.example.team6backend.entity.AppUser;
+import org.example.team6backend.user.entity.AppUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 

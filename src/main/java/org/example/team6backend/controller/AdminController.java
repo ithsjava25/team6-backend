@@ -1,10 +1,10 @@
 package org.example.team6backend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.team6backend.dto.UserResponse;
-import org.example.team6backend.entity.AppUser;
-import org.example.team6backend.entity.UserRole;
-import org.example.team6backend.service.UserService;
+import org.example.team6backend.user.dto.UserResponse;
+import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.entity.UserRole;
+import org.example.team6backend.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
