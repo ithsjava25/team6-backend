@@ -1,4 +1,4 @@
-package org.example.team6backend.controller;
+package org.example.team6backend.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.example.team6backend.user.dto.UserResponse;
