@@ -1,4 +1,4 @@
-package org.example.team6backend.controller;
+package org.example.team6backend.test;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
