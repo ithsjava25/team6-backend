@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS comment (
     message TEXT NOT NULL,
     incident_id BIGINT NOT NULL REFERENCES incident(id),
     user_id VARCHAR(255) NOT NULL REFERENCES app_user(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_comment_incident_id ON comment(incident_id);
