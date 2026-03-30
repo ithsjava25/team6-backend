@@ -5,6 +5,8 @@ import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.entity.IncidentStatus;
 import org.example.team6backend.incident.repository.IncidentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -34,15 +36,24 @@ public class IncidentService {
         return incidentRepository.save(incident);
     }
 
-    public List<Incident> findByCreatedBy(AppUser user){
-        return incidentRepository.findByCreatedBy(user);
+    //Find all incidents (Admin)
+    public Page <Incident> findAll(Pageable pageable){
+        return incidentRepository.findAll(pageable);
     }
 
-    public List<Incident> findByAssignedTo(AppUser user){
-        return incidentRepository.findByAssignedTo(user);
+    //Find your own incidents (user)
+    public Page<Incident> findByCreatedBy(Pageable pageable){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        AppUser user = userDetails.getUser();
+        return incidentRepository.findByCreatedBy(user, pageable);
     }
 
-    public List <Incident> findAll(){
-        return incidentRepository.findAll();
+    //Find assigned incidents per HANDLER
+    public Page<Incident> findByAssignedTo(Pageable pageable){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        AppUser user = userDetails.getUser();
+        return incidentRepository.findByAssignedTo(user, pageable);
     }
 }

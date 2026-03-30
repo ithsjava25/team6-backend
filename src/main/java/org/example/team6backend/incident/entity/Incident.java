@@ -14,22 +14,31 @@ public class Incident {
     private String subject;
     private String description;
 
+    @Column(name = "incident_category")
     @Enumerated(EnumType.STRING)
     private IncidentCategory incidentCategory;
 
+    @Column(name = "incident_status")
     @Enumerated(EnumType.STRING)
     private IncidentStatus incidentStatus;
 
     @ManyToOne
+    @JoinColumn(name = "created_by_id")
     private AppUser createdBy;
 
     @ManyToOne
+    @JoinColumn(name = "modified_by_id")
     private AppUser modifiedBy;
 
     @ManyToOne
+    @JoinColumn(name = "assigned_to_id")
     private AppUser assignedTo;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public Long getId() {
         return id;
@@ -67,6 +76,10 @@ public class Incident {
         return createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -101,5 +114,9 @@ public class Incident {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
