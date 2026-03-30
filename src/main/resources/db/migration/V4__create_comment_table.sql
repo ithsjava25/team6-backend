@@ -14,4 +14,4 @@ COMMENT ON COLUMN comment.id IS 'Unike comment ID (UUID)';
 COMMENT ON COLUMN comment.message IS 'Comment text';
 COMMENT ON COLUMN comment.incident_id IS 'Incident this comment belongs to';
 COMMENT ON COLUMN comment.user_id IS 'User who wrote the comment';
-COMMENT ON COLUMN comment.create_at IS 'When the comment was created';
+COMMENT ON COLUMN comment.created_at IS 'When the comment was created';
