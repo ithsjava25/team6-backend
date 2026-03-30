@@ -5,9 +5,11 @@ import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.dto.IncidentResponse;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/incidents")
@@ -19,6 +21,7 @@ public class IncidentController {
         this.incidentService = incidentService;
     }
 
+    /**Create new incident*/
     @PostMapping
     public IncidentResponse createIncident(@Valid @RequestBody IncidentRequest incidentRequest) {
         Incident incident = new Incident();
@@ -30,11 +33,25 @@ public class IncidentController {
         return IncidentResponse.fromEntity(saved);
     }
 
-    @GetMapping
-    public List<IncidentResponse> getAllIncidents() {
-        return incidentService.findAll()
-                .stream()
-                .map(IncidentResponse::fromEntity)
-                .toList();
+    /**Get my incidents(user)*/
+    @PreAuthorize("hasRole('RESIDENT')")
+    @GetMapping ("/myincident")
+    public Page<IncidentResponse> getMyIncidents(Pageable pageable){
+        return incidentService.findByCreatedBy(pageable)
+                .map(IncidentResponse::fromEntity);
+    }
+
+    @PreAuthorize("hasRole('HANDLER')")
+    @GetMapping ("/assigned")
+    public Page<IncidentResponse> getAssignedIncidents(Pageable pageable){
+        return incidentService.findByAssignedTo(pageable)
+                .map(IncidentResponse::fromEntity);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public Page<IncidentResponse> getAllIncidents(Pageable pageable) {
+        return incidentService.findAll(pageable)
+                .map(IncidentResponse::fromEntity);
     }
 }

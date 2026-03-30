@@ -5,6 +5,10 @@ import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.entity.IncidentStatus;
 import org.example.team6backend.incident.repository.IncidentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,28 +25,52 @@ public class IncidentService {
         this.incidentRepository = incidentRepository;
     }
 
+    /**Help-method for sorting**/
+    private Pageable withDefaultSort(Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getSort().isSorted()) {
+            return pageable;
+        }
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "id")
+        );
+    }
+
+    /**Create incident**/
     public Incident createIncident(Incident incident){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         AppUser appUser = userDetails.getUser();
 
         incident.setCreatedBy(appUser);
-
         incident.setIncidentStatus(IncidentStatus.OPEN);
         incident.setCreatedAt(LocalDateTime.now());
+        incident.setUpdatedAt(LocalDateTime.now());
 
         return incidentRepository.save(incident);
     }
 
-    public List<Incident> findByCreatedBy(AppUser user){
-        return incidentRepository.findByCreatedBy(user);
+    /**Find all incidents (Admin)**/
+    public Page <Incident> findAll(Pageable pageable){
+        return incidentRepository.findAll(withDefaultSort(pageable));
     }
 
-    public List<Incident> findByAssignedTo(AppUser user){
-        return incidentRepository.findByAssignedTo(user);
+    /**Find your own incidents (user)**/
+    public Page<Incident> findByCreatedBy(Pageable pageable){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        AppUser user = userDetails.getUser();
+
+        return incidentRepository.findByCreatedBy(user, withDefaultSort(pageable));
     }
 
-    public List <Incident> findAll(){
-        return incidentRepository.findAll();
+    /**Find assigned incidents per HANDLER**/
+    public Page<Incident> findByAssignedTo(Pageable pageable){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        AppUser user = userDetails.getUser();
+
+        return incidentRepository.findByAssignedTo(user, withDefaultSort (pageable));
     }
 }
