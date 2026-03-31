@@ -1,5 +1,4 @@
 package org.example.team6backend.exception;
-
 import java.time.LocalDateTime;
 
 public class ErrorResponse {
