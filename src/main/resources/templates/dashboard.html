@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Incident Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            color: #ffffff;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .role-badge.admin {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .role-badge.handler {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+        }
+
+        .role-badge.resident {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .role-badge.pending {
+            background: #6b7280;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #6b7280;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-card h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .welcome-card p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #2a2a2a;
+            transform: translateY(-2px);
+        }
+
+        .stat-title {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .incidents-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pending-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .pending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .pending-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem;
+            background: #0f0f0f;
+            border-radius: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .pending-item:hover {
+            background: #1a1a1a;
+        }
+
+        .pending-name {
+            font-weight: 500;
+        }
+
+        .pending-email {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .incident-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .incident-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem;
+            background: #0f0f0f;
+            border-radius: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .incident-item:hover {
+            background: #1a1a1a;
+        }
+
+        .incident-title {
+            font-weight: 500;
+        }
+
+        .incident-date {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .incident-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .status-OPEN {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-IN_PROGRESS {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .status-RESOLVED {
+            background: #d1fae5;
+            color: #10b981;
+        }
+
+        .status-CLOSED {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-handler {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            color: white;
+        }
+
+        .btn-handler:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: white;
+        }
+
+        .btn-admin:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+        }
+
+        .btn-outline:hover {
+            background: #1a1a1a;
+            border-color: #3b82f6;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        <a href="/">Incident Management System</a>
+    </div>
+    <div class="nav-links">
+        <a href="/dashboard">Home</a>
+        <a th:if="${role != 'PENDING'}" href="/incidents">Incidents</a>
+        <a href="/profile">Profile</a>
+        <div th:if="${role == 'ADMIN'}">
+            <a href="/admin">Admin</a>
+        </div>
+        <div class="user-info">
+            <span class="user-name" th:text="${user.name != null ? user.name : user.githubLogin}">User</span>
+            <span class="role-badge" th:classappend="${role.toLowerCase()}" th:text="${role}">-</span>
+            <button class="logout-btn" onclick="logout()">Sign out</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="welcome-card">
+        <h1 th:text="'Welcome, ' + (${user.name != null ? user.name : user.githubLogin}) + '!'">Welcome!</h1>
+    </div>
+
+    <div id="statsContainer" th:if="${role != 'PENDING'}">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-title">Total Incidents</div>
+                <div class="stat-number" id="totalIncidents">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Open</div>
+                <div class="stat-number" id="openIncidents">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Resolved</div>
+                <div class="stat-number" id="resolvedIncidents">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pending-card" th:if="${role == 'ADMIN'}" id="pendingUsersCard">
+        <div class="card-header">
+            <h3>Pending Users Approval</h3>
+            <a href="/admin" class="btn btn-outline btn-sm">Manage all →</a>
+        </div>
+        <div id="pendingUsersList" class="pending-list">
+            <p style="text-align: center; color: #6b7280;">Loading pending users...</p>
+        </div>
+    </div>
+
+    <div class="incidents-card" th:if="${role != 'PENDING'}">
+        <div class="card-header">
+            <h3>Recent incidents</h3>
+            <a href="/incidents" class="btn btn-outline">View all →</a>
+        </div>
+        <div id="incidentsList" class="incident-list">
+            <p style="text-align: center; color: #6b7280;">Loading incidents...</p>
+        </div>
+        <div id="actionButtons" class="action-buttons">
+            <a th:if="${role == 'RESIDENT'}" href="/incidents?action=create" class="btn btn-primary">Create new incident</a>
+            <a th:if="${role == 'HANDLER'}" href="/incidents" class="btn btn-handler">Manage incidents</a>
+            <a th:if="${role == 'ADMIN'}" href="/admin" class="btn btn-admin">Go to Admin Panel</a>
+        </div>
+    </div>
+
+    <div th:if="${role == 'PENDING'}">
+        <div class="pending-card">
+            <h3>Account pending approval</h3>
+            <p>Your account is waiting for admin approval. You will be notified when your account is activated.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const userRole = /*[[${role}]]*/ 'RESIDENT';
+
+    async function loadIncidents() {
+        if (userRole === 'PENDING') return;
+
+        let url = '';
+        if (userRole === 'RESIDENT') {
+            url = '/api/incidents/my?size=5&sort=createdAt,desc';
+        } else if (userRole === 'HANDLER') {
+            url = '/api/incidents/assigned?size=5&sort=createdAt,desc';
+        } else if (userRole === 'ADMIN') {
+            url = '/api/incidents/all?size=5&sort=createdAt,desc';
+        } else {
+            return;
+        }
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const incidents = data.content || [];
+
+            document.getElementById('totalIncidents').textContent = data.totalElements || 0;
+            document.getElementById('openIncidents').textContent = incidents.filter(i => i.incidentStatus === 'OPEN').length;
+            document.getElementById('resolvedIncidents').textContent = incidents.filter(i => i.incidentStatus === 'RESOLVED' || i.incidentStatus === 'CLOSED').length;
+
+            if (userRole === 'ADMIN') {
+                const pendingResponse = await fetch('/api/admin/users?page=0&size=1&role=PENDING');
+                const pendingData = await pendingResponse.json();
+                const pendingCount = pendingData.totalElements || 0;
+
+                const statsGrid = document.getElementById('statsGrid');
+                const pendingCard = document.createElement('div');
+                pendingCard.className = 'stat-card';
+                pendingCard.innerHTML = `
+                        <div class="stat-title">Pending Approval</div>
+                        <div class="stat-number">${pendingCount}</div>
+                    `;
+                statsGrid.appendChild(pendingCard);
+            }
+
+            const container = document.getElementById('incidentsList');
+            if (incidents.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6b7280;">No incidents yet.</p>';
+            } else {
+                container.innerHTML = incidents.map(i => `
+                        <div class="incident-item">
+                            <div>
+                                <div class="incident-title">${escapeHtml(i.subject)}</div>
+                                <div class="incident-date">${new Date(i.createdAt).toLocaleDateString()}</div>
+                            </div>
+                            <span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span>
+                        </div>
+                    `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading incidents:', error);
+        }
+    }
+
+    async function loadPendingUsers() {
+        if (userRole !== 'ADMIN') return;
+
+        try {
+            const response = await fetch('/api/admin/users?page=0&size=5&role=PENDING');
+            const data = await response.json();
+            const pendingUsers = data.content || [];
+
+            const container = document.getElementById('pendingUsersList');
+            if (pendingUsers.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6b7280;">No pending users.</p>';
+            } else {
+                container.innerHTML = pendingUsers.map(user => `
+                        <div class="pending-item">
+                            <div>
+                                <div class="pending-name">${escapeHtml(user.name || user.githubLogin || user.email)}</div>
+                                <div class="pending-email">${escapeHtml(user.email)}</div>
+                            </div>
+                            <button class="btn btn-sm" style="background: #10b981; border: none;" onclick="approveUser('${user.id}')">Approve</button>
+                        </div>
+                    `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading pending users:', error);
+            document.getElementById('pendingUsersList').innerHTML = '<p style="text-align: center; color: #6b7280;">Could not load pending users.</p>';
+        }
+    }
+
+    async function approveUser(userId) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/role?role=RESIDENT`, {
+                method: 'PATCH'
+            });
+            if (response.ok) {
+                loadPendingUsers();
+                const statsGrid = document.getElementById('statsGrid');
+                const pendingStat = statsGrid.querySelector('.stat-card:last-child .stat-number');
+                if (pendingStat) {
+                    const newCount = parseInt(pendingStat.textContent) - 1;
+                    pendingStat.textContent = newCount;
+                }
+            } else {
+                alert('Could not approve user');
+            }
+        } catch (error) {
+            alert('Error approving user');
+        }
+    }
+
+    async function logout() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadIncidents();
+        loadPendingUsers();
+    });
+</script>
+</body>
+</html>
