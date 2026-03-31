@@ -24,6 +24,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
+                                "/index",
+                                "/dashboard",
+                                "/incidents",
+                                "/admin",
+                                "/profile",
                                 "/error",
                                 "/login/**",
                                 "/oauth2/**"
@@ -40,6 +45,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
+                        .defaultSuccessUrl("/dashboard", true)
                 )
 
                 .logout(logout -> logout
@@ -50,7 +56,6 @@ public class SecurityConfig {
                 )
 
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 );
 
