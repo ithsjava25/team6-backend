@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .hero {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .hero-container {
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            width: 100%;
+            padding: 0.875rem;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #e6e6e6;
+            transform: scale(1.02);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+        }
+
+        .btn-outline:hover {
+            background: #1a1a1a;
+            border-color: #ffffff;
+        }
+
+        .github-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #2a2a2a;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .divider span {
+            margin: 0 1rem;
+            font-size: 0.75rem;
+        }
+
+        .demo-note {
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: #4a4a4a;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #2a2a2a;
+            font-size: 0.75rem;
+            border-top: 1px solid #1a1a1a;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        <a href="/">Incident Management System</a>
+    </div>
+</nav>
+
+<main class="hero">
+    <div class="hero-container">
+        <p>Track, manage and resolve housing-related issues</p>
+
+        <a href="/oauth2/authorization/github" class="btn">
+            <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            Sign in with GitHub
+        </a>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <a href="/demo" class="btn btn-outline">
+            Try demo mode
+        </a>
+        <div class="demo-note">
+            Test the system as resident, handler, or admin.
+        </div>
+    </div>
+</main>
+
+<footer class="footer">
+    <div>&copy; 2026 Incident Manager</div>
+</footer>
+</body>
+</html>
