@@ -3,7 +3,6 @@ package org.example.team6backend.comment.controller;
 import jakarta.validation.Valid;
 import org.example.team6backend.comment.dto.CommentRequest;
 import org.example.team6backend.comment.entity.Comment;
-import org.example.team6backend.comment.repository.CommentRepository;
 import org.example.team6backend.comment.service.CommentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
