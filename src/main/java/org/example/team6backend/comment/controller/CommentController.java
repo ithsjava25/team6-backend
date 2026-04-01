@@ -1,5 +1,6 @@
 package org.example.team6backend.comment.controller;
 
+import jakarta.validation.Valid;
 import org.example.team6backend.comment.dto.CommentRequest;
 import org.example.team6backend.comment.entity.Comment;
 import org.example.team6backend.comment.repository.CommentRepository;
@@ -26,7 +27,7 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<Comment> createComment(@RequestBody CommentRequest request) {
+    public ResponseEntity<Comment> createComment(@Valid @RequestBody CommentRequest request) {
         Comment saveComment = commentService.createComment(
                 request.getIncidentId(),
                 request.getUserId(),

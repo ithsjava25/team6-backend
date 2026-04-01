@@ -1,9 +1,15 @@
 package org.example.team6backend.comment.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public class CommentRequest {
 
+    @NotNull
     private Long incidentId;
+    @NotBlank
     private String userId;
+    @NotBlank
     private String message;
 
     public Long getIncidentId() {
