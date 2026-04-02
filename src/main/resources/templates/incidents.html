@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active incidents</title>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, Roboto;
+            background: #000;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .incident-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+
+        .incident-card:hover {
+            border-color: #2a2a2a;
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .incident-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .incident-category {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        .incident-description {
+            margin-top: 0.75rem;
+            color: #d1d5db;
+            font-size: 0.9rem;
+        }
+
+        .incident-footer {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid #2a2a2a;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            border-color: #10b981;
+            color: #10b981;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h2 id="title">Active incidents</h2>
+    <div id="incidents"></div>
+</div>
+
+<script>
+    const role = "[[${role}]]}";
+</script>
+
+<script>
+    async function loadIncidents() {
+
+        let url = "";
+
+        if (role == "ADMIN") {
+            url = "/api/incidents/admin";
+        } else if (role == "HANDLER") {
+            url = "/api/incidents/assigned";
+        } else if (role == "RESIDENT") {
+            url = "/api/incidents/myincident";
+        } else {
+            console.error("Unknown role:", role)
+            return;
+        }
+
+        const title = document.getElementById("title");
+
+        if (role == "ADMIN") {
+            title.textContent = "All Incidents";
+        } else if (role == "HANDLER") {
+            title.textContent = "Assigned Incidents";
+        } else {
+            title.textContent = "My Incidents"
+        }
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch incidents!");
+            }
+
+            const data = await response.json();
+
+            const list = document.getElementById("incidents");
+            list.innerHTML = "";
+
+            data.content.forEach(incident => {
+                const card = document.createElement("div");
+                card.className = "incident-card";
+
+                card.innerHTML = `
+                <div class="incident-header">
+                    <div class="incident-title">${incident.subject}</div>
+                    <div class="incident-category">${incident.incidentCategory}</div>
+                </div>
+
+                <div class="incident-description">
+                    ${incident.description || "No description"}
+                </div>
+
+                <div class="incident-footer">
+                    <span>ID: ${incident.id}</span>
+                    <button class="btn" onclick="editIncident(${incident.id})">Edit</button>
+                </div>
+            `;
+
+                list.appendChild(card);
+            });
+        } catch (error) {
+            console.error(error);
+            document.getElementById("incidents").innerHTML = "<p>Failed to load incidents.</p>";
+        }
+    }
+
+    function editIncident(id) {
+        alert("Edit incident " + id);
+    }
+
+    loadIncidents();
+
+</script>
+
+</body>
+</html>
