@@ -76,6 +76,7 @@
             background: transparent;
             color: #9ca3af;
             cursor: pointer;
+            transition: 0.2s;
         }
         .btn:hover {
             border-color: #10b981;
@@ -83,25 +84,60 @@
         }
     </style>
 </head>
+
 <body>
 <div class="container">
-    <h2>Active incidents</h2>
+    <h2 id="title">Active incidents</h2>
     <div id="incidents"></div>
 </div>
 
 <script>
+    const role = "[[${role}]]}";
+</script>
+
+<script>
     async function loadIncidents() {
-        const response = await fetch("/api/incidents");
-        const data = await response.json();
 
-        const list = document.getElementById("incidents");
-        list.innerHTML = "";
+        let url = "";
 
-        data.content.forEach(incident => {
-            const card = document.createElement("div");
-            card.className = "incident-card";
+        if (role == "ADMIN") {
+            url = "/api/incidents/admin";
+        } else if (role == "HANDLER") {
+            url = "/api/incidents/assigned";
+        } else if (role == "RESIDENT") {
+            url = "/api/incidents/myincident";
+        } else {
+            console.error("Unknown role:", role)
+            return;
+        }
 
-            card.innerHTML = `
+        const title = document.getElementById("title");
+
+        if (role == "ADMIN") {
+            title.textContent = "All Incidents";
+        } else if (role == "HANDLER") {
+            title.textContent = "Assigned Incidents";
+        } else {
+            title.textContent = "My Incidents"
+        }
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch incidents!");
+            }
+
+            const data = await response.json();
+
+            const list = document.getElementById("incidents");
+            list.innerHTML = "";
+
+            data.content.forEach(incident => {
+                const card = document.createElement("div");
+                card.className = "incident-card";
+
+                card.innerHTML = `
                 <div class="incident-header">
                     <div class="incident-title">${incident.subject}</div>
                     <div class="incident-category">${incident.incidentCategory}</div>
@@ -117,10 +153,20 @@
                 </div>
             `;
 
-            list.appendChild(card);
-        });
+                list.appendChild(card);
+            });
+        } catch (error) {
+            console.error(error);
+            document.getElementById("incidents").innerHTML = "<p>Failed to load incidents.</p>";
+        }
     }
+
+    function editIncident(id) {
+        alert("Edit incident " + id);
+    }
+
     loadIncidents();
+
 </script>
 
 </body>

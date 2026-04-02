@@ -73,14 +73,14 @@
             <label for="subject">Subject:</label>
             <input type="text" id="subject" name="subject" required />
 
-            <label for="-description">Description</label>
-            <textarea id="-description" name="description"></textarea>
+            <label for="description">Description</label>
+            <textarea id="description" name="description"></textarea>
 
             <label for="category">Category:</label>
             <select id="category" name="incidentCategory" required>
                 <option value="OTHER">Other</option>
-                <option value="LAUNDRY ROOM">Laundry room</option>
-                <option value="NOISE DISTURBANCE">Noise Disturbance</option>
+                <option value="LAUNDRY_ROOM">Laundry room</option>
+                <option value="NOISE_DISTURBANCE">Noise Disturbance</option>
                 <option value="DAMAGE">Damage</option>
             </select>
 
@@ -101,14 +101,22 @@
             incidentCategory: formData.get("incidentCategory")
         };
 
-        await fetch("/api/incidents", {
+        const response = await fetch("/api/incidents", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(data)
         });
-        alert("Incident created!");
+
+        if (response.ok) {
+            alert("Incident created!");
+            e.target.reset();
+        } else {
+            const errorData = await response.json().catch(() => null);
+            const message = errorData?.message || 'Error: ${response.status}';
+            alert('Failed to create incident: ${message}')
+        }
     });
 </script>
 </body>
