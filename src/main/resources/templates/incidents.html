@@ -85,17 +85,14 @@
     </style>
 </head>
 
-<body>
+<body data-role="[[${role}]]">
 <div class="container">
     <h2 id="title">Active incidents</h2>
     <div id="incidents"></div>
 </div>
 
 <script>
-    const role = "[[${role}]]}";
-</script>
-
-<script>
+    const role = document.body.dataset.role;
     async function loadIncidents() {
 
         let url = "";
@@ -149,7 +146,11 @@
 
                 <div class="incident-footer">
                     <span>ID: ${incident.id}</span>
-                    <button class="btn" onclick="editIncident(${incident.id})">Edit</button>
+                    ${
+                    (role === "ADMIN" || role === "HANDLER")
+                        ? `<button class="btn" onclick="editIncident(${incident.id})">Edit</button>`
+                        : ''
+                }
                 </div>
             `;
 
@@ -168,6 +169,5 @@
     loadIncidents();
 
 </script>
-
 </body>
 </html>
