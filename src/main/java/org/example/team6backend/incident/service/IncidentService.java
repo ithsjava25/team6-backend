@@ -71,6 +71,6 @@ public class IncidentService {
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         AppUser user = userDetails.getUser();
 
-        return incidentRepository.findByAssignedTo(user, withDefaultSort (pageable));
+        return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
     }
 }
