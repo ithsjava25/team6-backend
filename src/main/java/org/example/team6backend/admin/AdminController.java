@@ -2,7 +2,10 @@ package org.example.team6backend.admin;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.admin.dto.UpdateUserRoleRequest;
+import org.example.team6backend.admin.dto.UpdateUserStatusRequest;
+import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.dto.UserResponse;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
@@ -14,18 +17,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Slf4j
 public class AdminController {
 
     private final UserService userService;
@@ -44,18 +45,9 @@ public class AdminController {
         return ResponseEntity.ok(userMapper.toResponsePage(users));
     }
 
-    @GetMapping("/users/role/{role}")
-    public ResponseEntity<Page<UserResponse>> getUsersByRole(
-            @PathVariable UserRole role,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-
-        return ResponseEntity.ok(userMapper.toResponsePage(userService.getUsersByRolePaginated(role, pageable)));
-    }
-
     @GetMapping("/users/pending")
     public ResponseEntity<Page<UserResponse>> getPendingUsers(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-
         return ResponseEntity.ok(
                 userMapper.toResponsePage(userService.getUsersByRolePaginated(UserRole.PENDING, pageable))
         );
@@ -66,13 +58,75 @@ public class AdminController {
         return ResponseEntity.ok(userMapper.toResponse(userService.getUserById(userId)));
     }
 
+    @PostMapping("/users/{userId}/approve")
+    public ResponseEntity<UserResponse> approveUser(@PathVariable String userId) {
+        AppUser approvedUser = userService.approvePendingUser(userId);
+        return ResponseEntity.ok(userMapper.toResponse(approvedUser));
+    }
+
     @PatchMapping("/users/{userId}/role")
     public ResponseEntity<UserResponse> updateUserRole(
             @PathVariable String userId,
-            @Valid @RequestBody UpdateUserRoleRequest request) {
+            @Valid @RequestBody UpdateUserRoleRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+       if (currentUser.getUser().getId().equals(userId)) {
+           throw new IllegalStateException("You cannot change your own role");
+       }
+
+        if (request.role() != UserRole.ADMIN) {
+            AppUser targetUser = userService.getUserById(userId);
+            if (targetUser.getRole() == UserRole.ADMIN) {
+                long adminCount = userService.getAllUsers().stream()
+                        .filter(u -> u.getRole() == UserRole.ADMIN)
+                        .count();
+                if (adminCount <= 1) {
+                    throw new IllegalStateException("Cannot remove the last admin user");
+                }
+            }
+        }
 
         AppUser updatedUser = userService.updateUserRole(userId, request.role());
         return ResponseEntity.ok(userMapper.toResponse(updatedUser));
+    }
+
+    @PatchMapping("/users/{userId}/status")
+    public ResponseEntity<UserResponse> updateUserStatus(
+            @PathVariable String userId,
+            @Valid @RequestBody UpdateUserStatusRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+       if (currentUser.getUser().getId().equals(userId) && !request.active()) {
+           throw new IllegalStateException("You cannot deactivate your own account");
+       }
+
+        AppUser updatedUser = userService.updateUserActiveStatus(userId, request.active());
+        return ResponseEntity.ok(userMapper.toResponse(updatedUser));
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable String userId,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        if (currentUser.getUser().getId().equals(userId)) {
+            throw new IllegalStateException("You cannot delete your own account");
+        }
+
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Long>> getStats() {
+        Map<String, Long> stats = Map.of(
+                "totalUsers", (long) userService.getAllUsers().size(),
+                "pendingUsers", (long) userService.getUsersByRole(UserRole.PENDING).size(),
+                "residents", (long) userService.getUsersByRole(UserRole.RESIDENT).size(),
+                "handlers", (long) userService.getUsersByRole(UserRole.HANDLER).size(),
+                "admins", (long) userService.getUsersByRole(UserRole.ADMIN).size()
+        );
+        return ResponseEntity.ok(stats);
     }
 
     private Page<AppUser> resolveUsers(

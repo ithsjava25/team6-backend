@@ -81,13 +81,51 @@ public class UserService {
     @Transactional
     public AppUser updateUserActiveStatus(String userId, boolean active) {
         AppUser user = getUserById(userId);
-        boolean oldStatus = user.isActive();
 
+        if (!active && user.getRole() == UserRole.ADMIN) {
+            long activeAdminCount = userRepository.countByRoleAndActiveTrue(UserRole.ADMIN);
+            if (activeAdminCount <= 1) {
+                throw new IllegalStateException("Cannot deactivate the last active admin user");
+            }
+        }
+
+        boolean oldStatus = user.isActive();
         user.setActive(active);
         AppUser savedUser = userRepository.save(user);
 
         log.info("Updated active status for userId={} from {} to {}", userId, oldStatus, active);
         return savedUser;
+    }
+
+    @Transactional
+    public AppUser approvePendingUser(String userId) {
+        AppUser user = getUserById(userId);
+
+        if (user.getRole() != UserRole.PENDING) {
+            throw new IllegalStateException("User is not pending approval. Current role: " + user.getRole());
+        }
+
+        user.setRole(UserRole.RESIDENT);
+        user.setActive(true);
+
+        AppUser savedUser = userRepository.save(user);
+        log.info("Approved pending user: userId={}, githubLogin={}", userId, user.getGithubLogin());
+        return savedUser;
+    }
+
+    @Transactional
+    public void deleteUser(String userId) {
+        AppUser user = getUserById(userId);
+
+        if (user.getRole() == UserRole.ADMIN) {
+            long adminCount = userRepository.countByRole(UserRole.ADMIN);
+            if (adminCount <= 1) {
+                throw new IllegalStateException("Cannot delete the last admin user");
+            }
+        }
+
+        userRepository.delete(user);
+        log.info("Deleted user: userId={}, githubLogin={}", userId, user.getGithubLogin());
     }
 
     private AppUser updateExistingUser(AppUser existingUser, OAuthUserInfo oauthUserInfo) {
@@ -99,10 +137,11 @@ public class UserService {
         AppUser savedUser = userRepository.save(existingUser);
 
         log.info(
-                "Updated existing user. userId={}, githubId={}, role={}",
+                "Updated existing user. userId={}, githubId={}, role={}, active={}",
                 savedUser.getId(),
                 savedUser.getGithubId(),
-                savedUser.getRole()
+                savedUser.getRole(),
+                savedUser.isActive()
         );
 
         return savedUser;
