@@ -15,9 +15,17 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
 
     Optional<AppUser> findByGithubId(String githubId);
 
+    Optional<AppUser> findByEmail(String email);
+
     List<AppUser> findByRole(UserRole role);
 
+    long countByRole(UserRole role);
+
+    long countByRoleAndActiveTrue(UserRole role);
+
     Page<AppUser> findByRole(UserRole role, Pageable pageable);
+
+    Page<AppUser> findByActive(boolean active, Pageable pageable);
 
     @Query("""
             SELECT u

@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Incident Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            background: #000000;
+            z-index: 100;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #ffffff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            color: #ffffff;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .role-badge.admin {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #6b7280;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .admin-header {
+            margin-bottom: 2rem;
+        }
+
+        .admin-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-header p {
+            color: #6b7280;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #2a2a2a;
+            transform: translateY(-2px);
+        }
+
+        .stat-title {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #ffffff;
+            background: #1a1a1a;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .filters-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.5rem;
+            padding: 0.625rem 1rem;
+            color: #ffffff;
+            font-size: 0.875rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+
+        .search-box button, .filter-group button {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-box button:hover, .filter-group button:hover {
+            background: #2a2a2a;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-group select {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.5rem;
+            padding: 0.625rem 1rem;
+            color: #ffffff;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .clear-filters {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #6b7280;
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-filters:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .users-table-container {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            text-align: left;
+            padding: 1rem;
+            background: #0f0f0f;
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            vertical-align: middle;
+        }
+
+        .users-table tr:hover {
+            background: #0f0f0f;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .role-badge-small {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .role-badge-small.PENDING { background: #6b7280; color: white; }
+        .role-badge-small.RESIDENT { background: #10b981; color: white; }
+        .role-badge-small.HANDLER { background: #f97316; color: white; }
+        .role-badge-small.ADMIN { background: #ef4444; color: white; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-badge.inactive {
+            background: #6b7280;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .action-btn.approve {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn.approve:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .action-btn.role {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .action-btn.role:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .action-btn.status {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .action-btn.status:hover {
+            background: #d97706;
+            transform: scale(1.05);
+        }
+
+        .action-btn.delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .action-btn.delete:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .modal-content .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .modal-content select {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.5rem;
+            padding: 0.625rem;
+            color: #ffffff;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 0.625rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .modal-buttons .save-btn {
+            background: #10b981;
+            border: none;
+            color: white;
+        }
+
+        .modal-buttons .cancel-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+        }
+
+        .pagination-container {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pagination-btn {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #1a1a1a;
+            border-color: #10b981;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .pagination-info {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-size-selector label {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .page-size-selector select {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background: #1a1a1a;
+            border-left: 4px solid;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .filters-bar {
+                flex-direction: column;
+            }
+            .search-box {
+                width: 100%;
+            }
+            .filter-group {
+                width: 100%;
+            }
+            .filter-group select {
+                flex: 1;
+            }
+            .users-table th, .users-table td {
+                padding: 0.75rem;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .action-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .pagination-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">
+        <a href="/">Incident Management System</a>
+    </div>
+    <div class="nav-links">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/incidents">Incidents</a>
+        <a href="/profile">Profile</a>
+        <a href="/admin" class="active">Admin</a>
+        <div class="user-info">
+            <span class="user-name" th:text="${user.name != null ? user.name : user.githubLogin}">User</span>
+            <span class="role-badge admin" th:text="${role}">ADMIN</span>
+            <button class="logout-btn" onclick="logout()">Sign out</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="admin-header">
+        <h1>Admin Panel</h1>
+        <p>Manage user roles and access</p>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+            <div class="stat-title">Total Users</div>
+            <div class="stat-number" id="totalUsers">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Pending Approval</div>
+            <div class="stat-number" id="pendingUsers">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Residents</div>
+            <div class="stat-number" id="residentCount">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Handlers</div>
+            <div class="stat-number" id="handlerCount">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Admins</div>
+            <div class="stat-number" id="adminCount">-</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="all">All Users</button>
+        <button class="tab-btn" data-tab="pending">Pending Approval</button>
+        <button class="tab-btn" data-tab="residents">Residents</button>
+        <button class="tab-btn" data-tab="handlers">Handlers</button>
+        <button class="tab-btn" data-tab="admins">Admins</button>
+    </div>
+
+    <div class="filters-bar">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by name, email, or GitHub username...">
+            <button onclick="searchUsers()">Search</button>
+        </div>
+        <div class="filter-group">
+            <select id="statusFilter">
+                <option value="">All Status</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
+        </div>
+        <button class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <div class="users-table-container">
+        <table class="users-table">
+            <thead>
+            <tr>
+                <th>User</th>
+                <th>Email / GitHub</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="usersTableBody">
+            <tr><td colspan="6" class="loading">Loading users...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-container">
+        <div class="pagination-info" id="paginationInfo">
+            Showing 0-0 of 0 users
+        </div>
+        <div class="pagination-controls" id="paginationControls">
+        </div>
+        <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select id="pageSizeSelect" onchange="changePageSize()">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div id="roleModal" class="modal">
+    <div class="modal-content">
+        <h3>Change User Role</h3>
+        <div class="form-group">
+            <label>New Role</label>
+            <select id="newRoleSelect">
+                <option value="RESIDENT">Resident</option>
+                <option value="HANDLER">Handler</option>
+                <option value="ADMIN">Admin</option>
+            </select>
+        </div>
+        <div class="modal-buttons">
+            <button class="save-btn" onclick="saveRoleChange()">Save</button>
+            <button class="cancel-btn" onclick="closeRoleModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="statusModal" class="modal">
+    <div class="modal-content">
+        <h3>Change User Status</h3>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="newStatusSelect">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
+        </div>
+        <div class="modal-buttons">
+            <button class="save-btn" onclick="saveStatusChange()">Save</button>
+            <button class="cancel-btn" onclick="closeStatusModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPage = 0;
+    let currentTab = 'all';
+    let currentSearch = '';
+    let currentStatus = '';
+    let totalPages = 0;
+    let totalElements = 0;
+    let pageSize = 20;
+    let selectedUserId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        loadUsers();
+
+        const savedPageSize = localStorage.getItem('adminPageSize');
+        if (savedPageSize) {
+            pageSize = parseInt(savedPageSize);
+            document.getElementById('pageSizeSelect').value = pageSize;
+        }
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentTab = btn.dataset.tab;
+            currentPage = 0;
+            loadUsers();
+        });
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchUsers();
+    });
+
+    document.getElementById('statusFilter').addEventListener('change', (e) => {
+        currentStatus = e.target.value;
+        currentPage = 0;
+        loadUsers();
+    });
+
+    function searchUsers() {
+        currentSearch = document.getElementById('searchInput').value;
+        currentPage = 0;
+        loadUsers();
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        currentSearch = '';
+        currentStatus = '';
+        currentPage = 0;
+        loadUsers();
+    }
+
+    function changePageSize() {
+        pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+        localStorage.setItem('adminPageSize', pageSize);
+        currentPage = 0;
+        loadUsers();
+    }
+
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/admin/stats');
+            const stats = await response.json();
+
+            document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+            document.getElementById('pendingUsers').textContent = stats.pendingUsers || 0;
+            document.getElementById('residentCount').textContent = stats.residents || 0;
+            document.getElementById('handlerCount').textContent = stats.handlers || 0;
+            document.getElementById('adminCount').textContent = stats.admins || 0;
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    async function loadUsers() {
+        let url = '/api/admin/users?page=' + currentPage + '&size=' + pageSize;
+
+        if (currentTab !== 'all') {
+            let role = currentTab.toUpperCase();
+            if (role === 'PENDING') role = 'PENDING';
+            else if (role === 'RESIDENTS') role = 'RESIDENT';
+            else if (role === 'HANDLERS') role = 'HANDLER';
+            else if (role === 'ADMINS') role = 'ADMIN';
+            url += '&role=' + role;
+        }
+
+        if (currentStatus !== '') {
+            url += '&active=' + currentStatus;
+        }
+
+        if (currentSearch) {
+            url += '&search=' + encodeURIComponent(currentSearch);
+        }
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            totalPages = data.totalPages;
+            totalElements = data.totalElements;
+
+            renderUsersTable(data.content);
+            renderPagination();
+            updatePaginationInfo();
+        } catch (error) {
+            console.error('Error loading users:', error);
+            document.getElementById('usersTableBody').innerHTML =
+                '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error loading users</td></tr>';
+        }
+    }
+
+    function renderUsersTable(users) {
+        const tbody = document.getElementById('usersTableBody');
+
+        if (!users || users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No users found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = users.map(user => `
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        ${user.avatarUrl ?
+            `<img src="${user.avatarUrl}" class="user-avatar" alt="${escapeHtml(user.name)}">` :
+            `<div class="avatar-placeholder">${escapeHtml((user.name || user.githubLogin).charAt(0).toUpperCase())}</div>`
+        }
+                        <div>
+                            <div style="font-weight: 500;">${escapeHtml(user.name || user.githubLogin)}</div>
+                            <div style="font-size: 0.7rem; color: #6b7280;">@${escapeHtml(user.githubLogin)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 0.875rem;">${escapeHtml(user.email || '-')}</div>
+                </td>
+                <td>
+                    <span class="role-badge-small ${user.role}">${user.role}</span>
+                </td>
+                <td>
+                    <span class="status-badge ${user.active ? 'active' : 'inactive'}">
+                        ${user.active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td style="font-size: 0.8rem;">${new Date(user.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <div class="action-buttons">
+                        ${user.role === 'PENDING' ?
+            `<button class="action-btn approve" onclick="approveUser('${user.id}')">Approve</button>` : ''
+        }
+                        <button class="action-btn role" onclick="openRoleModal('${user.id}')">Change Role</button>
+                        <button class="action-btn status" onclick="openStatusModal('${user.id}', ${user.active})">${user.active ? 'Deactivate' : 'Activate'}</button>
+                        <button class="action-btn delete" onclick="deleteUser('${user.id}')">Delete</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderPagination() {
+        const paginationDiv = document.getElementById('paginationControls');
+
+        if (totalPages <= 1) {
+            paginationDiv.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+
+
+        html += `<button class="pagination-btn" onclick="goToPage(0)" ${currentPage === 0 ? 'disabled' : ''}>« First</button>`;
+
+
+        html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>‹ Previous</button>`;
+
+
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 0) {
+            html += `<button class="pagination-btn" onclick="goToPage(0)">1</button>`;
+            if (startPage > 1) {
+                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i + 1}</button>`;
+        }
+
+        if (endPage < totalPages - 1) {
+            if (endPage < totalPages - 2) {
+                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
+            }
+            html += `<button class="pagination-btn" onclick="goToPage(${totalPages - 1})">${totalPages}</button>`;
+        }
+
+
+        html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next ›</button>`;
+
+
+        html += `<button class="pagination-btn" onclick="goToPage(${totalPages - 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Last »</button>`;
+
+        paginationDiv.innerHTML = html;
+    }
+
+    function updatePaginationInfo() {
+        const start = totalElements === 0 ? 0 : currentPage * pageSize + 1;
+        const end = Math.min((currentPage + 1) * pageSize, totalElements);
+        document.getElementById('paginationInfo').textContent = `Showing ${start}-${end} of ${totalElements} users`;
+    }
+
+    function goToPage(page) {
+        if (page < 0 || page >= totalPages) return;
+        currentPage = page;
+        loadUsers();
+
+        document.querySelector('.users-table-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function approveUser(userId) {
+        if (!confirm('Approve this user? They will get RESIDENT role.')) return;
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/approve`, { method: 'POST' });
+
+            if (response.ok) {
+                showToast('User approved successfully!', 'success');
+                loadStats();
+                loadUsers();
+            } else {
+                const error = await response.text();
+                showToast('Failed to approve user: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error approving user', 'error');
+        }
+    }
+
+    function openRoleModal(userId) {
+        selectedUserId = userId;
+        document.getElementById('roleModal').classList.add('active');
+    }
+
+    async function saveRoleChange() {
+        const newRole = document.getElementById('newRoleSelect').value;
+
+        try {
+            const response = await fetch(`/api/admin/users/${selectedUserId}/role`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole })
+            });
+
+            if (response.ok) {
+                showToast('Role updated successfully!', 'success');
+                closeRoleModal();
+                loadStats();
+                loadUsers();
+            } else {
+                const error = await response.text();
+                showToast('Failed to update role: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error updating role', 'error');
+        }
+    }
+
+    function closeRoleModal() {
+        document.getElementById('roleModal').classList.remove('active');
+        selectedUserId = null;
+    }
+
+    function openStatusModal(userId, currentActive) {
+        selectedUserId = userId;
+        const select = document.getElementById('newStatusSelect');
+        select.value = currentActive ? 'false' : 'true';
+        document.getElementById('statusModal').classList.add('active');
+    }
+
+    async function saveStatusChange() {
+        const newStatus = document.getElementById('newStatusSelect').value === 'true';
+
+        try {
+            const response = await fetch(`/api/admin/users/${selectedUserId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active: newStatus })
+            });
+
+            if (response.ok) {
+                showToast('Status updated successfully!', 'success');
+                closeStatusModal();
+                loadStats();
+                loadUsers();
+            } else {
+                const error = await response.text();
+                showToast('Failed to update status: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error updating status', 'error');
+        }
+    }
+
+    function closeStatusModal() {
+        document.getElementById('statusModal').classList.remove('active');
+        selectedUserId = null;
+    }
+
+    async function deleteUser(userId) {
+        if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+
+            if (response.ok) {
+                showToast('User deleted successfully!', 'success');
+                loadStats();
+                loadUsers();
+            } else {
+                const error = await response.text();
+                showToast('Failed to delete user: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error deleting user', 'error');
+        }
+    }
+
+    async function logout() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>

@@ -45,8 +45,15 @@ public class PageController {
 
     @GetMapping("/admin")
     public String admin(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
-        model.addAttribute("role", userDetails.getUser().getRole().name());
-        return "admin";
+        AppUser user = userDetails.getUser();
+
+        if (user.getRole().name().equals("ADMIN")) {
+            model.addAttribute("user", user);
+            model.addAttribute("role", user.getRole().name());
+            return "admin";
+        }
+
+        return "redirect:/dashboard";
     }
 
     @GetMapping("/demo")

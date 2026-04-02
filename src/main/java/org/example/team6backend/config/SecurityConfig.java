@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -25,14 +24,23 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/",
                                 "/index",
-                                "/dashboard",
-                                "/incidents",
-                                "/admin",
-                                "/profile",
+                                "/demo",
                                 "/error",
                                 "/login/**",
                                 "/oauth2/**"
                         ).permitAll()
+                        .requestMatchers(
+                                "/dashboard",
+                                "/profile"
+                        ).authenticated()
+                        .requestMatchers(
+                                "/incidents",
+                                "/api/incidents/**"
+                        ).hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
+                        .requestMatchers(
+                                "/admin",
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -51,7 +59,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                 )
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/api/admin/**")
                 );
 
         return http.build();
