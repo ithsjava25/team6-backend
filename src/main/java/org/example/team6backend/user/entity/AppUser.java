@@ -1,8 +1,19 @@
 package org.example.team6backend.user.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,8 +23,16 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "app_user")
-@Data
+@Table(
+        name = "app_user",
+        indexes = {
+                @Index(name = "idx_app_user_email", columnList = "email"),
+                @Index(name = "idx_app_user_role", columnList = "role"),
+                @Index(name = "idx_app_user_github_id", columnList = "github_id")
+        }
+)
+@Getter
+@Setter
 @NoArgsConstructor
 public class AppUser implements UserDetails {
 
@@ -21,39 +40,44 @@ public class AppUser implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "github_id", nullable = false, unique = true, updatable = false)
+    private String githubId;
+
+    @Column(name = "github_login", nullable = false, unique = true)
+    private String githubLogin;
+
+    @Column(unique = true)
     private String email;
 
+    @Column(nullable = false)
     private String name;
-
-    @Column(name = "github_login", unique = true)
-    private String githubLogin;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role = UserRole.RESIDENT;
+    private UserRole role = UserRole.PENDING;
 
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Column(name = "is_active")
+    @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @Override
@@ -68,7 +92,7 @@ public class AppUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return email != null && !email.isBlank() ? email : githubLogin;
     }
 
     @Override

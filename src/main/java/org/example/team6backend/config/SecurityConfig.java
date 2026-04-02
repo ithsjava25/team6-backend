@@ -40,21 +40,16 @@ public class SecurityConfig {
                         ).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .defaultSuccessUrl("/dashboard", true)
                 )
-
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
                 )
-
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 );

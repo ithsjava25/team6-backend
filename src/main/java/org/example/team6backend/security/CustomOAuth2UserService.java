@@ -12,10 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-/**
- * Hanterar OAuth2-inloggning från GitHub.
- * Skapar eller uppdaterar AppUser i databasen baserat på GitHub-data.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,13 +21,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(userRequest);
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+        OAuth2User oauth2User = super.loadUser(userRequest);
+        Map<String, Object> attributes = oauth2User.getAttributes();
 
-        log.info("GitHub user login: {}", attributes.get("login"));
-        log.debug("GitHub user attributes: {}", attributes);
+        log.info("Received OAuth2 user from provider. login={}, id={}", attributes.get("login"), attributes.get("id"));
 
         AppUser user = userService.createOrUpdateUser(attributes);
+
+        log.info("OAuth2 login completed for userId={}, role={}", user.getId(), user.getRole());
 
         return new CustomUserDetails(user, attributes);
     }
