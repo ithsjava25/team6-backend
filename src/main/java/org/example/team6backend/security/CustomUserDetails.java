@@ -7,10 +7,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * Wrappar AppUser för OAuth2-autentisering.
- * Kombinerar GitHub-användardata med vår AppUser-entity.
- */
 public class CustomUserDetails implements OAuth2User {
 
     private final AppUser user;
@@ -33,7 +29,7 @@ public class CustomUserDetails implements OAuth2User {
 
     @Override
     public String getName() {
-        return user.getName() != null ? user.getName() : user.getEmail();
+        return user.getName();
     }
 
     public AppUser getUser() {

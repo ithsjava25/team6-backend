@@ -1,17 +1,19 @@
 CREATE TABLE IF NOT EXISTS app_user (
-    id VARCHAR(255) PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255),
-    github_login VARCHAR(255) UNIQUE,
-    role VARCHAR(50) NOT NULL DEFAULT 'RESIDENT',
-    avatar_url VARCHAR(500),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+                                        id VARCHAR(255) PRIMARY KEY,
+                                        github_id VARCHAR(255) NOT NULL UNIQUE,
+                                        github_login VARCHAR(255) NOT NULL UNIQUE,
+                                        email VARCHAR(255) UNIQUE,
+                                        name VARCHAR(255) NOT NULL,
+                                        role VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+                                        avatar_url VARCHAR(500),
+                                        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE INDEX IF NOT EXISTS idx_app_user_email ON app_user(email);
 CREATE INDEX IF NOT EXISTS idx_app_user_role ON app_user(role);
+CREATE INDEX IF NOT EXISTS idx_app_user_github_id ON app_user(github_id);
 
-COMMENT ON TABLE app_user IS 'Användare som loggar in via GitHub OAuth2';
-COMMENT ON COLUMN app_user.role IS 'Roll: RESIDENT, HANDLER, ADMIN';
+COMMENT ON TABLE app_user IS 'Users logging in through GitHub OAuth2';
+COMMENT ON COLUMN app_user.role IS 'Role: PENDING, RESIDENT, HANDLER, ADMIN';

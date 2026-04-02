@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
+import org.example.team6backend.exception.UserNotFoundException;
 import org.example.team6backend.user.repository.AppUserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,53 +13,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class UserService {
 
     private final AppUserRepository userRepository;
 
     @Transactional
     public AppUser createOrUpdateUser(Map<String, Object> attributes) {
-        String email = (String) attributes.get("email");
-        String githubLogin = (String) attributes.get("login");
-        String name = (String) attributes.get("name");
-        String avatarUrl = (String) attributes.get("avatar_url");
+        OAuthUserInfo oauthUserInfo = extractOAuthUserInfo(attributes);
 
-        log.info("GitHub user data - login: {}, email: {}, name: {}", githubLogin, email, name);
+        log.info("Processing GitHub login. githubId={}, githubLogin={}", oauthUserInfo.githubId(), oauthUserInfo.githubLogin());
 
-        if (email == null || email.isEmpty()) {
-            email = githubLogin + "@users.noreply.github.com";
-            log.warn("Email was null for user {}, using fallback: {}", githubLogin, email);
-        }
-
-        Optional<AppUser> existingUser = userRepository.findByEmail(email);
-
-        if (existingUser.isPresent()) {
-            AppUser user = existingUser.get();
-            user.setName(name);
-            user.setGithubLogin(githubLogin);
-            user.setAvatarUrl(avatarUrl);
-            log.info("Updated existing user: {} (role: {})", email, user.getRole());
-            return userRepository.save(user);
-        } else {
-            AppUser newUser = new AppUser();
-            newUser.setEmail(email);
-            newUser.setName(name);
-            newUser.setGithubLogin(githubLogin);
-            newUser.setAvatarUrl(avatarUrl);
-            newUser.setRole(UserRole.PENDING);
-            log.info("Created new user: {} with role PENDING (awaiting approval)", email);
-            return userRepository.save(newUser);
-        }
+        return userRepository.findByGithubId(oauthUserInfo.githubId())
+                .map(existingUser -> updateExistingUser(existingUser, oauthUserInfo))
+                .orElseGet(() -> createNewPendingUser(oauthUserInfo));
     }
 
     public AppUser getUserById(String id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     public List<AppUser> getAllUsers() {
@@ -69,34 +46,126 @@ public class UserService {
         return userRepository.findByRole(role);
     }
 
-    @Transactional
-    public AppUser updateUserRole(String userId, UserRole newRole) {
-        AppUser user = getUserById(userId);
-        user.setRole(newRole);
-        log.info("Updated role for user {} to {}", userId, newRole);
-        return userRepository.save(user);
-    }
-
-    @Transactional(readOnly = true)
     public Page<AppUser> getAllUsersPaginated(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
 
-    @Transactional(readOnly = true)
     public Page<AppUser> getUsersByRolePaginated(UserRole role, Pageable pageable) {
         return userRepository.findByRole(role, pageable);
     }
 
-    @Transactional(readOnly = true)
     public Page<AppUser> getUsersWithFilters(String email, String name, UserRole role, Boolean active, Pageable pageable) {
         return userRepository.findAllWithFilters(email, name, role, active, pageable);
     }
 
-    @Transactional(readOnly = true)
     public Page<AppUser> searchUsers(String search, Pageable pageable) {
         if (search == null || search.trim().isEmpty()) {
             return userRepository.findAll(pageable);
         }
+
         return userRepository.searchUsers(search.trim(), pageable);
+    }
+
+    @Transactional
+    public AppUser updateUserRole(String userId, UserRole newRole) {
+        AppUser user = getUserById(userId);
+        UserRole oldRole = user.getRole();
+
+        user.setRole(newRole);
+        AppUser savedUser = userRepository.save(user);
+
+        log.info("Updated role for userId={} from {} to {}", userId, oldRole, newRole);
+        return savedUser;
+    }
+
+    @Transactional
+    public AppUser updateUserActiveStatus(String userId, boolean active) {
+        AppUser user = getUserById(userId);
+        boolean oldStatus = user.isActive();
+
+        user.setActive(active);
+        AppUser savedUser = userRepository.save(user);
+
+        log.info("Updated active status for userId={} from {} to {}", userId, oldStatus, active);
+        return savedUser;
+    }
+
+    private AppUser updateExistingUser(AppUser existingUser, OAuthUserInfo oauthUserInfo) {
+        existingUser.setGithubLogin(oauthUserInfo.githubLogin());
+        existingUser.setEmail(oauthUserInfo.email());
+        existingUser.setName(oauthUserInfo.name());
+        existingUser.setAvatarUrl(oauthUserInfo.avatarUrl());
+
+        AppUser savedUser = userRepository.save(existingUser);
+
+        log.info(
+                "Updated existing user. userId={}, githubId={}, role={}",
+                savedUser.getId(),
+                savedUser.getGithubId(),
+                savedUser.getRole()
+        );
+
+        return savedUser;
+    }
+
+    private AppUser createNewPendingUser(OAuthUserInfo oauthUserInfo) {
+        AppUser newUser = new AppUser();
+        newUser.setGithubId(oauthUserInfo.githubId());
+        newUser.setGithubLogin(oauthUserInfo.githubLogin());
+        newUser.setEmail(oauthUserInfo.email());
+        newUser.setName(oauthUserInfo.name());
+        newUser.setAvatarUrl(oauthUserInfo.avatarUrl());
+        newUser.setRole(UserRole.PENDING);
+        newUser.setActive(true);
+
+        AppUser savedUser = userRepository.save(newUser);
+
+        log.info(
+                "Created new user. userId={}, githubId={}, role={}",
+                savedUser.getId(),
+                savedUser.getGithubId(),
+                savedUser.getRole()
+        );
+
+        return savedUser;
+    }
+
+    private OAuthUserInfo extractOAuthUserInfo(Map<String, Object> attributes) {
+        String githubId = extractRequiredAttribute(attributes, "id");
+        String githubLogin = extractRequiredAttribute(attributes, "login");
+        String email = extractOptionalAttribute(attributes, "email");
+        String name = resolveDisplayName(attributes, githubLogin);
+        String avatarUrl = extractOptionalAttribute(attributes, "avatar_url");
+
+        return new OAuthUserInfo(githubId, githubLogin, email, name, avatarUrl);
+    }
+
+    private String resolveDisplayName(Map<String, Object> attributes, String githubLogin) {
+        String name = extractOptionalAttribute(attributes, "name");
+        return (name == null || name.isBlank()) ? githubLogin : name;
+    }
+
+    private String extractRequiredAttribute(Map<String, Object> attributes, String key) {
+        String value = extractOptionalAttribute(attributes, key);
+
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Missing required OAuth attribute: " + key);
+        }
+
+        return value;
+    }
+
+    private String extractOptionalAttribute(Map<String, Object> attributes, String key) {
+        Object value = attributes.get(key);
+        return value != null ? String.valueOf(value) : null;
+    }
+
+    private record OAuthUserInfo(
+            String githubId,
+            String githubLogin,
+            String email,
+            String name,
+            String avatarUrl
+    ) {
     }
 }
