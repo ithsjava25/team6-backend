@@ -5,4 +5,5 @@ VALUES
     (gen_random_uuid(), 'test_222', 'test_handler', 'Test Handler', 'handler@test.com', 'HANDLER', true, 'https://ui-avatars.com/api/?background=f97316&color=fff&name=TH', NOW(), NOW()),
     (gen_random_uuid(), 'test_333', 'test_pending', 'Test Pending', 'pending@test.com', 'PENDING', true, 'https://ui-avatars.com/api/?background=6b7280&color=fff&name=TP', NOW(), NOW()),
     (gen_random_uuid(), 'test_444', 'test_resident2', 'Test Resident 2', 'resident2@test.com', 'RESIDENT', true, 'https://ui-avatars.com/api/?background=10b981&color=fff&name=T2', NOW(), NOW()),
-    (gen_random_uuid(), 'test_555', 'test_inactive', 'Test Inactive', 'inactive@test.com', 'RESIDENT', false, 'https://ui-avatars.com/api/?background=6b7280&color=fff&name=TI', NOW(), NOW());
+    (gen_random_uuid(), 'test_555', 'test_inactive', 'Test Inactive', 'inactive@test.com', 'RESIDENT', false, 'https://ui-avatars.com/api/?background=6b7280&color=fff&name=TI', NOW(), NOW()),
+    (gen_random_uuid(), 'test_666', 'test_admin', 'Test Admin', 'admin@test.com', 'ADMIN', true, 'https://ui-avatars.com/api/?background=ef4444&color=fff&name=TA', NOW(), NOW());
