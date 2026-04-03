@@ -35,6 +35,19 @@ public class PageController {
         return "incidents";
     }
 
+    @GetMapping("/create-incident")
+    public String createIncident(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        AppUser user = userDetails.getUser();
+
+        String role = user.getRole().name();
+        if (role.equals("RESIDENT") || role.equals("ADMIN")) {
+            model.addAttribute("role", role);
+            model.addAttribute("user", user);
+            return "createincident";
+        }
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/profile")
     public String profile(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         AppUser user = userDetails.getUser();
