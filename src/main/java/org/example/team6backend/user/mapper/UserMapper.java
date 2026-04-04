@@ -8,22 +8,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    public UserResponse toResponse(AppUser user) {
-        return new UserResponse(
-                user.getId(),
-                user.getGithubId(),
-                user.getGithubLogin(),
-                user.getEmail(),
-                user.getName(),
-                user.getRole(),
-                user.getAvatarUrl(),
-                user.isActive(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
-    }
+	public UserResponse toResponse(AppUser user) {
+		return new UserResponse(user.getId(), user.getGithubId(), user.getGithubLogin(), user.getEmail(),
+				user.getName(), user.getRole(), user.getAvatarUrl(), user.isActive(), user.getCreatedAt(),
+				user.getUpdatedAt());
+	}
 
-    public Page<UserResponse> toResponsePage(Page<AppUser> users) {
-        return users.map(this::toResponse);
-    }
+	public Page<UserResponse> toResponsePage(Page<AppUser> users) {
+		return users.map(this::toResponse);
+	}
 }

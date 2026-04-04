@@ -5,34 +5,34 @@ import jakarta.validation.constraints.NotNull;
 
 public class CommentRequest {
 
-    @NotNull
-    private Long incidentId;
-    @NotBlank
-    private String userId;
-    @NotBlank
-    private String message;
+	@NotNull
+	private Long incidentId;
+	@NotBlank
+	private String userId;
+	@NotBlank
+	private String message;
 
-    public Long getIncidentId() {
-        return incidentId;
-    }
+	public Long getIncidentId() {
+		return incidentId;
+	}
 
-    public void setIncidentId(Long incidentId) {
-        this.incidentId = incidentId;
-    }
+	public void setIncidentId(Long incidentId) {
+		this.incidentId = incidentId;
+	}
 
-    public String getUserId() {
-        return userId;
-    }
+	public String getUserId() {
+		return userId;
+	}
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
 
-    public String getMessage() {
-        return message;
-    }
+	public String getMessage() {
+		return message;
+	}
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+	public void setMessage(String message) {
+		this.message = message;
+	}
 }

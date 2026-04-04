@@ -15,23 +15,23 @@ import java.time.LocalDateTime;
 @DisplayName("UserService Tests")
 class UserServiceTest {
 
-    @Mock
-    private AppUserRepository userRepository;
+	@Mock
+	private AppUserRepository userRepository;
 
-    @InjectMocks
-    private UserService userService;
+	@InjectMocks
+	private UserService userService;
 
-    private AppUser createTestUser() {
-        AppUser user = new AppUser();
-        user.setId("123e4567-e89b-12d3-a456-426614174000");
-        user.setGithubId("12345678");
-        user.setGithubLogin("testuser");
-        user.setEmail("test@example.com");
-        user.setName("Test User");
-        user.setRole(UserRole.RESIDENT);
-        user.setActive(true);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
-        return user;
-    }
+	private AppUser createTestUser() {
+		AppUser user = new AppUser();
+		user.setId("123e4567-e89b-12d3-a456-426614174000");
+		user.setGithubId("12345678");
+		user.setGithubLogin("testuser");
+		user.setEmail("test@example.com");
+		user.setName("Test User");
+		user.setRole(UserRole.RESIDENT);
+		user.setActive(true);
+		user.setCreatedAt(LocalDateTime.now());
+		user.setUpdatedAt(LocalDateTime.now());
+		return user;
+	}
 }

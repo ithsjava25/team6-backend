@@ -6,10 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
-    Page<Incident> findByCreatedBy(AppUser user, Pageable pageable);
-    Page<Incident> findByAssignedTo(AppUser user, Pageable pageable);
+	Page<Incident> findByCreatedBy(AppUser user, Pageable pageable);
+	Page<Incident> findByAssignedTo(AppUser user, Pageable pageable);
 }

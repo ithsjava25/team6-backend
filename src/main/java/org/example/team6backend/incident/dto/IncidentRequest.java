@@ -8,9 +8,9 @@ import org.example.team6backend.incident.entity.IncidentCategory;
 @Data
 public class IncidentRequest {
 
-    @NotBlank (message="Subject is required")
-    private String subject;
-    private String description;
-    @NotNull(message="Incident category is required")
-    private IncidentCategory incidentCategory;
+	@NotBlank(message = "Subject is required")
+	private String subject;
+	private String description;
+	@NotNull(message = "Incident category is required")
+	private IncidentCategory incidentCategory;
 }

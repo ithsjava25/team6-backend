@@ -15,53 +15,24 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
+	private final CustomOAuth2UserService customOAuth2UserService;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/index",
-                                "/demo",
-                                "/error",
-                                "/login/**",
-                                "/oauth2/**"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/dashboard",
-                                "/profile"
-                        ).authenticated()
-                        .requestMatchers(
-                                "/incidents",
-                                "/api/incidents/**"
-                        ).hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
-                        .requestMatchers(
-                                "/admin",
-                                "/api/admin/**"
-                        ).hasRole("ADMIN")
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .defaultSuccessUrl("/dashboard", true)
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                )
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/admin/**")
-                );
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests(
+				auth -> auth.requestMatchers("/", "/index", "/demo", "/error", "/login/**", "/oauth2/**").permitAll()
+						.requestMatchers("/dashboard", "/profile").authenticated()
+						.requestMatchers("/incidents", "/api/incidents/**").hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
+						.requestMatchers("/admin", "/api/admin/**").hasRole("ADMIN")
+						.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
+						.anyRequest().authenticated())
+				.oauth2Login(
+						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+								.defaultSuccessUrl("/dashboard", true))
+				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
+						.deleteCookies("JSESSIONID"))
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**"));
 
-        return http.build();
-    }
+		return http.build();
+	}
 }

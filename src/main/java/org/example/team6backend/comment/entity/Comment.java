@@ -14,27 +14,27 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Comment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private String id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String message;
+	@Column(nullable = false, columnDefinition = "TEXT")
+	private String message;
 
-    @ManyToOne
-    @JoinColumn(name = "incident_id", nullable = false)
-    private Incident incident;
+	@ManyToOne
+	@JoinColumn(name = "incident_id", nullable = false)
+	private Incident incident;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private AppUser user;
+	@ManyToOne
+	@JoinColumn(name = "user_id", nullable = false)
+	private AppUser user;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createAt;
+	@Column(name = "created_at", nullable = false)
+	private LocalDateTime createAt;
 
-    @PrePersist
-    protected void onCreate(){
-        createAt = LocalDateTime.now();
-    }
+	@PrePersist
+	protected void onCreate() {
+		createAt = LocalDateTime.now();
+	}
 
 }
