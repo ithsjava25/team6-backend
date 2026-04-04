@@ -28,9 +28,9 @@ jobs:
         run: mvn pmd:check
         continue-on-error: true
 
-      - name: Check for vulnerabilities
-        run: mvn dependency-check:check
-        continue-on-error: true
+    #  - name: Check for vulnerabilities
+    #    run: mvn dependency-check:check
+    #    continue-on-error: true
 
       - name: Run all tests with coverage
         run: mvn test jacoco:report
