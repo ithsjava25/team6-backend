@@ -93,16 +93,15 @@
 
 <script>
     const role = document.body.dataset.role;
+
     async function loadIncidents() {
 
-        let url = "";
+        let endpoint = "/api/incidents/my";
 
         if (role == "ADMIN") {
-            url = "/api/incidents/admin";
+            url = "/api/incidents/all";
         } else if (role == "HANDLER") {
             url = "/api/incidents/assigned";
-        } else if (role == "RESIDENT") {
-            url = "/api/incidents/myincident";
         } else {
             console.error("Unknown role:", role)
             return;
@@ -115,7 +114,7 @@
         } else if (role == "HANDLER") {
             title.textContent = "Assigned Incidents";
         } else {
-            title.textContent = "My Incidents"
+            title.textContent = "My Incidents";
         }
 
         try {
@@ -135,13 +134,22 @@
                 card.className = "incident-card";
 
                 card.innerHTML = `
-                <div class="incident-header">
-                    <div class="incident-title">${incident.subject}</div>
-                    <div class="incident-category">${incident.incidentCategory}</div>
-                </div>
+                    <div class="incident-header">
+                        <div class="incident-title">${incident.subject}</div>
+                        <div class="incident-category">${incident.incidentCategory}</div>
+                    </div>
 
-                <div class="incident-description">
-                    ${incident.description || "No description"}
+                    <div class="incident-description">
+                        ${incident.description || "No description"}
+                    </div>
+
+                    <div class="incident-footer">
+                        <span>ID: ${incident.id}</span>
+                        ${
+                    (role === "ADMIN" || role === "HANDLER")
+                        ? `<button class="btn" onclick="editIncident(${incident.id})">Edit</button>`
+                        : ''
+                }
                 </div>
 
                 <div class="incident-footer">
