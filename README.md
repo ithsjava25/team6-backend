@@ -1,6 +1,6 @@
 # Incident Management System
 
-A full-stack incident management platform built with **REST API architecture** using Spring Boot, Thymeleaf, and AWS S3 for file storage.
+A full-stack incident management platform.
 
 ## Architecture
 
