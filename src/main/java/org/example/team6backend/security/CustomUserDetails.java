@@ -9,30 +9,30 @@ import java.util.Map;
 
 public class CustomUserDetails implements OAuth2User {
 
-    private final AppUser user;
-    private final Map<String, Object> attributes;
+	private final AppUser user;
+	private final Map<String, Object> attributes;
 
-    public CustomUserDetails(AppUser user, Map<String, Object> attributes) {
-        this.user = user;
-        this.attributes = attributes;
-    }
+	public CustomUserDetails(AppUser user, Map<String, Object> attributes) {
+		this.user = user;
+		this.attributes = attributes;
+	}
 
-    @Override
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
+	@Override
+	public Map<String, Object> getAttributes() {
+		return attributes;
+	}
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getAuthorities();
-    }
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return user.getAuthorities();
+	}
 
-    @Override
-    public String getName() {
-        return user.getName();
-    }
+	@Override
+	public String getName() {
+		return user.getName();
+	}
 
-    public AppUser getUser() {
-        return user;
-    }
+	public AppUser getUser() {
+		return user;
+	}
 }

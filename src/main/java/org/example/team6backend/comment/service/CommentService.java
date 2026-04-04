@@ -14,34 +14,33 @@ import java.util.List;
 @Service
 public class CommentService {
 
-    private final CommentRepository commentRepository;
-    private final IncidentRepository incidentRepository;
-    private final AppUserRepository appUserRepository;
+	private final CommentRepository commentRepository;
+	private final IncidentRepository incidentRepository;
+	private final AppUserRepository appUserRepository;
 
-    public CommentService(CommentRepository commentRepository,
-                          IncidentRepository incidentRepository,
-                          AppUserRepository appUserRepository) {
-        this.commentRepository = commentRepository;
-        this.incidentRepository = incidentRepository;
-        this.appUserRepository = appUserRepository;
-    }
+	public CommentService(CommentRepository commentRepository, IncidentRepository incidentRepository,
+			AppUserRepository appUserRepository) {
+		this.commentRepository = commentRepository;
+		this.incidentRepository = incidentRepository;
+		this.appUserRepository = appUserRepository;
+	}
 
-    public List<Comment> getCommentByIncidentId(Long incidentId) {
-        return commentRepository.findByIncidentId(incidentId);
-    }
+	public List<Comment> getCommentByIncidentId(Long incidentId) {
+		return commentRepository.findByIncidentId(incidentId);
+	}
 
-    public Comment createComment(Long incidentId, String userId, String message) {
-        Incident incident = incidentRepository.findById(incidentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+	public Comment createComment(Long incidentId, String userId, String message) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
 
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		AppUser user = appUserRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Comment comment = new Comment();
-        comment.setIncident(incident);
-        comment.setUser(user);
-        comment.setMessage(message);
+		Comment comment = new Comment();
+		comment.setIncident(incident);
+		comment.setUser(user);
+		comment.setMessage(message);
 
-        return commentRepository.save(comment);
-    }
+		return commentRepository.save(comment);
+	}
 }
