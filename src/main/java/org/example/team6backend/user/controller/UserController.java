@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserMapper userMapper;
+	private final UserMapper userMapper;
 
-    @GetMapping("/me")
-    public UserResponse getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return userMapper.toResponse(userDetails.getUser());
-    }
+	@GetMapping("/me")
+	public UserResponse getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+		return userMapper.toResponse(userDetails.getUser());
+	}
 }

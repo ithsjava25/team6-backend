@@ -13,25 +13,22 @@ import java.util.List;
 @RequestMapping("/comments")
 public class CommentController {
 
-    private final CommentService commentService;
+	private final CommentService commentService;
 
-    public CommentController(CommentService commentService) {
-        this.commentService = commentService;
-    }
+	public CommentController(CommentService commentService) {
+		this.commentService = commentService;
+	}
 
-    @GetMapping("/incident/{incidentId}")
-    public ResponseEntity<List<Comment>> getCommentByIncidentId(@PathVariable Long incidentId) {
-        List<Comment> comments = commentService.getCommentByIncidentId(incidentId);
-        return ResponseEntity.ok(comments);
-    }
+	@GetMapping("/incident/{incidentId}")
+	public ResponseEntity<List<Comment>> getCommentByIncidentId(@PathVariable Long incidentId) {
+		List<Comment> comments = commentService.getCommentByIncidentId(incidentId);
+		return ResponseEntity.ok(comments);
+	}
 
-    @PostMapping
-    public ResponseEntity<Comment> createComment(@Valid @RequestBody CommentRequest request) {
-        Comment saveComment = commentService.createComment(
-                request.getIncidentId(),
-                request.getUserId(),
-                request.getMessage()
-        );
-        return ResponseEntity.ok(saveComment);
-    }
+	@PostMapping
+	public ResponseEntity<Comment> createComment(@Valid @RequestBody CommentRequest request) {
+		Comment saveComment = commentService.createComment(request.getIncidentId(), request.getUserId(),
+				request.getMessage());
+		return ResponseEntity.ok(saveComment);
+	}
 }

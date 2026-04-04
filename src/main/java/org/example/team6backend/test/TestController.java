@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TestController {
 
-    @GetMapping("/api/test")
-    public String apiTest() {
-        return "API fungerar";
-    }
+	@GetMapping("/api/test")
+	public String apiTest() {
+		return "API fungerar";
+	}
 }

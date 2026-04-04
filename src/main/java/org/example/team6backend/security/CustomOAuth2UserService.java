@@ -17,19 +17,19 @@ import java.util.Map;
 @Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final UserService userService;
+	private final UserService userService;
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oauth2User = super.loadUser(userRequest);
-        Map<String, Object> attributes = oauth2User.getAttributes();
+	@Override
+	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+		OAuth2User oauth2User = super.loadUser(userRequest);
+		Map<String, Object> attributes = oauth2User.getAttributes();
 
-        log.info("Received OAuth2 user from provider. login={}, id={}", attributes.get("login"), attributes.get("id"));
+		log.info("Received OAuth2 user from provider. login={}, id={}", attributes.get("login"), attributes.get("id"));
 
-        AppUser user = userService.createOrUpdateUser(attributes);
+		AppUser user = userService.createOrUpdateUser(attributes);
 
-        log.info("OAuth2 login completed for userId={}, role={}", user.getId(), user.getRole());
+		log.info("OAuth2 login completed for userId={}, role={}", user.getId(), user.getRole());
 
-        return new CustomUserDetails(user, attributes);
-    }
+		return new CustomUserDetails(user, attributes);
+	}
 }

@@ -13,43 +13,38 @@ import java.util.Optional;
 
 public interface AppUserRepository extends JpaRepository<AppUser, String> {
 
-    Optional<AppUser> findByGithubId(String githubId);
+	Optional<AppUser> findByGithubId(String githubId);
 
-    Optional<AppUser> findByEmail(String email);
+	Optional<AppUser> findByEmail(String email);
 
-    List<AppUser> findByRole(UserRole role);
+	List<AppUser> findByRole(UserRole role);
 
-    long countByRole(UserRole role);
+	long countByRole(UserRole role);
 
-    long countByRoleAndActiveTrue(UserRole role);
+	long countByRoleAndActiveTrue(UserRole role);
 
-    Page<AppUser> findByRole(UserRole role, Pageable pageable);
+	Page<AppUser> findByRole(UserRole role, Pageable pageable);
 
-    Page<AppUser> findByActive(boolean active, Pageable pageable);
+	Page<AppUser> findByActive(boolean active, Pageable pageable);
 
-    @Query("""
-            SELECT u
-            FROM AppUser u
-            WHERE (:email IS NULL OR LOWER(COALESCE(u.email, '')) LIKE LOWER(CONCAT('%', :email, '%')))
-              AND (:name IS NULL OR LOWER(COALESCE(u.name, '')) LIKE LOWER(CONCAT('%', :name, '%')))
-              AND (:role IS NULL OR u.role = :role)
-              AND (:active IS NULL OR u.active = :active)
-            """)
-    Page<AppUser> findAllWithFilters(
-            @Param("email") String email,
-            @Param("name") String name,
-            @Param("role") UserRole role,
-            @Param("active") Boolean active,
-            Pageable pageable
-    );
+	@Query("""
+			SELECT u
+			FROM AppUser u
+			WHERE (:email IS NULL OR LOWER(COALESCE(u.email, '')) LIKE LOWER(CONCAT('%', :email, '%')))
+			  AND (:name IS NULL OR LOWER(COALESCE(u.name, '')) LIKE LOWER(CONCAT('%', :name, '%')))
+			  AND (:role IS NULL OR u.role = :role)
+			  AND (:active IS NULL OR u.active = :active)
+			""")
+	Page<AppUser> findAllWithFilters(@Param("email") String email, @Param("name") String name,
+			@Param("role") UserRole role, @Param("active") Boolean active, Pageable pageable);
 
-    @Query("""
-            SELECT u
-            FROM AppUser u
-            WHERE LOWER(COALESCE(u.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-               OR LOWER(COALESCE(u.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-               OR LOWER(COALESCE(u.githubLogin, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-               OR LOWER(COALESCE(u.githubId, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-            """)
-    Page<AppUser> searchUsers(@Param("search") String search, Pageable pageable);
+	@Query("""
+			SELECT u
+			FROM AppUser u
+			WHERE LOWER(COALESCE(u.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+			   OR LOWER(COALESCE(u.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+			   OR LOWER(COALESCE(u.githubLogin, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+			   OR LOWER(COALESCE(u.githubId, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+			""")
+	Page<AppUser> searchUsers(@Param("search") String search, Pageable pageable);
 }
