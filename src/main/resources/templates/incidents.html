@@ -93,17 +93,16 @@
 
 <script>
     const role = document.body.dataset.role;
+
     async function loadIncidents() {
 
-        let url = "";
+        let url = "/api/incidents/my";
 
-        if (role == "ADMIN") {
-            url = "/api/incidents/admin";
-        } else if (role == "HANDLER") {
+        if (role === "ADMIN") {
+            url = "/api/incidents/all";
+        } else if (role === "HANDLER") {
             url = "/api/incidents/assigned";
-        } else if (role == "RESIDENT") {
-            url = "/api/incidents/myincident";
-        } else {
+        } else if (role !== "RESIDENT") {
             console.error("Unknown role:", role)
             return;
         }
@@ -115,7 +114,7 @@
         } else if (role == "HANDLER") {
             title.textContent = "Assigned Incidents";
         } else {
-            title.textContent = "My Incidents"
+            title.textContent = "My Incidents";
         }
 
         try {
@@ -135,14 +134,14 @@
                 card.className = "incident-card";
 
                 card.innerHTML = `
-                <div class="incident-header">
-                    <div class="incident-title">${incident.subject}</div>
-                    <div class="incident-category">${incident.incidentCategory}</div>
-                </div>
+                    <div class="incident-header">
+                        <div class="incident-title">${escapeHtml(incident.subject)}</div>
+                        <div class="incident-category">${escapeHtml(incident.incidentCategory)}</div>
+                    </div>
 
-                <div class="incident-description">
-                    ${incident.description || "No description"}
-                </div>
+                    <div class="incident-description">
+                        ${escapeHtml(incident.description || "No description")}
+                    </div>
 
                 <div class="incident-footer">
                     <span>ID: ${incident.id}</span>

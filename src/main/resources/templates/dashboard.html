@@ -363,7 +363,7 @@
         }
     </style>
 </head>
-<body>
+<body data-role="[[${role}]]">
 <nav class="navbar">
     <div class="logo">
         <a href="/">Incident Management System</a>
@@ -439,7 +439,7 @@
 </div>
 
 <script>
-    const userRole = /*[[${role}]]*/ 'RESIDENT';
+    const userRole = document.body.dataset.role;
 
     async function loadIncidents() {
         if (userRole === 'PENDING') return;

@@ -23,6 +23,7 @@ public class IncidentController {
 
     /**Create new incident*/
     @PostMapping
+    @PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
     public IncidentResponse createIncident(@Valid @RequestBody IncidentRequest incidentRequest) {
         Incident incident = new Incident();
         incident.setSubject(incidentRequest.getSubject());
@@ -35,7 +36,7 @@ public class IncidentController {
 
     /**Get my incidents(user)*/
     @PreAuthorize("hasRole('RESIDENT')")
-    @GetMapping ("/myincident")
+    @GetMapping ("/my")
     public Page<IncidentResponse> getMyIncidents(Pageable pageable){
         return incidentService.findByCreatedBy(pageable)
                 .map(IncidentResponse::fromEntity);
@@ -49,7 +50,7 @@ public class IncidentController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin")
+    @GetMapping("/all")
     public Page<IncidentResponse> getAllIncidents(Pageable pageable) {
         return incidentService.findAll(pageable)
                 .map(IncidentResponse::fromEntity);
