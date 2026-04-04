@@ -96,13 +96,13 @@
 
     async function loadIncidents() {
 
-        let endpoint = "/api/incidents/my";
+        let url = "/api/incidents/my";
 
-        if (role == "ADMIN") {
+        if (role === "ADMIN") {
             url = "/api/incidents/all";
-        } else if (role == "HANDLER") {
+        } else if (role === "HANDLER") {
             url = "/api/incidents/assigned";
-        } else {
+        } else if (role !== "RESIDENT") {
             console.error("Unknown role:", role)
             return;
         }
@@ -135,22 +135,13 @@
 
                 card.innerHTML = `
                     <div class="incident-header">
-                        <div class="incident-title">${incident.subject}</div>
-                        <div class="incident-category">${incident.incidentCategory}</div>
+                        <div class="incident-title">${escapeHtml(incident.subject)}</div>
+                        <div class="incident-category">${escapeHtml(incident.incidentCategory)}</div>
                     </div>
 
                     <div class="incident-description">
-                        ${incident.description || "No description"}
+                        ${escapeHtml(incident.description || "No description")}
                     </div>
-
-                    <div class="incident-footer">
-                        <span>ID: ${incident.id}</span>
-                        ${
-                    (role === "ADMIN" || role === "HANDLER")
-                        ? `<button class="btn" onclick="editIncident(${incident.id})">Edit</button>`
-                        : ''
-                }
-                </div>
 
                 <div class="incident-footer">
                     <span>ID: ${incident.id}</span>

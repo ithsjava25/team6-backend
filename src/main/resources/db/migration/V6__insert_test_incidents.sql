@@ -98,3 +98,5 @@ SELECT
     NOW() - INTERVAL '1 day',
     NOW() - INTERVAL '1 day'
 WHERE EXISTS (SELECT 1 FROM app_user WHERE github_login = 'test_resident2')
+AND EXISTS (SELECT 1 FROM app_user WHERE github_login = 'test_handler')
+ON CONFLICT DO NOTHING;
