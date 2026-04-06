@@ -85,7 +85,7 @@
     </style>
 </head>
 
-<body data-role="[[${role}]]">
+<body th:attr="data-role=${role}">
 <div class="container">
     <h2 id="title">Active incidents</h2>
     <div id="incidents"></div>
