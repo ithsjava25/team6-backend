@@ -1,5 +1,6 @@
 package org.example.team6backend.incident.service;
 
+import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.exception.ResourceNotFoundException;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
@@ -22,9 +23,11 @@ import java.time.LocalDateTime;
 public class IncidentService {
 
 	private final IncidentRepository incidentRepository;
+	private final ActivityLogService activityLogService;
 
-	public IncidentService(IncidentRepository incidentRepository) {
+	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService) {
 		this.incidentRepository = incidentRepository;
+		this.activityLogService = activityLogService;
 	}
 
 	/** Help-method for sorting **/
@@ -46,7 +49,11 @@ public class IncidentService {
 		incident.setCreatedAt(LocalDateTime.now());
 		incident.setUpdatedAt(LocalDateTime.now());
 
-		return incidentRepository.save(incident);
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("INCIDENT_CREATED", appUser.getName() + " created the incident", savedIncident, appUser);
+
+		return savedIncident;
 	}
 
 	/** Find all incidents (Admin) **/

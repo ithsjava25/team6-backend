@@ -72,14 +72,14 @@
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
             <!-- GLOBAL ERROR -->
-            <div th:if="${fields.hasErrors('*')}" style="color: red;">
+            <div th:if="${#fields.hasErrors('*')}" style="color: red;">
                 Please correct the errors below.
             </div>
 
             <!--SUBJECT-->
             <label>Subject:</label>
             <input type="text" th:field="*{subject}"/>
-            <div th:if="${fields.hasErrors('subject')}"
+            <div th:if="${#fields.hasErrors('subject')}"
                  th:errors="*{subject}"
                  style="color: red;">
             </div>
@@ -87,7 +87,7 @@
             <!--DESCRIPTION-->
             <label>Description:</label>
             <textarea th:field="*{description}"></textarea>
-            <div th:if="${fields.hasErrors('description')}"
+            <div th:if="${#fields.hasErrors('description')}"
                  th:errors="*{description}"
                  style="color: red;">
             </div>
@@ -101,7 +101,7 @@
                 <option value="NOISE_DISTURBANCE">Noise Disturbance</option>
                 <option value="DAMAGE">Damage</option>
             </select>
-            <div th:if="${fields.hasErrors('incidentCategory')}"
+            <div th:if="${#fields.hasErrors('incidentCategory')}"
                  th:errors="*{incidentCategory}"
                  style="color: red;">
             </div>

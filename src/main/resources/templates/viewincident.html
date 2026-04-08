@@ -24,6 +24,7 @@
 
         .incident-card,
         .comments-card {
+            margin-top: 30px;
             background: #0a0a0a;
             border: 1px solid #1a1a1a;
             border-radius: 1rem;
@@ -149,6 +150,11 @@
             <button type="submit" class="btn" style="margin-top: 0.75rem;">
                 Add comment
             </button>
+
+            <div class="comments-card">
+                <div class="section-title">Activity</div>
+                <div id="activity-log"></div>
+            </div>
         </form>
     </div>
 
@@ -246,6 +252,41 @@
         }
     }
 
+    async function loadActivityLog() {
+        const incidentId = getIncidentIdFromUrl();
+
+        try {
+            const response = await fetch(`/activity/incident/${incidentId}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch activity log");
+            }
+
+            const activities = await response.json();
+
+            if (!activities.length) {
+                document.getElementById("activity-log").innerHTML = `
+                    <p class="empty-text">No activity yet.</p>
+                `;
+                return;
+            }
+
+            document.getElementById("activity-log").innerHTML = activities.map(activity => `
+                <div class="comment">
+                    <div class="comment-message">${escapeHtml(activity.description)}</div>
+                    <div class="comment-meta">
+                        ${escapeHtml(activity.userName || "Unknown user")} · ${formatDate(activity.createdAt)}
+                    </div>
+                </div>
+            `).join("");
+        } catch (error) {
+            console.error(error);
+            document.getElementById("activity-log").innerHTML = `
+                <p class="empty-text">Failed to load activity log.</p>
+            `;
+        }
+    }
+
     function setIncidentIdInForm() {
         const incidentId = getIncidentIdFromUrl();
         document.getElementById("incidentIdInput").value = incidentId;
@@ -267,6 +308,7 @@
 
     loadIncident();
     loadComments();
+    loadActivityLog();
     setIncidentIdInForm();
 </script>
 </body>
