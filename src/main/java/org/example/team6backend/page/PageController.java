@@ -10,7 +10,6 @@ import org.example.team6backend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class PageController {
@@ -109,33 +107,7 @@ public class PageController {
 
 		model.addAttribute("success", "Incident created successfully!");
 		model.addAttribute("incidentRequest", incidentRequest);
-		return "redirect:/incident/" + saved.getId();
-	}
-
-	@GetMapping("/incident/{id}")
-	public String viewIncident(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails,
-			Model model) {
-
-		Incident incident = incidentService.findById(id);
-
-		if (incident == null) {
-			return "redirect:/dashboard";
-		}
-
-		AppUser user = userDetails.getUser();
-
-		boolean isAdmin = user.getRole().name().equals("ADMIN");
-
-		boolean isHandler = incident.getAssignedTo() != null && incident.getAssignedTo().getId().equals(user.getId());
-
-		boolean isResident = incident.getCreatedBy().getId().equals(user.getId());
-
-		if (!isAdmin && !isHandler && !isResident) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-		}
-
-		model.addAttribute("incident", incident);
-		return "view-incident";
+		return "redirect:/incidents/" + saved.getId();
 	}
 
 	@GetMapping("/profile")
