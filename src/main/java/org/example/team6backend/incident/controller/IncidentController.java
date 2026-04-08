@@ -5,9 +5,12 @@ import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.dto.IncidentResponse;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
+import org.example.team6backend.security.CustomUserDetails;
+import org.example.team6backend.user.entity.AppUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +26,7 @@ public class IncidentController {
 	/** Create new incident */
 	@PostMapping
 	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
-	public IncidentResponse createIncident(@Valid @RequestBody IncidentRequest incidentRequest) {
+	public IncidentResponse createIncident(@RequestBody @Valid IncidentRequest incidentRequest) {
 		Incident incident = new Incident();
 		incident.setSubject(incidentRequest.getSubject());
 		incident.setDescription(incidentRequest.getDescription());
@@ -36,14 +39,20 @@ public class IncidentController {
 	/** Get my incidents(user) */
 	@PreAuthorize("hasRole('RESIDENT')")
 	@GetMapping("/my")
-	public Page<IncidentResponse> getMyIncidents(Pageable pageable) {
-		return incidentService.findByCreatedBy(pageable).map(IncidentResponse::fromEntity);
+	public Page<IncidentResponse> getMyIncidents(@AuthenticationPrincipal CustomUserDetails userDetails,
+			Pageable pageable) {
+
+		AppUser user = userDetails.getUser();
+		return incidentService.findByCreatedBy(user, pageable).map(IncidentResponse::fromEntity);
 	}
 
+	/** Get assigned incidents(handler) */
 	@PreAuthorize("hasRole('HANDLER')")
 	@GetMapping("/assigned")
-	public Page<IncidentResponse> getAssignedIncidents(Pageable pageable) {
-		return incidentService.findByAssignedTo(pageable).map(IncidentResponse::fromEntity);
+	public Page<IncidentResponse> getAssignedIncidents(@AuthenticationPrincipal CustomUserDetails userDetails,
+			Pageable pageable) {
+		AppUser user = userDetails.getUser();
+		return incidentService.findByAssignedTo(user, pageable).map(IncidentResponse::fromEntity);
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
