@@ -145,11 +145,14 @@
 
                 <div class="incident-footer">
                     <span>ID: ${incident.id}</span>
+                    <div style="display: flex; gap: 0.5rem;"></div>
+                    <button class="btn" onclick="viewIncident(${incident.id})">View</button>
                     ${
                     (role === "ADMIN" || role === "HANDLER")
                         ? `<button class="btn" onclick="editIncident(${incident.id})">Edit</button>`
                         : ''
                 }
+                    </div>
                 </div>
             `;
 
@@ -163,6 +166,10 @@
 
     function editIncident(id) {
         alert("Edit incident " + id);
+    }
+
+    function viewIncident(id) {
+        window.location.href = `/incidents/${id}´;
     }
 
     loadIncidents();

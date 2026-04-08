@@ -68,4 +68,8 @@ public class IncidentService {
 
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
+	public Incident getById(Long id) {
+		return incidentRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Incident not found"));
+	}
 }

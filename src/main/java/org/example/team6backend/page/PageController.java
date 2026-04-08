@@ -69,6 +69,12 @@ public class PageController {
 		return "redirect:/dashboard";
 	}
 
+	@GetMapping("/incident/{id}")
+	public String viewIncident(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+		model.addAttribute("role", userDetails.getUser().getRole().name());
+		return "viewIncident";
+	}
+
 	@GetMapping("/demo")
 	public String demo() {
 		return "demo";
