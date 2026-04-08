@@ -87,15 +87,15 @@ public class PageController {
 	@PostMapping("/create-incident")
 	public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
 			@Valid @ModelAttribute IncidentRequest incidentRequest, BindingResult bindingResult, Model model,
-                                 HttpServletRequest request) {
+			HttpServletRequest request) {
 		AppUser user = userDetails.getUser();
 		String role = user.getRole().name();
 
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("role", role);
 			model.addAttribute("user", user);
-            CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
-            model.addAttribute("_csrf", csrf);
+			CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
+			model.addAttribute("_csrf", csrf);
 			return "createincident";
 		}
 
