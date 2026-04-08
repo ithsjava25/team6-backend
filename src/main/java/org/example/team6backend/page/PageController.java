@@ -1,5 +1,6 @@
 package org.example.team6backend.page;
 
+import jakarta.validation.Valid;
 import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
@@ -9,11 +10,15 @@ import org.example.team6backend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class PageController {
@@ -78,11 +83,18 @@ public class PageController {
 		return "redirect:/dashboard";
 	}
 
+	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
 	@PostMapping("/create-incident")
 	public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@ModelAttribute IncidentRequest incidentRequest, Model model) {
+			@Valid @ModelAttribute IncidentRequest incidentRequest, BindingResult bindingResult, Model model) {
 		AppUser user = userDetails.getUser();
 		String role = user.getRole().name();
+
+		if (bindingResult.hasErrors()) {
+			model.addAttribute("role", role);
+			model.addAttribute("user", user);
+			return "createincident";
+		}
 
 		Incident incident = new Incident();
 		incident.setSubject(incidentRequest.getSubject());
@@ -98,12 +110,27 @@ public class PageController {
 	}
 
 	@GetMapping("/incident/{id}")
-	public String viewIncident(@PathVariable Long id, Model model) {
+	public String viewIncident(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails,
+			Model model) {
+
 		Incident incident = incidentService.findById(id);
 
 		if (incident == null) {
 			return "redirect:/dashboard";
 		}
+
+		AppUser user = userDetails.getUser();
+
+		boolean isAdmin = user.getRole().name().equals("ADMIN");
+
+		boolean isHandler = incident.getAssignedTo() != null && incident.getAssignedTo().getId().equals(user.getId());
+
+		boolean isResident = incident.getCreatedBy().getId().equals(user.getId());
+
+		if (!isAdmin && !isHandler && !isResident) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
+
 		model.addAttribute("incident", incident);
 		return "view-incident";
 	}
