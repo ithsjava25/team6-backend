@@ -63,7 +63,8 @@ public class IncidentController {
 
 	@PreAuthorize("hasAnyRole('RESIDENT', 'HANDLER', 'ADMIN')")
 	@GetMapping("/{id}")
-	public IncidentResponse getIncidentById(@PathVariable Long id) {
-		return IncidentResponse.fromEntity(incidentService.getById(id));
+	public IncidentResponse getIncidentById(@PathVariable Long id,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		return IncidentResponse.fromEntity(incidentService.getById(id, userDetails.getUser()));
 	}
 }
