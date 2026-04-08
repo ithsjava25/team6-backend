@@ -135,12 +135,12 @@
 
                 card.innerHTML = `
                     <div class="incident-header">
-                        <div class="incident-title">${(incident.subject)}</div>
-                        <div class="incident-category">${(incident.incidentCategory)}</div>
+                        <div class="incident-title">${escapeHtml(incident.subject)}</div>
+                        <div class="incident-category">${escapeHtml(incident.incidentCategory)}</div>
                     </div>
 
                     <div class="incident-description">
-                        ${(incident.description || "No description")}
+                        ${escapeHtml(incident.description || "No description")}
                     </div>
 
                 <div class="incident-footer">
@@ -170,6 +170,16 @@
 
     function viewIncident(id) {
         window.location.href = `/incidents/${id}`;
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;")
     }
 
     loadIncidents();
