@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View incident</title>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, Roboto;
+            background: #000;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .incident-card,
+        .comments-card {
+            margin-top: 30px;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+
+        .incident-card:hover,
+        .comments-card:hover {
+            border-color: #2a2a2a;
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .incident-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .incident-category {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        .incident-description {
+            margin-top: 0.75rem;
+            color: #d1d5db;
+            font-size: 0.9rem;
+        }
+
+        .incident-footer {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .comment {
+            padding: 1rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .comment-message {
+            color: #d1d5db;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .comment-meta {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid #2a2a2a;
+            background: transparent;
+            color: #3ca3af;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .empty-text {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body th:attr="data-role=${role}">
+<div class="container">
+    <h2>Incident details</h2>
+
+    <div id="incident"></div>
+
+    <div class="comments-card">
+        <div class="section-title">Comments</div>
+        <div id="comments"></div>
+    </div>
+
+    <div class="comments-card">
+        <div class="section-title">Add comment</div>
+
+        <form action="/comments" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" name="incidentId" id="incidentIdInput"/>
+            <input type="hidden" name="userId" th:value="${userId}">
+
+            <textarea name="message" rows="4"
+                      placeholder="Write a comment..."
+                      style="width: 100%; box-sizing: border-box; background: #111; color: white; border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1rem; resize: vertical;"></textarea>
+
+            <button type="submit" class="btn" style="margin-top: 0.75rem;">
+                Add comment
+            </button>
+
+            <div class="comments-card">
+                <div class="section-title">Activity</div>
+                <div id="activity-log"></div>
+            </div>
+        </form>
+    </div>
+
+    <a href="/incidents" class="btn">Back</a>
+</div>
+
+<script>
+    function getIncidentIdFromUrl() {
+        const parts = window.location.pathname.split("/")
+        return parts[parts.length - 1];
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;")
+    }
+
+    async function loadIncident() {
+        const incidentId = getIncidentIdFromUrl();
+
+        try {
+            const response = await fetch(`/api/incidents/${incidentId}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch incident")
+            }
+
+            const incident = await response.json();
+
+            document.getElementById("incident").innerHTML = `
+                <div class="incident-card">
+                    <div class="incident-header">
+                        <div class="incident-title">${escapeHtml(incident.subject)}</div>
+                        <div class="incident-category">${escapeHtml(incident.incidentCategory)}</div>
+                    </div>
+
+                    <div class="incident-description">
+                        ${escapeHtml(incident.description || "No description")}
+                    </div>
+
+                    <div class="incident-footer">
+                        <span>ID: ${incident.id}</span>
+                        <span>Status: ${escapeHtml(incident.incidentStatus || "N/A")}</span>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error(error)
+            document.getElementById("incident").innerHTML = `
+                <div class="incident-card">
+                    <p class="empty-text">Failed to load incident.</p>
+                </div>
+            `;
+        }
+    }
+
+    async function loadComments() {
+        const incidentId = getIncidentIdFromUrl();
+
+        try {
+            const response = await fetch(`/comments/incident/${incidentId}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch comments");
+            }
+
+            const comments = await response.json();
+
+            if (!comments.length) {
+                document.getElementById("comments").innerHTML = `
+                    <p class="empty-text">No comments yet.</p>
+                `;
+                return;
+            }
+
+            document.getElementById("comments").innerHTML = comments.map(comment => `
+                <div class="comment">
+                    <div class="comment-message">${escapeHtml(comment.message)}</div>
+                    <div class="comment-meta">
+                        ${escapeHtml(comment.user?.name || comment.user?.email || "Unknown user")} •
+                        ${formatDate(comment.createdAt)}
+                    </div>
+                </div>
+                `).join("");
+        } catch (error) {
+            console.error(error)
+            document.getElementById("comments").innerHTML = `
+                <p class="empty-text">Failed to load comments.</p>
+            `;
+        }
+    }
+
+    async function loadActivityLog() {
+        const incidentId = getIncidentIdFromUrl();
+
+        try {
+            const response = await fetch(`/activity/incident/${incidentId}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch activity log");
+            }
+
+            const activities = await response.json();
+
+            if (!activities.length) {
+                document.getElementById("activity-log").innerHTML = `
+                    <p class="empty-text">No activity yet.</p>
+                `;
+                return;
+            }
+
+            document.getElementById("activity-log").innerHTML = activities.map(activity => `
+                <div class="comment">
+                    <div class="comment-message">${escapeHtml(activity.description)}</div>
+                    <div class="comment-meta">
+                        ${escapeHtml(activity.userName || "Unknown user")} · ${formatDate(activity.createdAt)}
+                    </div>
+                </div>
+            `).join("");
+        } catch (error) {
+            console.error(error);
+            document.getElementById("activity-log").innerHTML = `
+                <p class="empty-text">Failed to load activity log.</p>
+            `;
+        }
+    }
+
+    function setIncidentIdInForm() {
+        const incidentId = getIncidentIdFromUrl();
+        document.getElementById("incidentIdInput").value = incidentId;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return "";
+
+        const date = new Date(dateString)
+
+        return date.toLocaleDateString("sv-SE", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    loadIncident();
+    loadComments();
+    loadActivityLog();
+    setIncidentIdInForm();
+</script>
+</body>
+</html>

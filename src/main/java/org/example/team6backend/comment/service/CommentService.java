@@ -1,5 +1,6 @@
 package org.example.team6backend.comment.service;
 
+import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.comment.entity.Comment;
 import org.example.team6backend.comment.repository.CommentRepository;
 import org.example.team6backend.exception.ResourceNotFoundException;
@@ -17,12 +18,14 @@ public class CommentService {
 	private final CommentRepository commentRepository;
 	private final IncidentRepository incidentRepository;
 	private final AppUserRepository appUserRepository;
+	private final ActivityLogService activityLogService;
 
 	public CommentService(CommentRepository commentRepository, IncidentRepository incidentRepository,
-			AppUserRepository appUserRepository) {
+			AppUserRepository appUserRepository, ActivityLogService activityLogService) {
 		this.commentRepository = commentRepository;
 		this.incidentRepository = incidentRepository;
 		this.appUserRepository = appUserRepository;
+		this.activityLogService = activityLogService;
 	}
 
 	public List<Comment> getCommentByIncidentId(Long incidentId) {
@@ -41,6 +44,10 @@ public class CommentService {
 		comment.setUser(user);
 		comment.setMessage(message);
 
-		return commentRepository.save(comment);
+		Comment savedComment = commentRepository.save(comment);
+
+		activityLogService.log("COMMENT_ADDED", user.getName() + " added a comment", incident, user);
+
+		return savedComment;
 	}
 }

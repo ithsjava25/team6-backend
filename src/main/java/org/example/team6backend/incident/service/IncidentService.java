@@ -1,5 +1,7 @@
 package org.example.team6backend.incident.service;
 
+import org.example.team6backend.activity.service.ActivityLogService;
+import org.example.team6backend.exception.ResourceNotFoundException;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.incident.entity.Incident;
@@ -9,9 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -19,9 +23,11 @@ import java.time.LocalDateTime;
 public class IncidentService {
 
 	private final IncidentRepository incidentRepository;
+	private final ActivityLogService activityLogService;
 
-	public IncidentService(IncidentRepository incidentRepository) {
+	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService) {
 		this.incidentRepository = incidentRepository;
+		this.activityLogService = activityLogService;
 	}
 
 	/** Help-method for sorting **/
@@ -43,7 +49,11 @@ public class IncidentService {
 		incident.setCreatedAt(LocalDateTime.now());
 		incident.setUpdatedAt(LocalDateTime.now());
 
-		return incidentRepository.save(incident);
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("INCIDENT_CREATED", appUser.getName() + " created the incident", savedIncident, appUser);
+
+		return savedIncident;
 	}
 
 	/** Find all incidents (Admin) **/
@@ -60,8 +70,17 @@ public class IncidentService {
 	public Page<Incident> findByAssignedTo(AppUser user, Pageable pageable) {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
+	public Incident getById(Long id, AppUser user) {
+		Incident incident = incidentRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Not found"));
 
-	public Incident findById(Long id) {
-		return incidentRepository.findById(id).orElse(null);
+		boolean isAdmin = user.getRole().name().equals("ADMIN");
+		boolean isHandler = incident.getAssignedTo() != null && incident.getAssignedTo().getId().equals(user.getId());
+		boolean isResident = incident.getCreatedBy().getId().equals(user.getId());
+
+		if (!isAdmin && !isHandler && !isResident) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
+		return incident;
 	}
 }

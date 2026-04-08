@@ -60,4 +60,11 @@ public class IncidentController {
 	public Page<IncidentResponse> getAllIncidents(Pageable pageable) {
 		return incidentService.findAll(pageable).map(IncidentResponse::fromEntity);
 	}
+
+	@PreAuthorize("hasAnyRole('RESIDENT', 'HANDLER', 'ADMIN')")
+	@GetMapping("/{id}")
+	public IncidentResponse getIncidentById(@PathVariable Long id,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		return IncidentResponse.fromEntity(incidentService.getById(id, userDetails.getUser()));
+	}
 }

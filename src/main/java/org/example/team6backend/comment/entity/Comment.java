@@ -30,11 +30,11 @@ public class Comment {
 	private AppUser user;
 
 	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createAt;
+	private LocalDateTime createdAt;
 
 	@PrePersist
-	protected void onCreate() {
-		createAt = LocalDateTime.now();
+	protected void onCreated() {
+		createdAt = LocalDateTime.now();
 	}
 
 }
