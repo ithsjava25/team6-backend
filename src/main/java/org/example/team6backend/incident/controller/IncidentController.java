@@ -32,35 +32,32 @@ public class IncidentController {
 		incident.setDescription(incidentRequest.getDescription());
 		incident.setIncidentCategory(incidentRequest.getIncidentCategory());
 
-        Incident saved = incidentService.createIncident(incident);
+		Incident saved = incidentService.createIncident(incident);
 		return IncidentResponse.fromEntity(saved);
 	}
 
 	/** Get my incidents(user) */
 	@PreAuthorize("hasRole('RESIDENT')")
 	@GetMapping("/my")
-	public Page<IncidentResponse> getMyIncidents(
-            @AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
+	public Page<IncidentResponse> getMyIncidents(@AuthenticationPrincipal CustomUserDetails userDetails,
+			Pageable pageable) {
 
-        AppUser user = userDetails.getUser();
-        return incidentService.findByCreatedBy(user, pageable)
-                .map(IncidentResponse::fromEntity);
+		AppUser user = userDetails.getUser();
+		return incidentService.findByCreatedBy(user, pageable).map(IncidentResponse::fromEntity);
 	}
 
-    /** Get assigned incidents(handler) */
+	/** Get assigned incidents(handler) */
 	@PreAuthorize("hasRole('HANDLER')")
 	@GetMapping("/assigned")
-	public Page<IncidentResponse> getAssignedIncidents(
-            @AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
-        AppUser user = userDetails.getUser();
-		return incidentService.findByAssignedTo(user, pageable)
-                .map(IncidentResponse::fromEntity);
+	public Page<IncidentResponse> getAssignedIncidents(@AuthenticationPrincipal CustomUserDetails userDetails,
+			Pageable pageable) {
+		AppUser user = userDetails.getUser();
+		return incidentService.findByAssignedTo(user, pageable).map(IncidentResponse::fromEntity);
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/all")
 	public Page<IncidentResponse> getAllIncidents(Pageable pageable) {
-		return incidentService.findAll(pageable)
-                .map(IncidentResponse::fromEntity);
+		return incidentService.findAll(pageable).map(IncidentResponse::fromEntity);
 	}
 }

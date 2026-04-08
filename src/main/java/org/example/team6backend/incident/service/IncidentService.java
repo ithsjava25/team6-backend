@@ -61,7 +61,7 @@ public class IncidentService {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
 
-    public Incident findById(Long id) {
-        return incidentRepository.findById(id).orElse(null);
-    }
+	public Incident findById(Long id) {
+		return incidentRepository.findById(id).orElse(null);
+	}
 }

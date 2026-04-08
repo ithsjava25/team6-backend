@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class PageController {
 	private final UserService userService;
-    private final IncidentService incidentService;
+	private final IncidentService incidentService;
 
-    public PageController(UserService userService, IncidentService incidentService) {
+	public PageController(UserService userService, IncidentService incidentService) {
 		this.userService = userService;
-        this.incidentService = incidentService;
-    }
+		this.incidentService = incidentService;
+	}
 
 	@GetMapping("/")
 	public String index() {
@@ -31,27 +31,26 @@ public class PageController {
 	}
 
 	@GetMapping("/dashboard")
-	public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails,
-                            Model model, Pageable pageable) {
+	public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails, Model model, Pageable pageable) {
 
-        if (userDetails != null && userDetails.getUser() != null) {
-            AppUser user = userDetails.getUser();
-            model.addAttribute("user", userDetails.getUser());
-            model.addAttribute("role", user.getRole().name());
+		if (userDetails != null && userDetails.getUser() != null) {
+			AppUser user = userDetails.getUser();
+			model.addAttribute("user", userDetails.getUser());
+			model.addAttribute("role", user.getRole().name());
 
-            Page<Incident> incidents;
+			Page<Incident> incidents;
 
-            switch (user.getRole()) {
-                case RESIDENT -> incidents = incidentService.findByCreatedBy(user, pageable);
-                case HANDLER -> incidents = incidentService.findByAssignedTo(user, pageable);
-                case ADMIN -> incidents = incidentService.findAll(pageable);
-                default -> incidents = Page.empty();
-            }
-            model.addAttribute("incidents", incidents);
+			switch (user.getRole()) {
+				case RESIDENT -> incidents = incidentService.findByCreatedBy(user, pageable);
+				case HANDLER -> incidents = incidentService.findByAssignedTo(user, pageable);
+				case ADMIN -> incidents = incidentService.findAll(pageable);
+				default -> incidents = Page.empty();
+			}
+			model.addAttribute("incidents", incidents);
 
-        } else {
-            model.addAttribute("role", "PENDING");
-        }
+		} else {
+			model.addAttribute("role", "PENDING");
+		}
 		return "dashboard";
 	}
 
@@ -63,51 +62,51 @@ public class PageController {
 
 	@GetMapping("/create-incident")
 	public String createIncident(@AuthenticationPrincipal CustomUserDetails userDetails, Model model,
-                                 HttpServletRequest request) {
+			HttpServletRequest request) {
 		AppUser user = userDetails.getUser();
 		String role = user.getRole().name();
 
-        CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
-        model.addAttribute("_csrf", csrf);
+		CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
+		model.addAttribute("_csrf", csrf);
 
 		if (role.equals("RESIDENT") || role.equals("ADMIN")) {
 			model.addAttribute("role", role);
 			model.addAttribute("user", user);
-            model.addAttribute("incidentRequest", new IncidentRequest());
+			model.addAttribute("incidentRequest", new IncidentRequest());
 			return "createincident";
 		}
 		return "redirect:/dashboard";
 	}
 
-    @PostMapping("/create-incident")
-    public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                 @ModelAttribute IncidentRequest incidentRequest, Model model) {
-        AppUser user = userDetails.getUser();
-        String role = user.getRole().name();
+	@PostMapping("/create-incident")
+	public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
+			@ModelAttribute IncidentRequest incidentRequest, Model model) {
+		AppUser user = userDetails.getUser();
+		String role = user.getRole().name();
 
-        Incident incident = new Incident();
-        incident.setSubject(incidentRequest.getSubject());
-        incident.setDescription(incidentRequest.getDescription());
-        incident.setIncidentCategory(incidentRequest.getIncidentCategory());
-        incident.setCreatedBy(user);
+		Incident incident = new Incident();
+		incident.setSubject(incidentRequest.getSubject());
+		incident.setDescription(incidentRequest.getDescription());
+		incident.setIncidentCategory(incidentRequest.getIncidentCategory());
+		incident.setCreatedBy(user);
 
-        Incident saved = incidentService.createIncident(incident);
+		Incident saved = incidentService.createIncident(incident);
 
-        model.addAttribute("success", "Incident created successfully!");
-        model.addAttribute("incidentRequest", incidentRequest);
-        return "redirect:/incident/" + saved.getId();
-    }
+		model.addAttribute("success", "Incident created successfully!");
+		model.addAttribute("incidentRequest", incidentRequest);
+		return "redirect:/incident/" + saved.getId();
+	}
 
-    @GetMapping("/incident/{id}")
-    public String viewIncident(@PathVariable Long id, Model model) {
-        Incident incident = incidentService.findById(id);
+	@GetMapping("/incident/{id}")
+	public String viewIncident(@PathVariable Long id, Model model) {
+		Incident incident = incidentService.findById(id);
 
-        if (incident == null) {
-            return "redirect:/dashboard";
-        }
-        model.addAttribute("incident", incident);
-        return "view-incident";
-    }
+		if (incident == null) {
+			return "redirect:/dashboard";
+		}
+		model.addAttribute("incident", incident);
+		return "view-incident";
+	}
 
 	@GetMapping("/profile")
 	public String profile(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
