@@ -7,6 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class PageController {
@@ -70,8 +71,11 @@ public class PageController {
 	}
 
 	@GetMapping("/incidents/{id}")
-	public String viewIncident(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+	public String viewIncident(@PathVariable Long id,
+							   @AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
 		model.addAttribute("role", userDetails.getUser().getRole().name());
+		model.addAttribute("incidentId", id);
+		model.addAttribute("userId", userDetails.getUser().getId());
 		return "viewincident";
 	}
 
