@@ -71,8 +71,8 @@ public class PageController {
 	}
 
 	@GetMapping("/incidents/{id}")
-	public String viewIncident(@PathVariable Long id,
-							   @AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+	public String viewIncident(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails,
+			Model model) {
 		model.addAttribute("role", userDetails.getUser().getRole().name());
 		model.addAttribute("incidentId", id);
 		model.addAttribute("userId", userDetails.getUser().getId());
