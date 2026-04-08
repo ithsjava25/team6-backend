@@ -52,20 +52,16 @@ public class IncidentService {
 	}
 
 	/** Find your own incidents (user) **/
-	public Page<Incident> findByCreatedBy(Pageable pageable) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-		AppUser user = userDetails.getUser();
-
+	public Page<Incident> findByCreatedBy(AppUser user, Pageable pageable) {
 		return incidentRepository.findByCreatedBy(user, withDefaultSort(pageable));
 	}
 
 	/** Find assigned incidents per HANDLER **/
-	public Page<Incident> findByAssignedTo(Pageable pageable) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-		AppUser user = userDetails.getUser();
-
+	public Page<Incident> findByAssignedTo(AppUser user, Pageable pageable) {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
+	}
+
+	public Incident findById(Long id) {
+		return incidentRepository.findById(id).orElse(null);
 	}
 }

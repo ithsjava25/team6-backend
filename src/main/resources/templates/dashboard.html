@@ -424,7 +424,7 @@
             <p style="text-align: center; color: #6b7280;">Loading incidents...</p>
         </div>
         <div id="actionButtons" class="action-buttons">
-            <a th:if="${role == 'RESIDENT'}" href="/incidents?action=create" class="btn btn-primary">Create new incident</a>
+            <a th:if="${role == 'RESIDENT'}" href="/create-incident" class="btn btn-primary">Create new incident</a>
             <a th:if="${role == 'HANDLER'}" href="/incidents" class="btn btn-handler">Manage incidents</a>
             <a th:if="${role == 'ADMIN'}" href="/admin" class="btn btn-admin">Go to Admin Panel</a>
         </div>
