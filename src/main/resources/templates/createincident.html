@@ -68,16 +68,17 @@
     <div class="card">
         <h2>Report Incident</h2>
 
-        <form id="incidentForm">
+        <form th:action="@{/create-incident}" th:object="${incidentRequest}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-            <label for="subject">Subject:</label>
-            <input type="text" id="subject" name="subject" required />
+            <label>Subject:</label>
+            <input type="text" th:field="*{subject}" required />
 
-            <label for="description">Description</label>
-            <textarea id="description" name="description"></textarea>
+            <label>Description:</label>
+            <textarea th:field="*{description}"></textarea>
 
-            <label for="category">Category:</label>
-            <select id="category" name="incidentCategory" required>
+            <label>Category:</label>
+            <select th:field="*{incidentCategory}" required>
                 <option value="OTHER">Other</option>
                 <option value="LAUNDRY_ROOM">Laundry room</option>
                 <option value="NOISE_DISTURBANCE">Noise Disturbance</option>
@@ -86,38 +87,9 @@
 
             <button type="submit">Create Incident</button>
         </form>
+        <div th:if="${error}" th:text="${error}" style="color:red;"></div>
+        <div th:if="${success}" th:text="${success}" style="color:green;"></div>
     </div>
 </div>
-
-<script>
-    document.getElementById("incidentForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(e.target);
-
-        const data = {
-            subject: formData.get("subject"),
-            description: formData.get("description"),
-            incidentCategory: formData.get("incidentCategory")
-        };
-
-        const response = await fetch("/api/incidents", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            alert("Incident created!");
-            e.target.reset();
-        } else {
-            const errorData = await response.json().catch(() => null);
-            const message = errorData?.message || 'Error: ${response.status}';
-            alert('Failed to create incident: ${message}')
-        }
-    });
-</script>
 </body>
 </html>
