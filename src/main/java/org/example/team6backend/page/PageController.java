@@ -69,10 +69,10 @@ public class PageController {
 		return "redirect:/dashboard";
 	}
 
-	@GetMapping("/incident/{id}")
+	@GetMapping("/incidents/{id}")
 	public String viewIncident(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
 		model.addAttribute("role", userDetails.getUser().getRole().name());
-		return "viewIncident";
+		return "viewincident";
 	}
 
 	@GetMapping("/demo")
