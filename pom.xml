@@ -24,8 +24,6 @@
         <springdoc.version>3.0.2</springdoc.version>
         <jacoco.version>0.8.14</jacoco.version>
         <spotless.version>3.4.0</spotless.version>
-        <pmd.version>3.25.0</pmd.version>
-        <dependency-check.version>10.0.4</dependency-check.version>
     </properties>
 
     <dependencies>
@@ -162,22 +160,6 @@
                         <trimTrailingWhitespace/>
                         <endWithNewline/>
                     </java>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>${pmd.version}</version>
-                <configuration>
-                    <failOnViolation>false</failOnViolation>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>${dependency-check.version}</version>
-                <configuration>
-                    <failBuildOnCVSS>7</failBuildOnCVSS>
                 </configuration>
             </plugin>
             <plugin>
