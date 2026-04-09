@@ -39,9 +39,13 @@ public class NotificationService {
 		return notificationRepository.countByUserIdAndReadFalse(userId);
 	}
 
-	public void markAsRead(Long notificationId) {
+	public void markAsRead(Long notificationId, String userId) {
 		Notification notification = notificationRepository.findById(notificationId)
 				.orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+
+		if (!notification.getUser().getId().equals(userId)) {
+			throw new IllegalStateException("You are not allowed to update this notification");
+		}
 
 		notification.setRead(true);
 		notificationRepository.save(notification);

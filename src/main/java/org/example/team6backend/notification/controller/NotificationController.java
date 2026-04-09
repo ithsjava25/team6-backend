@@ -23,10 +23,7 @@ public class NotificationController {
 
 		String userId = userDetails.getUser().getId();
 
-		return notificationService.getUserNotifications(userId)
-				.stream()
-				.map(NotificationResponse::fromEntity)
-				.toList();
+		return notificationService.getUserNotifications(userId).stream().map(NotificationResponse::fromEntity).toList();
 	}
 
 	@GetMapping("/user/unread-count")
@@ -36,7 +33,8 @@ public class NotificationController {
 	}
 
 	@PatchMapping(("/{notificationId}/read"))
-	public void markAsRead(@PathVariable Long notificationId) {
-		notificationService.markAsRead(notificationId);
+	public void markAsRead(@PathVariable Long notificationId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+		String userId = userDetails.getUser().getId();
+		notificationService.markAsRead(notificationId, userId);
 	}
 }

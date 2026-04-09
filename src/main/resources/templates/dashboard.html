@@ -708,8 +708,6 @@
             const response = await fetch(`/notifications/user`);
             const notifications = await response.json();
 
-            console.log("notifications:", notifications);
-
             const container = document.getElementById('notificationList');
 
             if (!notifications || notifications.length === 0) {
