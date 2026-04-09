@@ -52,7 +52,8 @@ public class CommentService {
 
 		activityLogService.log("COMMENT_ADDED", user.getName() + " added a comment", incident, user);
 
-		if (!incident.getCreatedBy().getId().equals(user.getId())) {
+		if (incident.getCreatedBy() != null && !incident.getCreatedBy().getId().equals(user.getId())) {
+
 			notificationService.createNotification(user.getName() + " commented on your incident",
 					incident.getCreatedBy(), incident);
 		}
