@@ -1,6 +1,7 @@
 package org.example.team6backend.incident.controller;
 
 import jakarta.validation.Valid;
+import org.example.team6backend.incident.dto.AssignIncidentRequest;
 import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.dto.IncidentResponse;
 import org.example.team6backend.incident.entity.Incident;
@@ -67,4 +68,13 @@ public class IncidentController {
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		return IncidentResponse.fromEntity(incidentService.getById(id, userDetails.getUser()));
 	}
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{incidentId}/assign")
+    public IncidentResponse assignIncident(@PathVariable Long incidentId,
+                                           @Valid @RequestBody AssignIncidentRequest request,
+                                           @AuthenticationPrincipal CustomUserDetails adminUser) {
+        Incident updatedIncident = incidentService.assignIncidentToHandler(incidentId, request.handlerId(), adminUser.getUser());
+        return IncidentResponse.fromEntity(updatedIncident);
+    }
 }
