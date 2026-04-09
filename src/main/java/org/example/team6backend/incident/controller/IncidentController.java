@@ -26,14 +26,14 @@ import java.util.List;
 public class IncidentController {
 
 	private final IncidentService incidentService;
-    private final UserService userService;
-    private final UserMapper userMapper;
+	private final UserService userService;
+	private final UserMapper userMapper;
 
-    public IncidentController(IncidentService incidentService, UserService userService, UserMapper userMapper) {
-        this.incidentService = incidentService;
-        this.userService = userService;
-        this.userMapper = userMapper;
-    }
+	public IncidentController(IncidentService incidentService, UserService userService, UserMapper userMapper) {
+		this.incidentService = incidentService;
+		this.userService = userService;
+		this.userMapper = userMapper;
+	}
 
 	/** Create new incident */
 	@PostMapping
@@ -80,21 +80,19 @@ public class IncidentController {
 		return IncidentResponse.fromEntity(incidentService.getById(id, userDetails.getUser()));
 	}
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{incidentId}/assign")
-    public IncidentResponse assignIncident(@PathVariable Long incidentId,
-                                           @Valid @RequestBody AssignIncidentRequest request,
-                                           @AuthenticationPrincipal CustomUserDetails adminUser) {
-        Incident updatedIncident = incidentService.assignIncidentToHandler(incidentId, request.handlerId(), adminUser.getUser());
-        return IncidentResponse.fromEntity(updatedIncident);
-    }
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{incidentId}/assign")
+	public IncidentResponse assignIncident(@PathVariable Long incidentId,
+			@Valid @RequestBody AssignIncidentRequest request, @AuthenticationPrincipal CustomUserDetails adminUser) {
+		Incident updatedIncident = incidentService.assignIncidentToHandler(incidentId, request.handlerId(),
+				adminUser.getUser());
+		return IncidentResponse.fromEntity(updatedIncident);
+	}
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/handlers")
-    public ResponseEntity<List<UserResponse>> getAvailableHandlers() {
-        List<AppUser> handlers = userService.getUsersByRole(UserRole.HANDLER);
-        return ResponseEntity.ok(handlers.stream()
-                .map(userMapper::toResponse)
-                .toList());
-    }
+	@PreAuthorize("hasRole('ADMIN')")
+	@GetMapping("/handlers")
+	public ResponseEntity<List<UserResponse>> getAvailableHandlers() {
+		List<AppUser> handlers = userService.getUsersByRole(UserRole.HANDLER);
+		return ResponseEntity.ok(handlers.stream().map(userMapper::toResponse).toList());
+	}
 }

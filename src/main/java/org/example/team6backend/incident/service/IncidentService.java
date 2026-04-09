@@ -29,12 +29,13 @@ public class IncidentService {
 
 	private final IncidentRepository incidentRepository;
 	private final ActivityLogService activityLogService;
-    private final AppUserRepository userRepository;
+	private final AppUserRepository userRepository;
 
-	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService, AppUserRepository userRepository) {
+	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
+			AppUserRepository userRepository) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
-        this.userRepository = userRepository;
+		this.userRepository = userRepository;
 	}
 
 	/** Help-method for sorting **/
@@ -91,34 +92,34 @@ public class IncidentService {
 		return incident;
 	}
 
-    @Transactional
-    public Incident assignIncidentToHandler(Long incidentId, String handlerId, AppUser currentUser) {
-        Incident incident = incidentRepository.findById(incidentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+	@Transactional
+	public Incident assignIncidentToHandler(Long incidentId, String handlerId, AppUser currentUser) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
 
-        AppUser handler = userRepository.findById(handlerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Handler not found with id: " + handlerId));
+		AppUser handler = userRepository.findById(handlerId)
+				.orElseThrow(() -> new ResourceNotFoundException("Handler not found with id: " + handlerId));
 
-        if (handler.getRole() != UserRole.HANDLER) {
-            throw new IllegalStateException("User is not a handler. Role: " + handler.getRole());
-        }
+		if (handler.getRole() != UserRole.HANDLER) {
+			throw new IllegalStateException("User is not a handler. Role: " + handler.getRole());
+		}
 
-        AppUser oldHandler = incident.getAssignedTo();
-        incident.setAssignedTo(handler);
-        incident.setUpdatedAt(LocalDateTime.now());
+		AppUser oldHandler = incident.getAssignedTo();
+		incident.setAssignedTo(handler);
+		incident.setUpdatedAt(LocalDateTime.now());
 
-        if (incident.getIncidentStatus() == IncidentStatus.OPEN) {
-            incident.setIncidentStatus(IncidentStatus.IN_PROGRESS);
-        }
+		if (incident.getIncidentStatus() == IncidentStatus.OPEN) {
+			incident.setIncidentStatus(IncidentStatus.IN_PROGRESS);
+		}
 
-        Incident savedIncident = incidentRepository.save(incident);
+		Incident savedIncident = incidentRepository.save(incident);
 
-        String oldHandlerName = oldHandler != null ? oldHandler.getName() : "unassigned";
-        activityLogService.log("INCIDENT_ASSIGNED",
-                currentUser.getName() + " assigned incident from " + oldHandlerName + " to " + handler.getName(),
-                savedIncident, currentUser);
+		String oldHandlerName = oldHandler != null ? oldHandler.getName() : "unassigned";
+		activityLogService.log("INCIDENT_ASSIGNED",
+				currentUser.getName() + " assigned incident from " + oldHandlerName + " to " + handler.getName(),
+				savedIncident, currentUser);
 
-        log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
-        return savedIncident;
-    }
+		log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
+		return savedIncident;
+	}
 }
