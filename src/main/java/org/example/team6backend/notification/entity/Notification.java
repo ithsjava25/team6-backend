@@ -14,13 +14,13 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column (nullable = false)
+    @Column(nullable = false)
     private String message;
 
-    @Column (nullable = false)
-    private boolean isRead = false;
+    @Column(name = "is_read", nullable = false)
+    private boolean read = false;
 
-    @Column ( nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @ManyToOne
@@ -53,11 +53,11 @@ public class Notification {
     }
 
     public boolean isRead() {
-        return isRead;
+        return read;
     }
 
     public void setRead(boolean read) {
-        isRead = read;
+        this.read = read;
     }
 
     public LocalDateTime getCreatedAt() {
