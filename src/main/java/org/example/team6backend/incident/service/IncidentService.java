@@ -3,6 +3,7 @@ package org.example.team6backend.incident.service;
 import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.exception.ResourceNotFoundException;
+import org.example.team6backend.notification.service.NotificationService;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.incident.entity.Incident;
@@ -30,12 +31,14 @@ public class IncidentService {
 	private final IncidentRepository incidentRepository;
 	private final ActivityLogService activityLogService;
 	private final AppUserRepository userRepository;
+	private final NotificationService notificationService;
 
 	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
-			AppUserRepository userRepository) {
+			AppUserRepository userRepository, NotificationService notificationService) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
 		this.userRepository = userRepository;
+		this.notificationService = notificationService;
 	}
 
 	/** Help-method for sorting **/
@@ -118,6 +121,13 @@ public class IncidentService {
 		activityLogService.log("INCIDENT_ASSIGNED",
 				currentUser.getName() + " assigned incident from " + oldHandlerName + " to " + handler.getName(),
 				savedIncident, currentUser);
+
+		notificationService.createNotification("You have been assigned to an incident", handler, savedIncident);
+
+		if (!handler.getId().equals(savedIncident.getCreatedBy().getId())) {
+			notificationService.createNotification(handler.getName() + " has been assigned to your incident",
+					savedIncident.getCreatedBy(), savedIncident);
+		}
 
 		log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
 		return savedIncident;

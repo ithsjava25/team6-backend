@@ -361,9 +361,117 @@
                 grid-template-columns: 1fr;
             }
         }
+        .notification-wrapper {
+            position: relative;
+        }
+
+        .notification-btn{
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .notification-btn:hover {
+            background: #1a1a1a;
+            border-color: #3b82f6;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            font-weight: 600;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 115%;
+            right: 0;
+            width: 320px;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            font-weight: 600;
+        }
+
+        .notification-empty {
+            padding: 1rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .notification-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            padding: 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            transition: 0.2s;
+            color: inherit;
+            font: inherit;
+
+        }
+
+        .notification-item:hover {
+            background: #141414;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-message {
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-bottom: 0.35rem;
+            line-height: 1.4;
+        }
+
+        .notification-date {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .notification-item:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: -2px;
+        }
+
     </style>
 </head>
-<body th:attr="data-role=${role}">
+<body th:attr="data-role=${role}, data-user-id=${user.id}">
 <nav class="navbar">
     <div class="logo">
         <a href="/">Incident Management System</a>
@@ -376,6 +484,20 @@
             <a href="/admin">Admin</a>
         </div>
         <div class="user-info">
+            <div class="notification-wrapper">
+                <button class="notification-btn" id="notificationBtn" type="button" onclick="toggleNotificationDropdown()">
+                    🔔
+                    <span class="notification-badge" id="notificationBadge" style="display: none;"></span>
+                </button>
+
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">Notifications</div>
+                    <div id="notificationList">
+                        <div class="notification-empty">No notifications</div>
+                    </div>
+                </div>
+            </div>
+
             <span class="user-name" th:text="${user.name != null ? user.name : user.githubLogin}">User</span>
             <span class="role-badge" th:classappend="${role.toLowerCase()}" th:text="${role}">-</span>
             <button class="logout-btn" onclick="logout()">Sign out</button>
@@ -439,6 +561,7 @@
 </div>
 
 <script>
+    const userId =document.body.dataset.userId;
     const userRole = document.body.dataset.role;
 
     async function loadIncidents() {
@@ -559,9 +682,95 @@
         return div.innerHTML;
     }
 
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById("notificationBadge");
+
+        if (count > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = count;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    async function loadNotificationCount() {
+        try {
+            const response = await fetch(`/notifications/user/unread-count`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to load unread count: ${response.status}`);
+            }
+
+            const count = await response.text();
+            updateNotificationBadge(Number(count))
+        } catch (error) {
+            console.error('Error loading notification count', error);
+            updateNotificationBadge(0)
+        }
+    }
+
+    function toggleNotificationDropdown() {
+        const dropdown = document.getElementById('notificationDropdown');
+        const isOpening = !dropdown.classList.contains('show')
+
+        dropdown.classList.toggle('show');
+
+        if (isOpening) {
+            loadNotification()
+        }
+    }
+
+    async function loadNotification() {
+        try {
+            const response = await fetch(`/notifications/user`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to load notifications: ${response.status}`);
+            }
+            const notifications = await response.json();
+
+            const container = document.getElementById('notificationList');
+
+            if (!notifications || notifications.length === 0) {
+                container.innerHTML = `<div class="notification-empty">No notifications</div>`;
+                return;
+            }
+
+            container.innerHTML = notifications.map(notification => `
+                <button class="notification-item" onclick="openNotification(${notification.id}, ${notification.incidentId})">
+                    <div class="notification-message">${escapeHtml(notification.message)}</div>
+                    <div class="notification-date">${new Date(notification.createdAt).toLocaleDateString()}</div>
+                </button>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+
+            const container = document.getElementById('notificationList');
+            container.innerHTML = `<div class="notification-empty">Could not load notifications</div>`;
+        }
+    }
+
+    async function openNotification(notificationId, incidentId) {
+        try {
+            const response = await fetch(`/notifications/${notificationId}/read`, {
+                method: 'PATCH'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to mark notifications as read: ${response.status}`);
+            }
+
+            loadNotificationCount();
+            window.location.href = `/incidents/${incidentId}`;
+        } catch (error) {
+            console.error('Error opening notification', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         loadIncidents();
         loadPendingUsers();
+        loadNotificationCount();
     });
 </script>
 </body>
