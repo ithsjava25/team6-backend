@@ -744,6 +744,9 @@
             `).join('');
         } catch (error) {
             console.error('Error loading notifications:', error);
+
+            const container = document.getElementById('notificationList');
+            container.innerHTML = `<div class="notification-empty">Could not load notifications</div>`;
         }
     }
 
