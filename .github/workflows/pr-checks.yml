@@ -26,7 +26,6 @@ jobs:
 
       - name: Run static code analysis with PMD
         run: mvn pmd:check
-        continue-on-error: true
 
     #  - name: Check for vulnerabilities
     #    run: mvn dependency-check:check
