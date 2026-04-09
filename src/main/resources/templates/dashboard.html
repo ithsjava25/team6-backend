@@ -430,10 +430,18 @@
         }
 
         .notification-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
             padding: 1rem;
             border-bottom: 1px solid #1a1a1a;
             cursor: pointer;
             transition: 0.2s;
+            color: inherit;
+            font: inherit;
+
         }
 
         .notification-item:hover {
@@ -454,6 +462,11 @@
         .notification-date {
             font-size: 0.75rem;
             color: #6b7280;
+        }
+
+        .notification-item:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: -2px;
         }
 
     </style>
@@ -724,10 +737,10 @@
             }
 
             container.innerHTML = notifications.map(notification => `
-                <div class="notification-item" onclick="openNotification(${notification.id}, ${notification.incidentId})">
+                <button class="notification-item" onclick="openNotification(${notification.id}, ${notification.incidentId})">
                     <div class="notification-message">${escapeHtml(notification.message)}</div>
                     <div class="notification-date">${new Date(notification.createdAt).toLocaleDateString()}</div>
-                </div>
+                </button>
             `).join('');
         } catch (error) {
             console.error('Error loading notifications:', error);
