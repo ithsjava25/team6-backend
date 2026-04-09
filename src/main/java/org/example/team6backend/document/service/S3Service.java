@@ -18,20 +18,18 @@ public class S3Service {
 	@Value("${minio.bucket}")
 	private String bucketName;
 
-    @PostConstruct
-    public void init() {
-        try {
-            boolean exists = minioClient.bucketExists(
-                    BucketExistsArgs.builder().bucket(bucketName).build());
+	@PostConstruct
+	public void init() {
+		try {
+			boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
 
-            if (!exists) {
-                minioClient.makeBucket(
-                        MakeBucketArgs.builder().bucket(bucketName).build());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not initialize minio service", e);
-        }
-    }
+			if (!exists) {
+				minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Could not initialize minio service", e);
+		}
+	}
 
 	/** Upload file to MinIO */
 	public void uploadFile(String fileKey, MultipartFile file) {

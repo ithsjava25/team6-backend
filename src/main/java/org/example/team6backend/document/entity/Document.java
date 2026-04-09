@@ -10,13 +10,13 @@ public class Document {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-    @Column(name = "file_name")
+	@Column(name = "file_name")
 	private String fileName;
-    @Column(name = "content_type")
+	@Column(name = "content_type")
 	private String contentType;
-    @Column(name = "file_key")
+	@Column(name = "file_key")
 	private String fileKey;
-    @Column(name = "file_size")
+	@Column(name = "file_size")
 	private Long fileSize;
 
 	@ManyToOne
