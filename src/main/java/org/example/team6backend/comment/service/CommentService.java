@@ -23,7 +23,8 @@ public class CommentService {
 	private final NotificationService notificationService;
 
 	public CommentService(CommentRepository commentRepository, IncidentRepository incidentRepository,
-			AppUserRepository appUserRepository, ActivityLogService activityLogService, NotificationService notificationService) {
+			AppUserRepository appUserRepository, ActivityLogService activityLogService,
+			NotificationService notificationService) {
 		this.commentRepository = commentRepository;
 		this.incidentRepository = incidentRepository;
 		this.appUserRepository = appUserRepository;
@@ -52,11 +53,8 @@ public class CommentService {
 		activityLogService.log("COMMENT_ADDED", user.getName() + " added a comment", incident, user);
 
 		if (!incident.getCreatedBy().getId().equals(user.getId())) {
-			notificationService.createNotification(
-					user.getName() + " commented on your incident",
-					incident.getCreatedBy(),
-					incident
-			);
+			notificationService.createNotification(user.getName() + " commented on your incident",
+					incident.getCreatedBy(), incident);
 		}
 
 		return savedComment;
