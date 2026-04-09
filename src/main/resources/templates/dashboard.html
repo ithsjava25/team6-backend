@@ -682,13 +682,17 @@
 
     async function loadNotificationCount() {
         try {
-
             const response = await fetch(`/notifications/user/unread-count`);
-            const count = await response.text();
 
+            if (!response.ok) {
+                throw new Error(`Failed to load unread count: ${response.status}`);
+            }
+
+            const count = await response.text();
             updateNotificationBadge(Number(count))
         } catch (error) {
             console.error('Error loading notification count', error);
+            updateNotificationBadge(0)
         }
     }
 
@@ -706,6 +710,10 @@
     async function loadNotification() {
         try {
             const response = await fetch(`/notifications/user`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to load notifications: ${response.status}`);
+            }
             const notifications = await response.json();
 
             const container = document.getElementById('notificationList');
@@ -728,9 +736,13 @@
 
     async function openNotification(notificationId, incidentId) {
         try {
-            await fetch(`/notifications/${notificationId}/read`, {
+            const response = await fetch(`/notifications/${notificationId}/read`, {
                 method: 'PATCH'
             });
+
+            if (!response.ok) {
+                throw new Error(`Failed to mark notifications as read: ${response.status}`);
+            }
 
             loadNotificationCount();
             window.location.href = `/incidents/${incidentId}`;
