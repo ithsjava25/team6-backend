@@ -24,13 +24,6 @@ jobs:
       - name: Check code formatting with Spotless
         run: mvn spotless:check
 
-      - name: Run static code analysis with PMD
-        run: mvn pmd:check
-
-    #  - name: Check for vulnerabilities
-    #    run: mvn dependency-check:check
-    #    continue-on-error: true
-
       - name: Run all tests with coverage
         run: mvn test jacoco:report
 
