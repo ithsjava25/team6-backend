@@ -4,7 +4,7 @@ import org.example.team6backend.notification.entity.Notification;
 
 import java.time.LocalDateTime;
 
-public class NotificationResponce {
+public class NotificationResponse {
 
 	private Long id;
 	private String message;
@@ -12,8 +12,8 @@ public class NotificationResponce {
 	private LocalDateTime createdAt;
 	private Long incidentId;
 
-	public static NotificationResponce fromEntity(Notification notification) {
-		NotificationResponce response = new NotificationResponce();
+	public static NotificationResponse fromEntity(Notification notification) {
+		NotificationResponse response = new NotificationResponse();
 		response.setId(notification.getId());
 		response.setMessage(notification.getMessage());
 		response.setRead(notification.isRead());

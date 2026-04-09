@@ -683,7 +683,7 @@
     async function loadNotificationCount() {
         try {
 
-            const response = await fetch(`/notifications/user/${userId}/unread-count`);
+            const response = await fetch(`/notifications/user/unread-count`);
             const count = await response.text();
 
             updateNotificationBadge(Number(count))
@@ -705,7 +705,7 @@
 
     async function loadNotification() {
         try {
-            const response = await fetch(`/notifications/user/${userId}`);
+            const response = await fetch(`/notifications/user`);
             const notifications = await response.json();
 
             console.log("notifications:", notifications);
