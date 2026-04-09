@@ -122,13 +122,12 @@ public class IncidentService {
 				currentUser.getName() + " assigned incident from " + oldHandlerName + " to " + handler.getName(),
 				savedIncident, currentUser);
 
+		notificationService.createNotification("You have been assigned to an incident", handler, savedIncident);
+
 		if (!handler.getId().equals(savedIncident.getCreatedBy().getId())) {
-			notificationService.createNotification("You have been assigned to your incident",
+			notificationService.createNotification(handler.getName() + " has been assigned to your incident",
 					savedIncident.getCreatedBy(), savedIncident);
 		}
-
-		notificationService.createNotification(handler.getName() + " has been assigned to your incident",
-				savedIncident.getCreatedBy(), savedIncident);
 
 		log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
 		return savedIncident;
