@@ -68,7 +68,11 @@
     <div class="card">
         <h2>Report Incident</h2>
 
-        <form th:action="@{/create-incident}" th:object="${incidentRequest}" method="post">
+        <form th:action="@{/create-incident}"
+              th:object="${incidentRequest}"
+              method="post"
+              enctype="multipart/form-data">
+
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
             <!-- GLOBAL ERROR -->
@@ -101,6 +105,9 @@
                 <option value="NOISE_DISTURBANCE">Noise Disturbance</option>
                 <option value="DAMAGE">Damage</option>
             </select>
+            <!--FILES-->
+            <label>Upload file:</label>
+            <input type="file" name="files" multiple/>
             <div th:if="${#fields.hasErrors('incidentCategory')}"
                  th:errors="*{incidentCategory}"
                  style="color: red;">

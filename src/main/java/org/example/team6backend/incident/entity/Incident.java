@@ -1,9 +1,10 @@
 package org.example.team6backend.incident.entity;
 
 import jakarta.persistence.*;
+import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.user.entity.AppUser;
-
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Incident {
@@ -39,6 +40,9 @@ public class Incident {
 
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
+
+	@OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
+	private List<Document> documents;
 
 	@PrePersist
 	protected void onCreate() {

@@ -1,6 +1,7 @@
 package org.example.team6backend.page;
 
 import jakarta.validation.Valid;
+import org.example.team6backend.document.service.DocumentService;
 import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
@@ -17,15 +18,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class PageController {
 	private final UserService userService;
 	private final IncidentService incidentService;
+	private final DocumentService documentService;
 
-	public PageController(UserService userService, IncidentService incidentService) {
+	public PageController(UserService userService, IncidentService incidentService, DocumentService documentService) {
 		this.userService = userService;
 		this.incidentService = incidentService;
+		this.documentService = documentService;
 	}
 
 	@GetMapping("/")
@@ -84,16 +88,14 @@ public class PageController {
 	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
 	@PostMapping("/create-incident")
 	public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
-			@Valid @ModelAttribute IncidentRequest incidentRequest, BindingResult bindingResult, Model model,
-			HttpServletRequest request) {
+			@Valid @ModelAttribute IncidentRequest incidentRequest, BindingResult bindingResult,
+			@RequestParam(value = "files", required = false) MultipartFile files, Model model) {
+
 		AppUser user = userDetails.getUser();
-		String role = user.getRole().name();
 
 		if (bindingResult.hasErrors()) {
-			model.addAttribute("role", role);
+			model.addAttribute("role", user.getRole().name());
 			model.addAttribute("user", user);
-			CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
-			model.addAttribute("_csrf", csrf);
 			return "createincident";
 		}
 
@@ -105,8 +107,9 @@ public class PageController {
 
 		Incident saved = incidentService.createIncident(incident);
 
-		model.addAttribute("success", "Incident created successfully!");
-		model.addAttribute("incidentRequest", incidentRequest);
+		if (files != null && !files.isEmpty()) {
+			documentService.uploadFile(files, saved);
+		}
 		return "redirect:/incidents/" + saved.getId();
 	}
 
