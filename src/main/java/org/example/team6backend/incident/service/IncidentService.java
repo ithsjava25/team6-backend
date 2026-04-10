@@ -61,42 +61,43 @@ public class IncidentService {
 	@Transactional
 	public Incident createIncident(IncidentRequest incidentRequest, List<MultipartFile> files, AppUser user) {
 
-		Incident incident = new Incident();
-		incident.setSubject(incidentRequest.getSubject());
-		incident.setDescription(incidentRequest.getDescription());
-		incident.setIncidentCategory(incidentRequest.getIncidentCategory());
-		incident.setCreatedBy(user);
-		incident.setIncidentStatus(IncidentStatus.OPEN);
-		incident.setCreatedAt(LocalDateTime.now());
-		incident.setUpdatedAt(LocalDateTime.now());
-
-		Incident savedIncident = incidentRepository.save(incident);
-
 		List<String> uploadedKeys = new ArrayList<>();
 
-		if (files != null) {
-			try {
+		try {
+			Incident incident = new Incident();
+			incident.setSubject(incidentRequest.getSubject());
+			incident.setDescription(incidentRequest.getDescription());
+			incident.setIncidentCategory(incidentRequest.getIncidentCategory());
+			incident.setCreatedBy(user);
+			incident.setIncidentStatus(IncidentStatus.OPEN);
+			incident.setCreatedAt(LocalDateTime.now());
+			incident.setUpdatedAt(LocalDateTime.now());
+
+			Incident savedIncident = incidentRepository.save(incident);
+
+			if (files != null) {
 				for (MultipartFile file : files) {
 					if (!file.isEmpty()) {
 						Document savedDocument = documentService.uploadFile(file, savedIncident);
 						uploadedKeys.add(savedDocument.getFileKey());
 					}
 				}
-			} catch (Exception e) {
-				for (String key : uploadedKeys) {
-					try {
-						s3Service.deleteFile(key);
-					} catch (Exception cleanupEx) {
-						log.warn("Failed rollback cleanup for fileKey: {}", key, cleanupEx);
-					}
-				}
-				throw e;
 			}
+			activityLogService.log("INCIDENT_CREATED", user.getName() + " created incident.", savedIncident, user);
 
+			return savedIncident;
+
+		} catch (Exception e) {
+			for (String key : uploadedKeys) {
+				try {
+					s3Service.deleteFile(key);
+				} catch (Exception cleanupEx) {
+					log.warn("Failed rollback cleanup for fileKey: {}", key, cleanupEx);
+				}
+			}
+			throw e;
 		}
-		activityLogService.log("INCIDENT_CREATED", user.getName() + " created incident.", savedIncident, user);
 
-		return savedIncident;
 	}
 
 	/** Find all incidents (Admin) **/
