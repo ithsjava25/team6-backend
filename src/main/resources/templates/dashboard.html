@@ -484,7 +484,7 @@
                 container.innerHTML = '<p style="text-align: center; color: #6b7280;">No incidents yet.</p>';
             } else {
                 container.innerHTML = incidents.map(i => `
-                        <div class="incident-item" onclick="window.location.href='/incident/${i.id}'" style="cursor:pointer;">
+                        <div class="incident-item" onclick="window.location.href='/incidents/${i.id}'" style="cursor:pointer;">
                             <div>
                                 <div class="incident-title">${escapeHtml(i.subject)}</div>
                                 <div class="incident-date">${new Date(i.createdAt).toLocaleDateString()}</div>

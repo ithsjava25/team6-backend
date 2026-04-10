@@ -20,7 +20,7 @@ public class DocumentService {
 	/** Upload file */
 	public Document uploadFile(MultipartFile file, Incident incident) {
 		try {
-			String fileKey = UUID.randomUUID() + " _ " + file.getOriginalFilename();
+			String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
 			s3Service.uploadFile(fileKey, file);
 

@@ -45,13 +45,17 @@ public class DocumentController {
 		return "redirect:/incidents/" + incidentId;
 	}
 
-	@GetMapping("/download/{id}")
+	@GetMapping("/download/{incidentId}")
 	public ResponseEntity<InputStreamResource> downloadFile(@PathVariable Long incidentId,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		AppUser user = userDetails.getUser();
 		Incident incident = incidentService.getById(incidentId, user);
 
-		Document document = documentService.getDocumentsByIncident(incident).get(0);
+		List<Document> documents = documentService.getDocumentsByIncident(incident);
+		if (documents.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+		Document document = documents.get(0);
 
 		InputStream stream = documentService.downloadFile(document.getFileKey());
 

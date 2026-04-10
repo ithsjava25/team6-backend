@@ -1,6 +1,8 @@
 package org.example.team6backend.incident.service;
 
 import org.example.team6backend.activity.service.ActivityLogService;
+import org.example.team6backend.document.entity.Document;
+import org.example.team6backend.document.service.DocumentService;
 import org.example.team6backend.exception.ResourceNotFoundException;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
@@ -18,16 +20,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class IncidentService {
 
 	private final IncidentRepository incidentRepository;
 	private final ActivityLogService activityLogService;
+	private final DocumentService documentService;
 
-	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService) {
+	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
+			DocumentService documentService) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
+		this.documentService = documentService;
 	}
 
 	/** Help-method for sorting **/
@@ -82,5 +88,12 @@ public class IncidentService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		return incident;
+	}
+	public void deleteIncident(Incident incident) {
+		List<Document> documents = documentService.getDocumentsByIncident(incident);
+		for (Document document : documents) {
+			documentService.deleteFile(document);
+		}
+		incidentRepository.delete(incident);
 	}
 }

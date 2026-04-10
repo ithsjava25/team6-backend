@@ -20,6 +20,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Controller
 public class PageController {
 	private final UserService userService;
@@ -89,7 +91,7 @@ public class PageController {
 	@PostMapping("/create-incident")
 	public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
 			@Valid @ModelAttribute IncidentRequest incidentRequest, BindingResult bindingResult,
-			@RequestParam(value = "files", required = false) MultipartFile files, Model model) {
+			@RequestParam(value = "files", required = false) List<MultipartFile> files, Model model) {
 
 		AppUser user = userDetails.getUser();
 
@@ -108,7 +110,11 @@ public class PageController {
 		Incident saved = incidentService.createIncident(incident);
 
 		if (files != null && !files.isEmpty()) {
-			documentService.uploadFile(files, saved);
+			for (MultipartFile file : files) {
+				if (!file.isEmpty()) {
+					documentService.uploadFile(file, saved);
+				}
+			}
 		}
 		return "redirect:/incidents/" + saved.getId();
 	}
