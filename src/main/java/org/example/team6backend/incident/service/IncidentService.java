@@ -18,7 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -76,6 +75,7 @@ public class IncidentService {
 	public Page<Incident> findByAssignedTo(AppUser user, Pageable pageable) {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
+
 	public Incident getById(Long id, AppUser user) {
 		Incident incident = incidentRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found"));
