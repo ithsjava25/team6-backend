@@ -33,19 +33,15 @@ public class IncidentService {
 	private final IncidentRepository incidentRepository;
 	private final ActivityLogService activityLogService;
 	private final DocumentService documentService;
-
-	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
-			DocumentService documentService) {
-		this.incidentRepository = incidentRepository;
-		this.activityLogService = activityLogService;
-		this.documentService = documentService;
 	private final AppUserRepository userRepository;
 	private final NotificationService notificationService;
 
 	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
-			AppUserRepository userRepository, NotificationService notificationService) {
+			DocumentService documentService, AppUserRepository userRepository,
+			NotificationService notificationService) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
+		this.documentService = documentService;
 		this.userRepository = userRepository;
 		this.notificationService = notificationService;
 	}
@@ -110,6 +106,7 @@ public class IncidentService {
 			documentService.deleteFile(document);
 		}
 		incidentRepository.delete(incident);
+	}
 
 	@Transactional
 	public Incident assignIncidentToHandler(Long incidentId, String handlerId, AppUser currentUser) {

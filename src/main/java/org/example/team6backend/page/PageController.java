@@ -92,11 +92,14 @@ public class PageController {
 	@PostMapping("/create-incident")
 	public String submitIncident(@AuthenticationPrincipal CustomUserDetails userDetails,
 			@Valid @ModelAttribute IncidentRequest incidentRequest, BindingResult bindingResult,
-			@RequestParam(value = "files", required = false) List<MultipartFile> files, Model model) {
+			@RequestParam(value = "files", required = false) List<MultipartFile> files, Model model,
+			HttpServletRequest request) {
 
 		AppUser user = userDetails.getUser();
 
 		if (bindingResult.hasErrors()) {
+			CsrfToken csrf = (CsrfToken) request.getAttribute("_csrf");
+			model.addAttribute("_csrf", csrf);
 			model.addAttribute("role", user.getRole().name());
 			model.addAttribute("user", user);
 			return "createincident";
