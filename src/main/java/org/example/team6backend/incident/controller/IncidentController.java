@@ -38,13 +38,12 @@ public class IncidentController {
 	/** Create new incident */
 	@PostMapping
 	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
-	public IncidentResponse createIncident(@RequestBody @Valid IncidentRequest incidentRequest) {
-		Incident incident = new Incident();
-		incident.setSubject(incidentRequest.getSubject());
-		incident.setDescription(incidentRequest.getDescription());
-		incident.setIncidentCategory(incidentRequest.getIncidentCategory());
+	public IncidentResponse createIncident(@RequestBody @Valid IncidentRequest incidentRequest,
+			@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		AppUser user = customUserDetails.getUser();
 
-		Incident saved = incidentService.createIncident(incident);
+		Incident saved = incidentService.createIncident(incidentRequest, null, user);
+
 		return IncidentResponse.fromEntity(saved);
 	}
 

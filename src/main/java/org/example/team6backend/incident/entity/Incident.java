@@ -1,9 +1,10 @@
 package org.example.team6backend.incident.entity;
 
 import jakarta.persistence.*;
+import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.user.entity.AppUser;
-
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Incident {
@@ -39,6 +40,9 @@ public class Incident {
 
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
+
+	@OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Document> documents;
 
 	@PrePersist
 	protected void onCreate() {
@@ -91,6 +95,10 @@ public class Incident {
 		return updatedAt;
 	}
 
+	public List<Document> getDocuments() {
+		return documents;
+	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
@@ -129,5 +137,9 @@ public class Incident {
 
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public void setDocuments(List<Document> documents) {
+		this.documents = documents;
 	}
 }
