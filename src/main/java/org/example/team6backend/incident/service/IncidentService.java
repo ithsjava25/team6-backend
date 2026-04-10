@@ -73,7 +73,7 @@ public class IncidentService {
 
 		if (files != null) {
 			for (MultipartFile file : files) {
-				if (file.isEmpty()) {
+				if (!file.isEmpty()) {
 					documentService.uploadFile(file, savedIncident);
 				}
 			}

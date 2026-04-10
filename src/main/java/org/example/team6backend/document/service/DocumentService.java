@@ -1,6 +1,7 @@
 package org.example.team6backend.document.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.repository.DocumentRepository;
 import org.example.team6backend.incident.entity.Incident;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentService {
@@ -19,10 +21,13 @@ public class DocumentService {
 
 	/** Upload file */
 	public Document uploadFile(MultipartFile file, Incident incident) {
-		try {
-			String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
+		String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
+		boolean uploaded = false;
+
+		try {
 			s3Service.uploadFile(fileKey, file);
+			uploaded = true;
 
 			Document document = new Document();
 			document.setFileName(file.getOriginalFilename());
@@ -32,7 +37,15 @@ public class DocumentService {
 			document.setIncident(incident);
 
 			return documentRepository.save(document);
+
 		} catch (Exception e) {
+			if (uploaded) {
+				try {
+					s3Service.deleteFile(fileKey);
+				} catch (Exception cleanupEx) {
+					log.warn("Failed to cleanup S3 file: {}", fileKey, cleanupEx);
+				}
+			}
 			throw new RuntimeException("File upload failed", e);
 		}
 	}
