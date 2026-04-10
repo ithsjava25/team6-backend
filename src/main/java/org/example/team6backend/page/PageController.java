@@ -105,21 +105,8 @@ public class PageController {
 			return "createincident";
 		}
 
-		Incident incident = new Incident();
-		incident.setSubject(incidentRequest.getSubject());
-		incident.setDescription(incidentRequest.getDescription());
-		incident.setIncidentCategory(incidentRequest.getIncidentCategory());
-		incident.setCreatedBy(user);
+		Incident saved = incidentService.createIncident(incidentRequest, files, user);
 
-		Incident saved = incidentService.createIncident(incident);
-
-		if (files != null && !files.isEmpty()) {
-			for (MultipartFile file : files) {
-				if (!file.isEmpty()) {
-					documentService.uploadFile(file, saved);
-				}
-			}
-		}
 		return "redirect:/incidents/" + saved.getId();
 	}
 

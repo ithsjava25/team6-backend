@@ -52,5 +52,4 @@ public class DocumentService {
 	public List<Document> getDocumentsByIncident(Incident incidentId) {
 		return documentRepository.findByIncident(incidentId);
 	}
-
 }

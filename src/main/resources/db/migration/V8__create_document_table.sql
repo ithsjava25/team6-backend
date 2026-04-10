@@ -10,5 +10,4 @@ CREATE TABLE document(
     CONSTRAINT fk_document_incident
                      FOREIGN KEY (incident_id)
                      REFERENCES incident(id)
-                     ON DELETE CASCADE
 );

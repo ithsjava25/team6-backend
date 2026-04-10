@@ -4,9 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.service.DocumentService;
+import org.example.team6backend.document.service.S3Service;
 import org.example.team6backend.exception.ResourceNotFoundException;
+import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.notification.service.NotificationService;
-import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.entity.IncidentStatus;
@@ -18,10 +19,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,15 +35,17 @@ public class IncidentService {
 	private final DocumentService documentService;
 	private final AppUserRepository userRepository;
 	private final NotificationService notificationService;
+	private final S3Service s3Service;
 
 	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
-			DocumentService documentService, AppUserRepository userRepository,
-			NotificationService notificationService) {
+			DocumentService documentService, AppUserRepository userRepository, NotificationService notificationService,
+			S3Service s3Service) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
 		this.documentService = documentService;
 		this.userRepository = userRepository;
 		this.notificationService = notificationService;
+		this.s3Service = s3Service;
 	}
 
 	/** Help-method for sorting **/
@@ -55,19 +57,28 @@ public class IncidentService {
 	}
 
 	/** Create incident **/
-	public Incident createIncident(Incident incident) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-		AppUser appUser = userDetails.getUser();
+	@Transactional
+	public Incident createIncident(IncidentRequest incidentRequest, List<MultipartFile> files, AppUser user) {
 
-		incident.setCreatedBy(appUser);
+		Incident incident = new Incident();
+		incident.setSubject(incidentRequest.getSubject());
+		incident.setDescription(incidentRequest.getDescription());
+		incident.setIncidentCategory(incidentRequest.getIncidentCategory());
+		incident.setCreatedBy(user);
 		incident.setIncidentStatus(IncidentStatus.OPEN);
 		incident.setCreatedAt(LocalDateTime.now());
 		incident.setUpdatedAt(LocalDateTime.now());
 
 		Incident savedIncident = incidentRepository.save(incident);
 
-		activityLogService.log("INCIDENT_CREATED", appUser.getName() + " created the incident", savedIncident, appUser);
+		if (files != null) {
+			for (MultipartFile file : files) {
+				if (file.isEmpty()) {
+					documentService.uploadFile(file, savedIncident);
+				}
+			}
+		}
+		activityLogService.log("INCIDENT_CREATED", user.getName() + "created incident", savedIncident, user);
 
 		return savedIncident;
 	}
@@ -100,10 +111,15 @@ public class IncidentService {
 		}
 		return incident;
 	}
+	@Transactional
 	public void deleteIncident(Incident incident) {
-		List<Document> documents = documentService.getDocumentsByIncident(incident);
-		for (Document document : documents) {
-			documentService.deleteFile(document);
+
+		for (Document document : incident.getDocuments()) {
+			try {
+				s3Service.deleteFile(document.getFileKey());
+			} catch (Exception e) {
+				log.warn("Failed to delete file from S3: " + document.getFileKey(), e);
+			}
 		}
 		incidentRepository.delete(incident);
 	}
