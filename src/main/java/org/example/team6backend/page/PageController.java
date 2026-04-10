@@ -7,6 +7,7 @@ import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.entity.UserRole;
 import org.example.team6backend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
@@ -134,6 +135,7 @@ public class PageController {
 		if (user.getRole().name().equals("ADMIN")) {
 			model.addAttribute("user", user);
 			model.addAttribute("role", user.getRole().name());
+			model.addAttribute("handlers", userService.getUsersByRole(UserRole.HANDLER));
 			return "admin";
 		}
 

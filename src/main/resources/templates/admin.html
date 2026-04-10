@@ -255,6 +255,73 @@
             color: #ef4444;
         }
 
+        .incident-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .incident-badge.OPEN { background: #f59e0b; color: white; }
+        .incident-badge.IN_PROGRESS { background: #3b82f6; color: white; }
+        .incident-badge.RESOLVED { background: #10b981; color: white; }
+        .incident-badge.CLOSED { background: #6b7280; color: white; }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .assign-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .assign-btn:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .unassign-btn {
+            background: #f59e0b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .unassign-btn:hover {
+            background: #d97706;
+            transform: scale(1.05);
+        }
+
+        .assigned-to {
+            font-size: 0.8rem;
+            color: #10b981;
+        }
+
+        .unassigned {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
         .users-table-container {
             background: #0a0a0a;
             border: 1px solid #1a1a1a;
@@ -419,7 +486,7 @@
             border: 1px solid #2a2a2a;
             border-radius: 1rem;
             padding: 2rem;
-            max-width: 400px;
+            max-width: 500px;
             width: 90%;
         }
 
@@ -439,13 +506,18 @@
             font-size: 0.875rem;
         }
 
-        .modal-content select {
+        .modal-content select, .modal-content textarea {
             width: 100%;
             background: #0f0f0f;
             border: 1px solid #2a2a2a;
             border-radius: 0.5rem;
             padding: 0.625rem;
             color: #ffffff;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
         }
 
         .modal-buttons {
@@ -638,7 +710,7 @@
 <div class="container">
     <div class="admin-header">
         <h1>Admin Panel</h1>
-        <p>Manage user roles and access</p>
+        <p>Manage users, roles, and incidents</p>
     </div>
 
     <div class="stats-grid" id="statsGrid">
@@ -662,63 +734,131 @@
             <div class="stat-title">Admins</div>
             <div class="stat-number" id="adminCount">-</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-title">Total Incidents</div>
+            <div class="stat-number" id="totalIncidents">-</div>
+        </div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" data-tab="all">All Users</button>
-        <button class="tab-btn" data-tab="pending">Pending Approval</button>
-        <button class="tab-btn" data-tab="residents">Residents</button>
-        <button class="tab-btn" data-tab="handlers">Handlers</button>
-        <button class="tab-btn" data-tab="admins">Admins</button>
+        <button class="tab-btn active" data-tab="users" onclick="switchTab('users')">Users</button>
+        <button class="tab-btn" data-tab="incidents" onclick="switchTab('incidents')">Incidents</button>
     </div>
 
-    <div class="filters-bar">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search by name, email, or GitHub username...">
-            <button onclick="searchUsers()">Search</button>
+    <div id="usersTab">
+        <div class="filters-bar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name, email, or GitHub username...">
+                <button onclick="searchUsers()">Search</button>
+            </div>
+            <div class="filter-group">
+                <select id="roleFilter">
+                    <option value="">All Roles</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="RESIDENT">Resident</option>
+                    <option value="HANDLER">Handler</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+            <button class="clear-filters" onclick="clearFilters()">Clear Filters</button>
         </div>
-        <div class="filter-group">
-            <select id="statusFilter">
-                <option value="">All Status</option>
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
-            </select>
+
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email / GitHub</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                <tr><td colspan="6" class="loading">Loading users...</td></tr>
+                </tbody>
+            </table>
         </div>
-        <button class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+
+        <div class="pagination-container">
+            <div class="pagination-info" id="paginationInfo">
+                Showing 0-0 of 0 users
+            </div>
+            <div class="pagination-controls" id="paginationControls">
+            </div>
+            <div class="page-size-selector">
+                <label>Rows per page:</label>
+                <select id="pageSizeSelect" onchange="changePageSize()">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
     </div>
 
-    <div class="users-table-container">
-        <table class="users-table">
-            <thead>
-            <tr>
-                <th>User</th>
-                <th>Email / GitHub</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody id="usersTableBody">
-            <tr><td colspan="6" class="loading">Loading users...</td></tr>
-            </tbody>
-        </table>
-    </div>
+    <div id="incidentsTab" style="display: none;">
+        <div class="filters-bar">
+            <div class="search-box">
+                <input type="text" id="incidentSearchInput" placeholder="Search incidents...">
+                <button onclick="searchIncidents()">Search</button>
+            </div>
+            <div class="filter-group">
+                <select id="statusFilterIncident">
+                    <option value="">All Status</option>
+                    <option value="OPEN">Open</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="CLOSED">Closed</option>
+                </select>
+            </div>
+            <button class="clear-filters" onclick="clearIncidentFilters()">Clear Filters</button>
+        </div>
 
-    <div class="pagination-container">
-        <div class="pagination-info" id="paginationInfo">
-            Showing 0-0 of 0 users
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Subject</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Created By</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="incidentsTableBody">
+                <tr><td colspan="8" class="loading">Loading incidents...</td></tr>
+                </tbody>
+            </table>
         </div>
-        <div class="pagination-controls" id="paginationControls">
-        </div>
-        <div class="page-size-selector">
-            <label>Rows per page:</label>
-            <select id="pageSizeSelect" onchange="changePageSize()">
-                <option value="10">10</option>
-                <option value="20" selected>20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
+
+        <div class="pagination-container">
+            <div class="pagination-info" id="incidentPaginationInfo">
+                Showing 0-0 of 0 incidents
+            </div>
+            <div class="pagination-controls" id="incidentPaginationControls">
+            </div>
+            <div class="page-size-selector">
+                <label>Rows per page:</label>
+                <select id="incidentPageSizeSelect" onchange="changeIncidentPageSize()">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
         </div>
     </div>
 </div>
@@ -758,39 +898,93 @@
     </div>
 </div>
 
+<div id="assignModal" class="modal">
+    <div class="modal-content">
+        <h3>Assign Incident to Handler</h3>
+        <div class="form-group">
+            <label>Select Handler</label>
+            <select id="handlerSelect">
+                <option value="">Loading handlers...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Assignment Notes (optional)</label>
+            <textarea id="assignmentNotes" placeholder="Add any notes about this assignment..."></textarea>
+        </div>
+        <div class="modal-buttons">
+            <button class="save-btn" onclick="saveAssignment()">Assign</button>
+            <button class="cancel-btn" onclick="closeAssignModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentPage = 0;
-    let currentTab = 'all';
+    let currentTab = 'users';
     let currentSearch = '';
+    let currentRole = '';
     let currentStatus = '';
     let totalPages = 0;
     let totalElements = 0;
     let pageSize = 20;
     let selectedUserId = null;
+    let selectedIncidentId = null;
+
+    let currentIncidentPage = 0;
+    let currentIncidentSearch = '';
+    let currentIncidentStatus = '';
+    let incidentTotalPages = 0;
+    let incidentTotalElements = 0;
+    let incidentPageSize = 20;
+    let handlersList = [];
 
     document.addEventListener('DOMContentLoaded', () => {
         loadStats();
         loadUsers();
+        loadHandlers();
 
         const savedPageSize = localStorage.getItem('adminPageSize');
         if (savedPageSize) {
             pageSize = parseInt(savedPageSize);
             document.getElementById('pageSizeSelect').value = pageSize;
         }
+
+        const savedIncidentPageSize = localStorage.getItem('adminIncidentPageSize');
+        if (savedIncidentPageSize) {
+            incidentPageSize = parseInt(savedIncidentPageSize);
+            document.getElementById('incidentPageSizeSelect').value = incidentPageSize;
+        }
     });
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentTab = btn.dataset.tab;
-            currentPage = 0;
-            loadUsers();
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.dataset.tab === tab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
         });
-    });
+
+        if (tab === 'users') {
+            document.getElementById('usersTab').style.display = 'block';
+            document.getElementById('incidentsTab').style.display = 'none';
+            loadUsers();
+        } else {
+            document.getElementById('usersTab').style.display = 'none';
+            document.getElementById('incidentsTab').style.display = 'block';
+            loadIncidents();
+        }
+    }
 
     document.getElementById('searchInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') searchUsers();
+    });
+
+    document.getElementById('roleFilter').addEventListener('change', (e) => {
+        currentRole = e.target.value;
+        currentPage = 0;
+        loadUsers();
     });
 
     document.getElementById('statusFilter').addEventListener('change', (e) => {
@@ -807,8 +1001,10 @@
 
     function clearFilters() {
         document.getElementById('searchInput').value = '';
+        document.getElementById('roleFilter').value = '';
         document.getElementById('statusFilter').value = '';
         currentSearch = '';
+        currentRole = '';
         currentStatus = '';
         currentPage = 0;
         loadUsers();
@@ -831,21 +1027,35 @@
             document.getElementById('residentCount').textContent = stats.residents || 0;
             document.getElementById('handlerCount').textContent = stats.handlers || 0;
             document.getElementById('adminCount').textContent = stats.admins || 0;
+
+            const incidentResponse = await fetch('/api/incidents/all?page=0&size=1');
+            const incidentData = await incidentResponse.json();
+            document.getElementById('totalIncidents').textContent = incidentData.totalElements || 0;
         } catch (error) {
             console.error('Error loading stats:', error);
+        }
+    }
+
+    async function loadHandlers() {
+        try {
+            const response = await fetch('/api/incidents/handlers');
+            handlersList = await response.json();
+
+            const select = document.getElementById('handlerSelect');
+            select.innerHTML = '<option value="">Select a handler...</option>' +
+                handlersList.map(handler =>
+                    `<option value="${handler.id}">${handler.name} (${handler.email || handler.githubLogin})</option>`
+                ).join('');
+        } catch (error) {
+            console.error('Error loading handlers:', error);
         }
     }
 
     async function loadUsers() {
         let url = '/api/admin/users?page=' + currentPage + '&size=' + pageSize;
 
-        if (currentTab !== 'all') {
-            let role = currentTab.toUpperCase();
-            if (role === 'PENDING') role = 'PENDING';
-            else if (role === 'RESIDENTS') role = 'RESIDENT';
-            else if (role === 'HANDLERS') role = 'HANDLER';
-            else if (role === 'ADMINS') role = 'ADMIN';
-            url += '&role=' + role;
+        if (currentRole !== '') {
+            url += '&role=' + currentRole;
         }
 
         if (currentStatus !== '') {
@@ -930,13 +1140,8 @@
         }
 
         let html = '';
-
-
         html += `<button class="pagination-btn" onclick="goToPage(0)" ${currentPage === 0 ? 'disabled' : ''}>« First</button>`;
-
-
         html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>‹ Previous</button>`;
-
 
         const maxVisiblePages = 5;
         let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
@@ -964,10 +1169,7 @@
             html += `<button class="pagination-btn" onclick="goToPage(${totalPages - 1})">${totalPages}</button>`;
         }
 
-
         html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next ›</button>`;
-
-
         html += `<button class="pagination-btn" onclick="goToPage(${totalPages - 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Last »</button>`;
 
         paginationDiv.innerHTML = html;
@@ -983,8 +1185,226 @@
         if (page < 0 || page >= totalPages) return;
         currentPage = page;
         loadUsers();
-
         document.querySelector('.users-table-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function loadIncidents() {
+        let url = '/api/incidents/all?page=' + currentIncidentPage + '&size=' + incidentPageSize;
+
+        if (currentIncidentStatus !== '') {
+            url += '&status=' + currentIncidentStatus;
+        }
+
+        if (currentIncidentSearch) {
+            url += '&search=' + encodeURIComponent(currentIncidentSearch);
+        }
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            incidentTotalPages = data.totalPages;
+            incidentTotalElements = data.totalElements;
+
+            renderIncidentsTable(data.content);
+            renderIncidentPagination();
+            updateIncidentPaginationInfo();
+        } catch (error) {
+            console.error('Error loading incidents:', error);
+            document.getElementById('incidentsTableBody').innerHTML =
+                '<tr><td colspan="8" style="text-align: center; color: #ef4444;">Error loading incidents</td></tr>';
+        }
+    }
+
+    function renderIncidentsTable(incidents) {
+        const tbody = document.getElementById('incidentsTableBody');
+
+        if (!incidents || incidents.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #6b7280;">No incidents found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = incidents.map(incident => `
+            <tr>
+                <td style="font-weight: 500;">#${incident.id}</td>
+                <td>
+                    <div style="font-weight: 500;">${escapeHtml(incident.subject)}</div>
+                    <div style="font-size: 0.7rem; color: #6b7280;">${escapeHtml(incident.description?.substring(0, 50) || '')}${incident.description?.length > 50 ? '...' : ''}</div>
+                </td>
+                <td><span class="category-badge">${incident.incidentCategory}</span></td>
+                <td><span class="incident-badge ${incident.incidentStatus}">${incident.incidentStatus}</span></td>
+                <td style="font-size: 0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
+                <td>
+                    ${incident.assignedTo ?
+            `<span class="assigned-to">✓ ${escapeHtml(incident.assignedTo)}</span>` :
+            `<span class="unassigned">Unassigned</span>`
+        }
+                </td>
+                <td style="font-size: 0.8rem;">${new Date(incident.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <div class="action-buttons">
+                        ${!incident.assignedTo ?
+            `<button class="assign-btn" onclick="openAssignModal(${incident.id})">Assign</button>` :
+            `<button class="unassign-btn" onclick="unassignIncident(${incident.id})">Unassign</button>`
+        }
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderIncidentPagination() {
+        const paginationDiv = document.getElementById('incidentPaginationControls');
+
+        if (incidentTotalPages <= 1) {
+            paginationDiv.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        html += `<button class="pagination-btn" onclick="goToIncidentPage(0)" ${currentIncidentPage === 0 ? 'disabled' : ''}>« First</button>`;
+        html += `<button class="pagination-btn" onclick="goToIncidentPage(${currentIncidentPage - 1})" ${currentIncidentPage === 0 ? 'disabled' : ''}>‹ Previous</button>`;
+
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentIncidentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(incidentTotalPages - 1, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 0) {
+            html += `<button class="pagination-btn" onclick="goToIncidentPage(0)">1</button>`;
+            if (startPage > 1) {
+                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="pagination-btn ${i === currentIncidentPage ? 'active' : ''}" onclick="goToIncidentPage(${i})">${i + 1}</button>`;
+        }
+
+        if (endPage < incidentTotalPages - 1) {
+            if (endPage < incidentTotalPages - 2) {
+                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
+            }
+            html += `<button class="pagination-btn" onclick="goToIncidentPage(${incidentTotalPages - 1})">${incidentTotalPages}</button>`;
+        }
+
+        html += `<button class="pagination-btn" onclick="goToIncidentPage(${currentIncidentPage + 1})" ${currentIncidentPage >= incidentTotalPages - 1 ? 'disabled' : ''}>Next ›</button>`;
+        html += `<button class="pagination-btn" onclick="goToIncidentPage(${incidentTotalPages - 1})" ${currentIncidentPage >= incidentTotalPages - 1 ? 'disabled' : ''}>Last »</button>`;
+
+        paginationDiv.innerHTML = html;
+    }
+
+    function updateIncidentPaginationInfo() {
+        const start = incidentTotalElements === 0 ? 0 : currentIncidentPage * incidentPageSize + 1;
+        const end = Math.min((currentIncidentPage + 1) * incidentPageSize, incidentTotalElements);
+        document.getElementById('incidentPaginationInfo').textContent = `Showing ${start}-${end} of ${incidentTotalElements} incidents`;
+    }
+
+    function goToIncidentPage(page) {
+        if (page < 0 || page >= incidentTotalPages) return;
+        currentIncidentPage = page;
+        loadIncidents();
+    }
+
+    function changeIncidentPageSize() {
+        incidentPageSize = parseInt(document.getElementById('incidentPageSizeSelect').value);
+        localStorage.setItem('adminIncidentPageSize', incidentPageSize);
+        currentIncidentPage = 0;
+        loadIncidents();
+    }
+
+    function searchIncidents() {
+        currentIncidentSearch = document.getElementById('incidentSearchInput').value;
+        currentIncidentPage = 0;
+        loadIncidents();
+    }
+
+    function clearIncidentFilters() {
+        document.getElementById('incidentSearchInput').value = '';
+        document.getElementById('statusFilterIncident').value = '';
+        currentIncidentSearch = '';
+        currentIncidentStatus = '';
+        currentIncidentPage = 0;
+        loadIncidents();
+    }
+
+    document.getElementById('statusFilterIncident')?.addEventListener('change', (e) => {
+        currentIncidentStatus = e.target.value;
+        currentIncidentPage = 0;
+        loadIncidents();
+    });
+
+    document.getElementById('incidentSearchInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchIncidents();
+    });
+
+    function openAssignModal(incidentId) {
+        selectedIncidentId = incidentId;
+        if (handlersList.length === 0) {
+            loadHandlers().then(() => {
+                document.getElementById('assignModal').classList.add('active');
+            });
+        } else {
+            document.getElementById('assignModal').classList.add('active');
+        }
+    }
+
+    async function saveAssignment() {
+        const handlerId = document.getElementById('handlerSelect').value;
+
+        if (!handlerId) {
+            showToast('Please select a handler', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/incidents/${selectedIncidentId}/assign`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handlerId: handlerId })
+            });
+
+            if (response.ok) {
+                showToast('Incident assigned successfully!', 'success');
+                closeAssignModal();
+                loadIncidents();
+                loadStats();
+            } else {
+                const error = await response.text();
+                showToast('Failed to assign incident: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error assigning incident', 'error');
+        }
+    }
+
+    async function unassignIncident(incidentId) {
+        if (!confirm('Are you sure you want to unassign this incident?')) return;
+
+        try {
+            const response = await fetch(`/api/incidents/${incidentId}/unassign`, {
+                method: 'PATCH'
+            });
+
+            if (response.ok) {
+                showToast('Incident unassigned successfully!', 'success');
+                loadIncidents();
+            } else {
+                const error = await response.text();
+                showToast('Failed to unassign incident: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error unassigning incident', 'error');
+        }
+    }
+
+    function closeAssignModal() {
+        document.getElementById('assignModal').classList.remove('active');
+        selectedIncidentId = null;
+        document.getElementById('assignmentNotes').value = '';
     }
 
     async function approveUser(userId) {

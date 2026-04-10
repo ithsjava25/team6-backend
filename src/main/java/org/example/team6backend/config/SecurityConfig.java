@@ -31,7 +31,7 @@ public class SecurityConfig {
 								.defaultSuccessUrl("/dashboard", true))
 				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
 						.deleteCookies("JSESSIONID"))
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**"));
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**"));
 
 		return http.build();
 	}
