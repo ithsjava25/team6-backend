@@ -1,14 +1,18 @@
 package org.example.team6backend.incident.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.service.DocumentService;
 import org.example.team6backend.exception.ResourceNotFoundException;
+import org.example.team6backend.notification.service.NotificationService;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.entity.IncidentStatus;
 import org.example.team6backend.incident.repository.IncidentRepository;
+import org.example.team6backend.user.entity.UserRole;
+import org.example.team6backend.user.repository.AppUserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,12 +21,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class IncidentService {
 
 	private final IncidentRepository incidentRepository;
@@ -34,6 +40,15 @@ public class IncidentService {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
 		this.documentService = documentService;
+	private final AppUserRepository userRepository;
+	private final NotificationService notificationService;
+
+	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
+			AppUserRepository userRepository, NotificationService notificationService) {
+		this.incidentRepository = incidentRepository;
+		this.activityLogService = activityLogService;
+		this.userRepository = userRepository;
+		this.notificationService = notificationService;
 	}
 
 	/** Help-method for sorting **/
@@ -95,5 +110,42 @@ public class IncidentService {
 			documentService.deleteFile(document);
 		}
 		incidentRepository.delete(incident);
+
+	@Transactional
+	public Incident assignIncidentToHandler(Long incidentId, String handlerId, AppUser currentUser) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+
+		AppUser handler = userRepository.findById(handlerId)
+				.orElseThrow(() -> new ResourceNotFoundException("Handler not found with id: " + handlerId));
+
+		if (handler.getRole() != UserRole.HANDLER) {
+			throw new IllegalStateException("User is not a handler. Role: " + handler.getRole());
+		}
+
+		AppUser oldHandler = incident.getAssignedTo();
+		incident.setAssignedTo(handler);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		if (incident.getIncidentStatus() == IncidentStatus.OPEN) {
+			incident.setIncidentStatus(IncidentStatus.IN_PROGRESS);
+		}
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		String oldHandlerName = oldHandler != null ? oldHandler.getName() : "unassigned";
+		activityLogService.log("INCIDENT_ASSIGNED",
+				currentUser.getName() + " assigned incident from " + oldHandlerName + " to " + handler.getName(),
+				savedIncident, currentUser);
+
+		notificationService.createNotification("You have been assigned to an incident", handler, savedIncident);
+
+		if (!handler.getId().equals(savedIncident.getCreatedBy().getId())) {
+			notificationService.createNotification(handler.getName() + " has been assigned to your incident",
+					savedIncident.getCreatedBy(), savedIncident);
+		}
+
+		log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
+		return savedIncident;
 	}
 }
