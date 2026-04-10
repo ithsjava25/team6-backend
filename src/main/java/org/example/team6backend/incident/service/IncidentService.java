@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -71,14 +72,29 @@ public class IncidentService {
 
 		Incident savedIncident = incidentRepository.save(incident);
 
+		List<String> uploadedKeys = new ArrayList<>();
+
 		if (files != null) {
-			for (MultipartFile file : files) {
-				if (!file.isEmpty()) {
-					documentService.uploadFile(file, savedIncident);
+			try {
+				for (MultipartFile file : files) {
+					if (!file.isEmpty()) {
+						Document savedDocument = documentService.uploadFile(file, savedIncident);
+						uploadedKeys.add(savedDocument.getFileKey());
+					}
 				}
+			} catch (Exception e) {
+				for (String key : uploadedKeys) {
+					try {
+						s3Service.deleteFile(key);
+					} catch (Exception cleanupEx) {
+						log.warn("Failed rollback cleanup for fileKey: {}", key, cleanupEx);
+					}
+				}
+				throw e;
 			}
+
 		}
-		activityLogService.log("INCIDENT_CREATED", user.getName() + "created incident", savedIncident, user);
+		activityLogService.log("INCIDENT_CREATED", user.getName() + " created incident.", savedIncident, user);
 
 		return savedIncident;
 	}
