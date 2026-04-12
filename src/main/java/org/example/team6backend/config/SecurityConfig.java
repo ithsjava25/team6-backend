@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -20,8 +19,8 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(
-				auth -> auth.requestMatchers("/", "/index", "/demo", "/error", "/login/**", "/oauth2/**").permitAll()
-						.requestMatchers("/dashboard", "/profile").authenticated()
+				auth -> auth.requestMatchers("/", "/index", "/demo", "/error", "/login/**", "/oauth2/**", "/dev/**")
+						.permitAll().requestMatchers("/dashboard", "/profile").authenticated()
 						.requestMatchers("/incidents", "/api/incidents/**").hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
 						.requestMatchers("/admin", "/api/admin/**").hasRole("ADMIN")
 						.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
@@ -31,7 +30,7 @@ public class SecurityConfig {
 								.defaultSuccessUrl("/dashboard", true))
 				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
 						.deleteCookies("JSESSIONID"))
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**"));
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/dev/**"));
 
 		return http.build();
 	}

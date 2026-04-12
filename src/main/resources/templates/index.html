@@ -90,15 +90,13 @@
             transform: scale(1.02);
         }
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #2a2a2a;
-            color: #ffffff;
+        .btn-dev {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
         }
 
-        .btn-outline:hover {
-            background: #1a1a1a;
-            border-color: #ffffff;
+        .btn-dev:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
         }
 
         .github-icon {
@@ -107,30 +105,58 @@
             fill: currentColor;
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 1.5rem 0;
-            color: #2a2a2a;
+        .dev-badge {
+            display: inline-block;
+            background: #000000;
+            color: #f59e0b;
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: 0.5rem;
+            vertical-align: middle;
         }
 
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        .divider span {
-            margin: 0 1rem;
-            font-size: 0.75rem;
-        }
-
-        .demo-note {
+        .dev-note {
             margin-top: 1rem;
             font-size: 0.75rem;
+            color: #f59e0b;
+        }
+
+        .dev-info-card {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 1rem;
+            text-align: left;
+        }
+
+        .dev-info-title {
+            color: #f59e0b;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dev-info-text {
             color: #ffffff;
+            font-size: 0.7rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .dev-info-code {
+            background: #1a1a1a;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #f59e0b;
+            margin-top: 0.5rem;
+            display: inline-block;
         }
 
         .footer {
@@ -160,22 +186,41 @@
     <div class="hero-container">
         <p>Track, manage and resolve housing-related issues</p>
 
-        <a href="/oauth2/authorization/github" class="btn">
-            <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            Sign in with GitHub
-        </a>
-
-        <div class="divider">
-            <span>or</span>
+        <div th:if="${@environment.getProperty('dev.mode.enabled') == 'true'}">
+            <a href="/dev/users" class="btn btn-dev">
+                Test Users (Dev Mode)
+                <span class="dev-badge">DEV</span>
+            </a>
+            <div class="dev-note">
+                Click to switch between Resident, Handler, Admin, Pending instantly.
+            </div>
         </div>
 
-        <a href="/demo" class="btn btn-outline">
-            Try demo mode
-        </a>
-        <div class="demo-note">
-            Test the system as resident, handler, or admin.
+        <div th:unless="${@environment.getProperty('dev.mode.enabled') == 'true'}">
+            <a href="/oauth2/authorization/github" class="btn">
+                <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                Sign in with GitHub
+            </a>
+
+            <div class="dev-info-card">
+                <div class="dev-info-title">
+                    Developer Mode
+                </div>
+                <div class="dev-info-text">
+                    Want to test all roles (Resident, Handler, Admin, Pending)?
+                </div>
+                <div class="dev-info-text">
+                    Start the app with dev profile:
+                </div>
+                <div class="dev-info-code">
+                    mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
+                </div>
+                <div class="dev-info-text" style="margin-top: 0.5rem;">
+                    Then you'll see a <span style="color: #f59e0b;">Test Users</span> button here to switch between all test users instantly
+                </div>
+            </div>
         </div>
     </div>
 </main>

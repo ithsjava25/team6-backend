@@ -40,6 +40,7 @@
             display: flex;
             gap: 1.5rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .nav-links a {
@@ -52,6 +53,105 @@
         .nav-links a:hover {
             color: #ffffff;
         }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-btn {
+            background: #1a1a1a;
+            color: #f59e0b;
+            border: 1px solid #2a2a2a;
+            padding: 0.4rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .dropdown-btn:hover {
+            background: #2a2a2a;
+            border-color: #f59e0b;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.75rem;
+            min-width: 250px;
+            z-index: 1000;
+            margin-top: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 0.7rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .dropdown-user {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .dropdown-user:hover {
+            background: #1a1a1a;
+        }
+
+        .dropdown-user:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .dropdown-user-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .dropdown-user-email {
+            font-size: 0.65rem;
+            color: #6b7280;
+        }
+
+        .dropdown-user-role {
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+
+        .dropdown-user-role.ADMIN { background: #ef4444; color: white; }
+        .dropdown-user-role.HANDLER { background: #f97316; color: white; }
+        .dropdown-user-role.RESIDENT { background: #10b981; color: white; }
+        .dropdown-user-role.PENDING { background: #6b7280; color: white; }
+        .dropdown-user-role-inactive { background: #4a4a4a; color: #9ca3af; text-decoration: line-through; }
 
         .user-info {
             display: flex;
@@ -89,6 +189,11 @@
         .role-badge.pending {
             background: #6b7280;
             color: white;
+        }
+
+        .role-badge.inactive {
+            background: #4a4a4a;
+            color: #9ca3af;
         }
 
         .logout-btn {
@@ -176,6 +281,13 @@
         .pending-card {
             background: #0a0a0a;
             border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .inactive-card {
+            background: #0a0a0a;
+            border: 1px solid #ef4444;
             border-radius: 1rem;
             padding: 1.5rem;
         }
@@ -346,6 +458,14 @@
             flex-wrap: wrap;
         }
 
+        .dev-badge {
+            font-size: 0.7rem;
+            color: #f59e0b;
+            background: #1a1a1a;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
@@ -471,18 +591,42 @@
 
     </style>
 </head>
-<body th:attr="data-role=${role}, data-user-id=${user.id}">
+<body th:attr="data-role=${role}, data-user-id=${user.id}, data-user-active=${user.active}">
 <nav class="navbar">
     <div class="logo">
         <a href="/">Incident Management System</a>
     </div>
     <div class="nav-links">
         <a href="/dashboard">Home</a>
-        <a th:if="${role != 'PENDING'}" href="/incidents">Incidents</a>
+        <a th:if="${role != 'PENDING' && user.active}" href="/incidents">Incidents</a>
         <a href="/profile">Profile</a>
-        <div th:if="${role == 'ADMIN'}">
+        <div th:if="${role == 'ADMIN' && user.active}">
             <a href="/admin">Admin</a>
         </div>
+
+        <div th:if="${@environment.getProperty('dev.mode.enabled') == 'true'}"
+             style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="dev-badge">DEV</span>
+            <button onclick="switchRole('test_resident')"
+                    style="background: #10b981; border: none; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; cursor: pointer;">Resident</button>
+            <button onclick="switchRole('test_handler')"
+                    style="background: #f97316; border: none; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; cursor: pointer;">Handler</button>
+            <button onclick="switchRole('test_admin')"
+                    style="background: #ef4444; border: none; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; cursor: pointer;">Admin</button>
+
+            <div class="dropdown">
+                <button class="dropdown-btn" onclick="toggleUserDropdown(event)">
+                    👥 All Users ▼
+                </button>
+                <div class="dropdown-content" id="userDropdown">
+                    <div class="dropdown-header">Switch to user</div>
+                    <div id="dropdownUsersList">
+                        <div style="padding: 0.75rem; text-align: center; color: #6b7280;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="user-info">
             <div class="notification-wrapper">
                 <button class="notification-btn" id="notificationBtn" type="button" onclick="toggleNotificationDropdown()">
@@ -499,7 +643,7 @@
             </div>
 
             <span class="user-name" th:text="${user.name != null ? user.name : user.githubLogin}">User</span>
-            <span class="role-badge" th:classappend="${role.toLowerCase()}" th:text="${role}">-</span>
+            <span class="role-badge" th:classappend="${!user.active ? 'inactive' : role.toLowerCase()}" th:text="${!user.active ? 'INACTIVE' : role}">-</span>
             <button class="logout-btn" onclick="logout()">Sign out</button>
         </div>
     </div>
@@ -510,62 +654,127 @@
         <h1 th:text="'Welcome, ' + (${user.name != null ? user.name : user.githubLogin}) + '!'">Welcome!</h1>
     </div>
 
-    <div id="statsContainer" th:if="${role != 'PENDING'}">
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-title">Total Incidents</div>
-                <div class="stat-number" id="totalIncidents">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Open</div>
-                <div class="stat-number" id="openIncidents">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Resolved</div>
-                <div class="stat-number" id="resolvedIncidents">0</div>
-            </div>
+    <div th:if="${!user.active}">
+        <div class="inactive-card">
+            <h3>⚠️ Account Deactivated</h3>
+            <p>Your account has been deactivated. Please contact an administrator.</p>
+            <button onclick="logout()" class="btn btn-outline" style="margin-top: 1rem;">Sign out</button>
         </div>
     </div>
 
-    <div class="pending-card" th:if="${role == 'ADMIN'}" id="pendingUsersCard">
-        <div class="card-header">
-            <h3>Pending Users Approval</h3>
-            <a href="/admin" class="btn btn-outline btn-sm">Manage all →</a>
-        </div>
-        <div id="pendingUsersList" class="pending-list">
-            <p style="text-align: center; color: #6b7280;">Loading pending users...</p>
-        </div>
-    </div>
-
-    <div class="incidents-card" th:if="${role != 'PENDING'}">
-        <div class="card-header">
-            <h3>Recent incidents</h3>
-            <a href="/incidents" class="btn btn-outline">View all →</a>
-        </div>
-        <div id="incidentsList" class="incident-list">
-            <p style="text-align: center; color: #6b7280;">Loading incidents...</p>
-        </div>
-        <div id="actionButtons" class="action-buttons">
-            <a th:if="${role == 'RESIDENT'}" href="/create-incident" class="btn btn-primary">Create new incident</a>
-            <a th:if="${role == 'HANDLER'}" href="/incidents" class="btn btn-handler">Manage incidents</a>
-            <a th:if="${role == 'ADMIN'}" href="/admin" class="btn btn-admin">Go to Admin Panel</a>
-        </div>
-    </div>
-
-    <div th:if="${role == 'PENDING'}">
+    <div th:if="${user.active && role == 'PENDING'}">
         <div class="pending-card">
-            <h3>Account pending approval</h3>
+            <h3>⏳ Account pending approval</h3>
             <p>Your account is waiting for admin approval. You will be notified when your account is activated.</p>
+        </div>
+    </div>
+
+    <div th:if="${user.active && role != 'PENDING'}">
+        <div id="statsContainer">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Incidents</div>
+                    <div class="stat-number" id="totalIncidents">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Open</div>
+                    <div class="stat-number" id="openIncidents">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Resolved</div>
+                    <div class="stat-number" id="resolvedIncidents">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pending-card" th:if="${role == 'ADMIN'}" id="pendingUsersCard">
+            <div class="card-header">
+                <h3>Pending Users Approval</h3>
+                <a href="/admin" class="btn btn-outline btn-sm">Manage all →</a>
+            </div>
+            <div id="pendingUsersList" class="pending-list">
+                <p style="text-align: center; color: #6b7280;">Loading pending users...</p>
+            </div>
+        </div>
+
+        <div class="incidents-card">
+            <div class="card-header">
+                <h3>Recent incidents</h3>
+                <a href="/incidents" class="btn btn-outline">View all →</a>
+            </div>
+            <div id="incidentsList" class="incident-list">
+                <p style="text-align: center; color: #6b7280;">Loading incidents...</p>
+            </div>
+            <div id="actionButtons" class="action-buttons">
+                <a th:if="${role == 'RESIDENT'}" href="/create-incident" class="btn btn-primary">Create new incident</a>
+                <a th:if="${role == 'HANDLER'}" href="/incidents" class="btn btn-handler">Manage incidents</a>
+                <a th:if="${role == 'ADMIN'}" href="/admin" class="btn btn-admin">Go to Admin Panel</a>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    const userId =document.body.dataset.userId;
+    const userId = document.body.dataset.userId;
     const userRole = document.body.dataset.role;
+    const userActive = document.body.dataset.userActive === 'true';
+
+    function toggleUserDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    document.addEventListener('click', function() {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    async function loadDropdownUsers() {
+        const container = document.getElementById('dropdownUsersList');
+        if (!container) return;
+
+        try {
+            const response = await fetch('/dev/all-users');
+            const users = await response.json();
+
+            if (users.length === 0) {
+                container.innerHTML = '<div style="padding: 0.75rem; text-align: center; color: #6b7280;">No users found</div>';
+            } else {
+                container.innerHTML = users.map(user => `
+                    <div class="dropdown-user" onclick="switchRole('${escapeHtml(user.githubLogin)}')">
+                        <div class="dropdown-user-info">
+                            <div class="dropdown-user-name">${escapeHtml(user.name || user.githubLogin)}</div>
+                            <div class="dropdown-user-email">${escapeHtml(user.email || 'No email')}</div>
+                        </div>
+                        <span class="dropdown-user-role ${user.active === false ? 'dropdown-user-role-inactive' : user.role}">${user.active === false ? 'INACTIVE' : user.role}</span>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            container.innerHTML = '<div style="padding: 0.75rem; text-align: center; color: #ef4444;">Failed to load users</div>';
+        }
+    }
+
+    function switchRole(githubLogin) {
+        if (!githubLogin) return;
+
+        fetch(`/dev/switch-user?githubLogin=${githubLogin}`)
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    console.error('Failed to switch role');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 
     async function loadIncidents() {
-        if (userRole === 'PENDING') return;
+        if (!userActive || userRole === 'PENDING') return;
 
         let url = '';
         if (userRole === 'RESIDENT') {
@@ -622,7 +831,7 @@
     }
 
     async function loadPendingUsers() {
-        if (userRole !== 'ADMIN') return;
+        if (userRole !== 'ADMIN' || !userActive) return;
 
         try {
             const response = await fetch('/api/admin/users?page=0&size=5&role=PENDING');
@@ -651,11 +860,12 @@
 
     async function approveUser(userId) {
         try {
-            const response = await fetch(`/api/admin/users/${userId}/role?role=RESIDENT`, {
-                method: 'PATCH'
+            const response = await fetch(`/api/admin/users/${userId}/approve`, {
+                method: 'POST'
             });
             if (response.ok) {
                 loadPendingUsers();
+                loadDropdownUsers();
                 const statsGrid = document.getElementById('statsGrid');
                 const pendingStat = statsGrid.querySelector('.stat-card:last-child .stat-number');
                 if (pendingStat) {
@@ -768,9 +978,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        loadIncidents();
-        loadPendingUsers();
+        if (userActive && userRole !== 'PENDING') {
+            loadIncidents();
+        }
+        if (userActive && userRole === 'ADMIN') {
+            loadPendingUsers();
+        }
         loadNotificationCount();
+        loadDropdownUsers();
     });
 </script>
 </body>

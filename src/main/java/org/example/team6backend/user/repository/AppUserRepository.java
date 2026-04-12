@@ -15,6 +15,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
 
 	Optional<AppUser> findByGithubId(String githubId);
 
+	Optional<AppUser> findByGithubLogin(String githubLogin);
+
 	Optional<AppUser> findByEmail(String email);
 
 	List<AppUser> findByRole(UserRole role);
