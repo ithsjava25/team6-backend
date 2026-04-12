@@ -1,0 +1,9 @@
+dev:
+  mode:
+    enabled: true
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/team6_db
+    username: team6
+    password: team6-backend
