@@ -10,12 +10,14 @@ import org.example.team6backend.user.entity.AppUser;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -37,10 +39,28 @@ public class DocumentController {
 
 	@GetMapping("/{fileKey}")
 	@ResponseBody
-	public ResponseEntity<Resource> getFile(@PathVariable String fileKey) {
+	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
+    @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        AppUser user = userDetails.getUser();
+
+        Document document = documentService.getByFileKey(fileKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        Incident incident = incidentService.getById(document.getIncident().getId(),user);
+        if (incident == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
 		InputStream inputStream = minioService.getFile(fileKey);
 
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+        MediaType mediaType = document.getContentType() != null
+                ? MediaType.parseMediaType(document.getContentType())
+                : MediaType.APPLICATION_OCTET_STREAM;
+
+		return ResponseEntity.ok().contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + document.getFileName() + "\"")
 				.body(new InputStreamResource(inputStream));
 	}
 

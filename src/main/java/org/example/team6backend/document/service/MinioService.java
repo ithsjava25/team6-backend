@@ -4,8 +4,10 @@ import io.minio.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.InputStream;
 
@@ -63,7 +65,7 @@ public class MinioService {
 		try {
 			return minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(fileKey).build());
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to fetch file " + fileKey, e);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found: " + fileKey);
 		}
 	}
 }

@@ -6,9 +6,11 @@ import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.repository.DocumentRepository;
 import org.example.team6backend.incident.entity.Incident;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -56,13 +58,22 @@ public class DocumentService {
 	}
 
 	/** Delete file */
+    @Transactional
 	public void deleteFile(Document document) {
-		minioService.deleteFile(document.getFileKey());
 		documentRepository.delete(document);
+
+        try {
+            minioService.deleteFile(document.getFileKey());
+        } catch (Exception e) {
+            log.warn("Could not delete file: {}", document.getFileKey(), e);
+        }
 	}
 
 	/** Fetch all files connected to one incident */
 	public List<Document> getDocumentsByIncident(Incident incidentId) {
 		return documentRepository.findByIncident(incidentId);
 	}
+    public Optional<Document> getByFileKey(String fileKey) {
+        return documentRepository.findByFileKey(fileKey);
+    }
 }
