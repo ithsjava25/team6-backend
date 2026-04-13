@@ -6,9 +6,11 @@ import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.repository.DocumentRepository;
 import org.example.team6backend.incident.entity.Incident;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -16,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DocumentService {
 
-	private final S3Service s3Service;
+	private final MinioService minioService;
 	private final DocumentRepository documentRepository;
 
 	/** Upload file */
@@ -26,7 +28,7 @@ public class DocumentService {
 		boolean uploaded = false;
 
 		try {
-			s3Service.uploadFile(fileKey, file);
+			minioService.uploadFile(fileKey, file);
 			uploaded = true;
 
 			Document document = new Document();
@@ -41,7 +43,7 @@ public class DocumentService {
 		} catch (Exception e) {
 			if (uploaded) {
 				try {
-					s3Service.deleteFile(fileKey);
+					minioService.deleteFile(fileKey);
 				} catch (Exception cleanupEx) {
 					log.warn("Failed to cleanup S3 file: {}", fileKey, cleanupEx);
 				}
@@ -52,17 +54,26 @@ public class DocumentService {
 
 	/** Download file */
 	public InputStream downloadFile(String objectKey) {
-		return s3Service.downloadFile(objectKey);
+		return minioService.downloadFile(objectKey);
 	}
 
 	/** Delete file */
+	@Transactional
 	public void deleteFile(Document document) {
-		s3Service.deleteFile(document.getFileKey());
 		documentRepository.delete(document);
+
+		try {
+			minioService.deleteFile(document.getFileKey());
+		} catch (Exception e) {
+			log.warn("Could not delete file: {}", document.getFileKey(), e);
+		}
 	}
 
 	/** Fetch all files connected to one incident */
 	public List<Document> getDocumentsByIncident(Incident incidentId) {
 		return documentRepository.findByIncident(incidentId);
+	}
+	public Optional<Document> getByFileKey(String fileKey) {
+		return documentRepository.findByFileKey(fileKey);
 	}
 }

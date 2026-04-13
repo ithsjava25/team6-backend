@@ -189,6 +189,39 @@
 
             const incident = await response.json();
 
+            let documentHtml = "";
+
+            if (incident.hasDocuments && incident.documents?.length > 0) {
+                documentHtml = `
+                <div style="margin-top:10px; display:flex; gap:12px; flex-wrap:wrap;">
+            ${incident.documents.map(doc => {
+                    const fileUrl = "/documents/" + encodeURIComponent(doc.fileKey);
+                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(doc.fileName);
+
+                    return isImage
+                        ? `
+                        <a href="${fileUrl}" target="_blank">
+                            <img src="${fileUrl}"
+                                 style="
+                                    width:120px;
+                                    height:120px;
+                                    object-fit:cover;
+                                    border-radius:10px;
+                                    border:1px solid #2a2a2a;
+                                    cursor:pointer;
+                                 " />
+                        </a>
+                      `
+                        : `
+                        <a href="${fileUrl}" target="_blank" class="btn">
+                            📄 ${escapeHtml(doc.fileName)}
+                        </a>
+                      `;
+                }).join("")}
+                </div>
+            `;
+            }
+
             document.getElementById("incident").innerHTML = `
                 <div class="incident-card">
                     <div class="incident-header">
@@ -198,6 +231,7 @@
 
                     <div class="incident-description">
                         ${escapeHtml(incident.description || "No description")}
+                        ${documentHtml}
                     </div>
 
                     <div class="incident-footer">
