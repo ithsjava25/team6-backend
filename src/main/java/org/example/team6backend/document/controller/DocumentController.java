@@ -2,11 +2,13 @@ package org.example.team6backend.document.controller;
 
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.service.DocumentService;
+import org.example.team6backend.document.service.MinioService;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +26,22 @@ public class DocumentController {
 
 	private final DocumentService documentService;
 	private final IncidentService incidentService;
+	private final MinioService minioService;
 
-	public DocumentController(DocumentService documentService, IncidentService incidentService) {
+	public DocumentController(DocumentService documentService, IncidentService incidentService,
+			MinioService minioService) {
 		this.documentService = documentService;
 		this.incidentService = incidentService;
+		this.minioService = minioService;
+	}
+
+	@GetMapping("/{fileKey}")
+	@ResponseBody
+	public ResponseEntity<Resource> getFile(@PathVariable String fileKey) {
+		InputStream inputStream = minioService.getFile(fileKey);
+
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.body(new InputStreamResource(inputStream));
 	}
 
 	@PostMapping("/upload/{incidentId}")

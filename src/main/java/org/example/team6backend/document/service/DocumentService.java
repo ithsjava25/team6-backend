@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DocumentService {
 
-	private final S3Service s3Service;
+	private final MinioService minioService;
 	private final DocumentRepository documentRepository;
 
 	/** Upload file */
@@ -26,7 +26,7 @@ public class DocumentService {
 		boolean uploaded = false;
 
 		try {
-			s3Service.uploadFile(fileKey, file);
+			minioService.uploadFile(fileKey, file);
 			uploaded = true;
 
 			Document document = new Document();
@@ -41,7 +41,7 @@ public class DocumentService {
 		} catch (Exception e) {
 			if (uploaded) {
 				try {
-					s3Service.deleteFile(fileKey);
+					minioService.deleteFile(fileKey);
 				} catch (Exception cleanupEx) {
 					log.warn("Failed to cleanup S3 file: {}", fileKey, cleanupEx);
 				}
@@ -52,12 +52,12 @@ public class DocumentService {
 
 	/** Download file */
 	public InputStream downloadFile(String objectKey) {
-		return s3Service.downloadFile(objectKey);
+		return minioService.downloadFile(objectKey);
 	}
 
 	/** Delete file */
 	public void deleteFile(Document document) {
-		s3Service.deleteFile(document.getFileKey());
+		minioService.deleteFile(document.getFileKey());
 		documentRepository.delete(document);
 	}
 

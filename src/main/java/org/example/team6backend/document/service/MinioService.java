@@ -11,7 +11,7 @@ import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
-public class S3Service {
+public class MinioService {
 
 	private final MinioClient minioClient;
 
@@ -56,6 +56,14 @@ public class S3Service {
 			minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(fileKey).build());
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to delete file " + fileKey, e);
+		}
+	}
+
+	public InputStream getFile(String fileKey) {
+		try {
+			return minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(fileKey).build());
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to fetch file " + fileKey, e);
 		}
 	}
 }

@@ -135,7 +135,10 @@
 
                 card.innerHTML = `
                     <div class="incident-header">
-                        <div class="incident-title">${escapeHtml(incident.subject)}</div>
+                        <div class="incident-title">
+                            ${escapeHtml(incident.subject)}
+                            ${incident.hasDocuments ? '📎' : ''}
+                        </div>
                         <div class="incident-category">${escapeHtml(incident.incidentCategory)}</div>
                     </div>
 

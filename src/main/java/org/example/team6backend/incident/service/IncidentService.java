@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.service.DocumentService;
-import org.example.team6backend.document.service.S3Service;
+import org.example.team6backend.document.service.MinioService;
 import org.example.team6backend.exception.ResourceNotFoundException;
 import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.notification.service.NotificationService;
@@ -36,17 +36,17 @@ public class IncidentService {
 	private final DocumentService documentService;
 	private final AppUserRepository userRepository;
 	private final NotificationService notificationService;
-	private final S3Service s3Service;
+	private final MinioService minioService;
 
 	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
 			DocumentService documentService, AppUserRepository userRepository, NotificationService notificationService,
-			S3Service s3Service) {
+			MinioService minioService) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
 		this.documentService = documentService;
 		this.userRepository = userRepository;
 		this.notificationService = notificationService;
-		this.s3Service = s3Service;
+		this.minioService = minioService;
 	}
 
 	/** Help-method for sorting **/
@@ -90,7 +90,7 @@ public class IncidentService {
 		} catch (Exception e) {
 			for (String key : uploadedKeys) {
 				try {
-					s3Service.deleteFile(key);
+					minioService.deleteFile(key);
 				} catch (Exception cleanupEx) {
 					log.warn("Failed rollback cleanup for fileKey: {}", key, cleanupEx);
 				}
@@ -116,7 +116,7 @@ public class IncidentService {
 	}
 
 	public Incident getById(Long id, AppUser user) {
-		Incident incident = incidentRepository.findById(id)
+		Incident incident = incidentRepository.findByIdWithDocuments(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found"));
 
 		boolean isAdmin = user.getRole().name().equals("ADMIN");
@@ -129,11 +129,14 @@ public class IncidentService {
 		return incident;
 	}
 	@Transactional
-	public void deleteIncident(Incident incident) {
+	public void deleteIncident(Long incidentId) {
+
+		Incident incident = incidentRepository.findByIdWithDocuments(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found!"));
 
 		for (Document document : incident.getDocuments()) {
 			try {
-				s3Service.deleteFile(document.getFileKey());
+				minioService.deleteFile(document.getFileKey());
 			} catch (Exception e) {
 				log.warn("Failed to delete file from S3: " + document.getFileKey(), e);
 			}
