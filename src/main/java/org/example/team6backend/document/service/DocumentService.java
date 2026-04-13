@@ -58,22 +58,22 @@ public class DocumentService {
 	}
 
 	/** Delete file */
-    @Transactional
+	@Transactional
 	public void deleteFile(Document document) {
 		documentRepository.delete(document);
 
-        try {
-            minioService.deleteFile(document.getFileKey());
-        } catch (Exception e) {
-            log.warn("Could not delete file: {}", document.getFileKey(), e);
-        }
+		try {
+			minioService.deleteFile(document.getFileKey());
+		} catch (Exception e) {
+			log.warn("Could not delete file: {}", document.getFileKey(), e);
+		}
 	}
 
 	/** Fetch all files connected to one incident */
 	public List<Document> getDocumentsByIncident(Incident incidentId) {
 		return documentRepository.findByIncident(incidentId);
 	}
-    public Optional<Document> getByFileKey(String fileKey) {
-        return documentRepository.findByFileKey(fileKey);
-    }
+	public Optional<Document> getByFileKey(String fileKey) {
+		return documentRepository.findByFileKey(fileKey);
+	}
 }

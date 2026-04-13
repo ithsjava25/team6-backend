@@ -40,27 +40,26 @@ public class DocumentController {
 	@GetMapping("/{fileKey}")
 	@ResponseBody
 	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
-    @AuthenticationPrincipal CustomUserDetails userDetails) {
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        AppUser user = userDetails.getUser();
+		AppUser user = userDetails.getUser();
 
-        Document document = documentService.getByFileKey(fileKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+		Document document = documentService.getByFileKey(fileKey)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        Incident incident = incidentService.getById(document.getIncident().getId(),user);
-        if (incident == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+		Incident incident = incidentService.getById(document.getIncident().getId(), user);
+		if (incident == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
 
 		InputStream inputStream = minioService.getFile(fileKey);
 
-        MediaType mediaType = document.getContentType() != null
-                ? MediaType.parseMediaType(document.getContentType())
-                : MediaType.APPLICATION_OCTET_STREAM;
+		MediaType mediaType = document.getContentType() != null
+				? MediaType.parseMediaType(document.getContentType())
+				: MediaType.APPLICATION_OCTET_STREAM;
 
 		return ResponseEntity.ok().contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + document.getFileName() + "\"")
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
 				.body(new InputStreamResource(inputStream));
 	}
 
