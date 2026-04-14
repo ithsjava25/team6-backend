@@ -44,7 +44,7 @@ public class IncidentController {
 
 		Incident saved = incidentService.createIncident(incidentRequest, null, user);
 
-		return IncidentResponse.fromEntity(saved);
+		return IncidentResponse.fromEntityBasic(saved);
 	}
 
 	/** Get my incidents(user) */
@@ -54,7 +54,7 @@ public class IncidentController {
 			Pageable pageable) {
 
 		AppUser user = userDetails.getUser();
-		return incidentService.findByCreatedBy(user, pageable).map(IncidentResponse::fromEntity);
+		return incidentService.findByCreatedBy(user, pageable).map(IncidentResponse::fromEntityBasic);
 	}
 
 	/** Get assigned incidents(handler) */
@@ -63,20 +63,20 @@ public class IncidentController {
 	public Page<IncidentResponse> getAssignedIncidents(@AuthenticationPrincipal CustomUserDetails userDetails,
 			Pageable pageable) {
 		AppUser user = userDetails.getUser();
-		return incidentService.findByAssignedTo(user, pageable).map(IncidentResponse::fromEntity);
+		return incidentService.findByAssignedTo(user, pageable).map(IncidentResponse::fromEntityBasic);
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/all")
 	public Page<IncidentResponse> getAllIncidents(Pageable pageable) {
-		return incidentService.findAll(pageable).map(IncidentResponse::fromEntity);
+		return incidentService.findAll(pageable).map(IncidentResponse::fromEntityBasic);
 	}
 
 	@PreAuthorize("hasAnyRole('RESIDENT', 'HANDLER', 'ADMIN')")
 	@GetMapping("/{id}")
 	public IncidentResponse getIncidentById(@PathVariable Long id,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
-		return IncidentResponse.fromEntity(incidentService.getById(id, userDetails.getUser()));
+		return IncidentResponse.fromEntityWithDocuments(incidentService.getById(id, userDetails.getUser()));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
@@ -85,7 +85,15 @@ public class IncidentController {
 			@Valid @RequestBody AssignIncidentRequest request, @AuthenticationPrincipal CustomUserDetails adminUser) {
 		Incident updatedIncident = incidentService.assignIncidentToHandler(incidentId, request.handlerId(),
 				adminUser.getUser());
-		return IncidentResponse.fromEntity(updatedIncident);
+		return IncidentResponse.fromEntityBasic(updatedIncident);
+	}
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{incidentId}/unassign")
+	public ResponseEntity<IncidentResponse> unassignIncident(@PathVariable Long incidentId,
+			@AuthenticationPrincipal CustomUserDetails adminUser) {
+		Incident updatedIncident = incidentService.unassignIncident(incidentId, adminUser.getUser());
+		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(updatedIncident));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")

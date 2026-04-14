@@ -97,7 +97,6 @@ public class IncidentService {
 			}
 			throw e;
 		}
-
 	}
 
 	/** Find all incidents (Admin) **/
@@ -128,6 +127,7 @@ public class IncidentService {
 		}
 		return incident;
 	}
+
 	@Transactional
 	public void deleteIncident(Long incidentId) {
 
@@ -179,6 +179,49 @@ public class IncidentService {
 		}
 
 		log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
+		return savedIncident;
+	}
+
+	@Transactional
+	public Incident unassignIncident(Long incidentId, AppUser currentUser) {
+		if (currentUser.getRole() != UserRole.ADMIN) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can unassign incidents");
+		}
+
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+
+		AppUser previousHandler = incident.getAssignedTo();
+
+		if (previousHandler == null) {
+			throw new IllegalStateException("Incident is not assigned to any handler");
+		}
+
+		incident.setAssignedTo(null);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		if (incident.getIncidentStatus() == IncidentStatus.IN_PROGRESS) {
+			incident.setIncidentStatus(IncidentStatus.OPEN);
+		}
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("INCIDENT_UNASSIGNED",
+				currentUser.getName() + " unassigned incident from " + previousHandler.getName(), savedIncident,
+				currentUser);
+
+		notificationService.createNotification(
+				"Incident #" + incident.getId() + " has been unassigned from you by " + currentUser.getName(),
+				previousHandler, savedIncident);
+
+		if (!savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
+			notificationService.createNotification("Incident #" + incident.getId() + " has been unassigned from "
+					+ previousHandler.getName() + " by " + currentUser.getName(), savedIncident.getCreatedBy(),
+					savedIncident);
+		}
+
+		log.info("Unassigned incident {} from handler {} by admin {}", incidentId, previousHandler.getId(),
+				currentUser.getId());
 		return savedIncident;
 	}
 }
