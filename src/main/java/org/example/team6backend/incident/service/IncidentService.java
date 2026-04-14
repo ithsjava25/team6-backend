@@ -224,6 +224,8 @@ public class IncidentService {
 		}
 		return incidentRepository.findByIdWithDocuments(savedIncident.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+	}
+
 	public Incident unassignIncident(Long incidentId, AppUser currentUser) {
 		if (currentUser.getRole() != UserRole.ADMIN) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can unassign incidents");
