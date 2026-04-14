@@ -203,14 +203,14 @@ public class IncidentService {
 
 		IncidentStatus oldStatus = incident.getIncidentStatus();
 
+		if (oldStatus == newStatus) {
+			return incident;
+		}
+
 		incident.setIncidentStatus(newStatus);
 		incident.setUpdatedAt(LocalDateTime.now());
 
 		Incident savedIncident = incidentRepository.save(incident);
-
-		if (oldStatus == newStatus) {
-			return incident;
-		}
 
 		activityLogService.log("STATUS_CHANGED",
 				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus, savedIncident,
