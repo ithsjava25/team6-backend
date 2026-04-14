@@ -1300,11 +1300,25 @@
         const tbody = document.getElementById('incidentsTableBody');
 
         if (!incidents || incidents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #6b7280;">No incidents found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="loading">No incidents found</td></tr>';
             return;
         }
 
-        tbody.innerHTML = incidents.map(incident => `
+        tbody.innerHTML = incidents.map(incident => {
+            const isClosed = incident.incidentStatus === 'CLOSED';
+
+            let actionButton = '';
+            if (!isClosed) {
+                if (!incident.assignedTo) {
+                    actionButton = `<button class="assign-btn" onclick="openAssignModal(${incident.id})">Assign</button>`;
+                } else {
+                    actionButton = `<button class="unassign-btn" onclick="unassignIncident(${incident.id})">Unassign</button>`;
+                }
+            } else {
+                actionButton = `<span class="closed-badge" style="background: #4a4a4a; color: #9ca3af; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem;">Closed</span>`;
+            }
+
+            return `
             <tr>
                 <td style="font-weight: 500;">#${incident.id}</td>
                 <td>
@@ -1326,21 +1340,19 @@
                 <td style="font-size: 0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
                 <td>
                     ${incident.assignedTo ?
-            `<span class="assigned-to">✓ ${escapeHtml(incident.assignedTo)}</span>` :
-            `<span class="unassigned">Unassigned</span>`
-        }
+                `<span class="assigned-to">✓ ${escapeHtml(incident.assignedTo)}</span>` :
+                `<span class="unassigned">Unassigned</span>`
+            }
                 </td>
                 <td style="font-size: 0.8rem;">${new Date(incident.createdAt).toLocaleDateString()}</td>
                 <td>
                     <div class="action-buttons">
-                        ${!incident.assignedTo ?
-            `<button class="assign-btn" onclick="openAssignModal(${incident.id})">Assign</button>` :
-            `<button class="unassign-btn" onclick="unassignIncident(${incident.id})">Unassign</button>`
-        }
+                        ${actionButton}
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     }
 
     function renderIncidentPagination() {

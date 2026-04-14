@@ -49,7 +49,9 @@ public class IncidentService {
 		this.minioService = minioService;
 	}
 
-	/** Help-method for sorting **/
+	/**
+	 * Help-method for sorting
+	 **/
 	private Pageable withDefaultSort(Pageable pageable) {
 		if (pageable.isUnpaged() || pageable.getSort().isSorted()) {
 			return pageable;
@@ -57,7 +59,9 @@ public class IncidentService {
 		return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "id"));
 	}
 
-	/** Create incident **/
+	/**
+	 * Create incident
+	 **/
 	@Transactional
 	public Incident createIncident(IncidentRequest incidentRequest, List<MultipartFile> files, AppUser user) {
 
@@ -97,20 +101,25 @@ public class IncidentService {
 			}
 			throw e;
 		}
-
 	}
 
-	/** Find all incidents (Admin) **/
+	/**
+	 * Find all incidents (Admin)
+	 **/
 	public Page<Incident> findAll(Pageable pageable) {
 		return incidentRepository.findAll(withDefaultSort(pageable));
 	}
 
-	/** Find your own incidents (user) **/
+	/**
+	 * Find your own incidents (user)
+	 **/
 	public Page<Incident> findByCreatedBy(AppUser user, Pageable pageable) {
 		return incidentRepository.findByCreatedBy(user, withDefaultSort(pageable));
 	}
 
-	/** Find assigned incidents per HANDLER **/
+	/**
+	 * Find assigned incidents per HANDLER
+	 **/
 	public Page<Incident> findByAssignedTo(AppUser user, Pageable pageable) {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
@@ -128,6 +137,7 @@ public class IncidentService {
 		}
 		return incident;
 	}
+
 	@Transactional
 	public void deleteIncident(Long incidentId) {
 
@@ -148,6 +158,10 @@ public class IncidentService {
 	public Incident assignIncidentToHandler(Long incidentId, String handlerId, AppUser currentUser) {
 		Incident incident = incidentRepository.findById(incidentId)
 				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+
+		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
+			throw new IllegalStateException("Cannot modify a closed incident. Status: " + incident.getIncidentStatus());
+		}
 
 		AppUser handler = userRepository.findById(handlerId)
 				.orElseThrow(() -> new ResourceNotFoundException("Handler not found with id: " + handlerId));
@@ -210,5 +224,41 @@ public class IncidentService {
 		}
 		return incidentRepository.findByIdWithDocuments(savedIncident.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+	public Incident unassignIncident(Long incidentId, AppUser currentUser) {
+		if (currentUser.getRole() != UserRole.ADMIN) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can unassign incidents");
+		}
+
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+
+		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
+			throw new IllegalStateException("Cannot modify a closed incident. Status: " + incident.getIncidentStatus());
+		}
+
+		AppUser previousHandler = incident.getAssignedTo();
+
+		if (previousHandler == null) {
+			throw new IllegalStateException("Incident is not assigned to any handler");
+		}
+
+		incident.setAssignedTo(null);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		if (incident.getIncidentStatus() == IncidentStatus.IN_PROGRESS) {
+			incident.setIncidentStatus(IncidentStatus.OPEN);
+		}
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("INCIDENT_UNASSIGNED",
+				currentUser.getName() + " unassigned incident from " + previousHandler.getName(), savedIncident,
+				currentUser);
+
+		notificationService.createNotification(
+				"Incident #" + incident.getId() + " has been unassigned from you by " + currentUser.getName(),
+				previousHandler, savedIncident);
+
+		return savedIncident;
 	}
 }
