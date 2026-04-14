@@ -89,21 +89,17 @@ public class IncidentController {
 		return IncidentResponse.fromEntity(updatedIncident);
 	}
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{incidentId}/status")
-    public IncidentResponse updateStatus(
-            @PathVariable Long incidentId,
-            @Valid @RequestBody UpdateIncidentStatusRequest request,
-            @AuthenticationPrincipal CustomUserDetails adminUser) {
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{incidentId}/status")
+	public IncidentResponse updateStatus(@PathVariable Long incidentId,
+			@Valid @RequestBody UpdateIncidentStatusRequest request,
+			@AuthenticationPrincipal CustomUserDetails adminUser) {
 
-        Incident updateIncident = incidentService.updateIncidentStatus(
-                incidentId,
-                request.status(),
-                adminUser.getUser()
-        );
+		Incident updateIncident = incidentService.updateIncidentStatus(incidentId, request.status(),
+				adminUser.getUser());
 
-        return IncidentResponse.fromEntity(updateIncident);
-    }
+		return IncidentResponse.fromEntity(updateIncident);
+	}
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/handlers")

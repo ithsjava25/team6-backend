@@ -198,22 +198,17 @@ public class IncidentService {
 			return incident;
 		}
 
-		activityLogService.log(
-				"STATUS_CHANGED",
-				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus,
-				savedIncident,
-				currentUser
-		);
+		activityLogService.log("STATUS_CHANGED",
+				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus, savedIncident,
+				currentUser);
 
-		if (savedIncident.getCreatedBy() != null &&
-		!savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
+		if (savedIncident.getCreatedBy() != null && !savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
 
 			notificationService.createNotification(
 					"Your incident status was changed from " + oldStatus + " to " + newStatus,
-					savedIncident.getCreatedBy(),
-					savedIncident
-			);
+					savedIncident.getCreatedBy(), savedIncident);
 		}
-		return savedIncident;
+		return incidentRepository.findByIdWithDocuments(savedIncident.getId())
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
 	}
 }
