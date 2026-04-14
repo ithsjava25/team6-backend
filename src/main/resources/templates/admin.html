@@ -263,10 +263,25 @@
             font-weight: 500;
         }
 
-        .incident-badge.OPEN { background: #f59e0b; color: white; }
-        .incident-badge.IN_PROGRESS { background: #3b82f6; color: white; }
-        .incident-badge.RESOLVED { background: #10b981; color: white; }
-        .incident-badge.CLOSED { background: #6b7280; color: white; }
+        .incident-badge.OPEN {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .incident-badge.IN_PROGRESS {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .incident-badge.RESOLVED {
+            background: #10b981;
+            color: white;
+        }
+
+        .incident-badge.CLOSED {
+            background: #6b7280;
+            color: white;
+        }
 
         .category-badge {
             display: inline-block;
@@ -384,10 +399,25 @@
             font-weight: 500;
         }
 
-        .role-badge-small.PENDING { background: #6b7280; color: white; }
-        .role-badge-small.RESIDENT { background: #10b981; color: white; }
-        .role-badge-small.HANDLER { background: #f97316; color: white; }
-        .role-badge-small.ADMIN { background: #ef4444; color: white; }
+        .role-badge-small.PENDING {
+            background: #6b7280;
+            color: white;
+        }
+
+        .role-badge-small.RESIDENT {
+            background: #10b981;
+            color: white;
+        }
+
+        .role-badge-small.HANDLER {
+            background: #f97316;
+            color: white;
+        }
+
+        .role-badge-small.ADMIN {
+            background: #ef4444;
+            color: white;
+        }
 
         .status-badge {
             display: inline-block;
@@ -660,33 +690,79 @@
                 flex-direction: column;
                 gap: 1rem;
             }
+
             .filters-bar {
                 flex-direction: column;
             }
+
             .search-box {
                 width: 100%;
             }
+
             .filter-group {
                 width: 100%;
             }
+
             .filter-group select {
                 flex: 1;
             }
+
             .users-table th, .users-table td {
                 padding: 0.75rem;
             }
+
             .action-buttons {
                 flex-direction: column;
             }
+
             .action-btn {
                 width: 100%;
                 text-align: center;
             }
+
             .pagination-container {
                 flex-direction: column;
                 align-items: center;
             }
         }
+
+        .status-selected:hover {
+            border-color: #10b981;
+        }
+
+        .status-selected:focus {
+            border-color: #3b82f6;
+        }
+
+        .status-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        .status-open {
+            background: #f59e0b;
+        }
+
+        .status-in_progress {
+            background: #3b82f6;
+        }
+
+        .status-resolved {
+            background: #10b981;
+        }
+
+        .status-closed {
+            background: #6b7280;
+        }
+
     </style>
 </head>
 <body>
@@ -783,7 +859,9 @@
                 </tr>
                 </thead>
                 <tbody id="usersTableBody">
-                <tr><td colspan="6" class="loading">Loading users...</td></tr>
+                <tr>
+                    <td colspan="6" class="loading">Loading users...</td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -839,7 +917,9 @@
                 </tr>
                 </thead>
                 <tbody id="incidentsTableBody">
-                <tr><td colspan="8" class="loading">Loading incidents...</td></tr>
+                <tr>
+                    <td colspan="8" class="loading">Loading incidents...</td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -1185,7 +1265,7 @@
         if (page < 0 || page >= totalPages) return;
         currentPage = page;
         loadUsers();
-        document.querySelector('.users-table-container').scrollIntoView({ behavior: 'smooth' });
+        document.querySelector('.users-table-container').scrollIntoView({behavior: 'smooth'});
     }
 
     async function loadIncidents() {
@@ -1246,7 +1326,17 @@
                     <div style="font-size: 0.7rem; color: #6b7280;">${escapeHtml(incident.description?.substring(0, 50) || '')}${incident.description?.length > 50 ? '...' : ''}</div>
                 </td>
                 <td><span class="category-badge">${incident.incidentCategory}</span></td>
-                <td><span class="incident-badge ${incident.incidentStatus}">${incident.incidentStatus}</span></td>
+                <td>
+                    <select
+                        class="status-select status-${incident.incidentStatus.toLowerCase()}"
+                        onchange="updateIncidentStatus(${incident.id}, this.value)">
+
+                        <option value="OPEN" ${incident.incidentStatus === 'OPEN' ? 'selected' : ''}>OPEN</option>
+                        <option value="IN_PROGRESS" ${incident.incidentStatus === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                        <option value="RESOLVED" ${incident.incidentStatus === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
+                        <option value="CLOSED" ${incident.incidentStatus === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
+                    </select>
+                </td>
                 <td style="font-size: 0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
                 <td>
                     ${incident.assignedTo ?
@@ -1375,8 +1465,8 @@
         try {
             const response = await fetch(`/api/incidents/${selectedIncidentId}/assign`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ handlerId: handlerId })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({handlerId: handlerId})
             });
 
             if (response.ok) {
@@ -1390,6 +1480,26 @@
             }
         } catch (error) {
             showToast('Error assigning incident', 'error');
+        }
+    }
+
+    async function updateIncidentStatus(incidentId, newStatus) {
+        try {
+            const response = await fetch(`/api/incidents/${incidentId}/status`, {
+                method: "PATCH",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status: newStatus})
+            });
+
+            if (response.ok) {
+                showToast('Status updated!', 'success')
+                loadIncidents();
+            } else {
+                const error = await response.text();
+                showToast('Failed to update incident status: ' + error, 'error');
+            }
+        } catch (error) {
+            showToast('Error updating incident status', 'error');
         }
     }
 
@@ -1423,7 +1533,7 @@
         if (!confirm('Approve this user? They will get RESIDENT role.')) return;
 
         try {
-            const response = await fetch(`/api/admin/users/${userId}/approve`, { method: 'POST' });
+            const response = await fetch(`/api/admin/users/${userId}/approve`, {method: 'POST'});
 
             if (response.ok) {
                 showToast('User approved successfully!', 'success');
@@ -1449,8 +1559,8 @@
         try {
             const response = await fetch(`/api/admin/users/${selectedUserId}/role`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: newRole })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({role: newRole})
             });
 
             if (response.ok) {
@@ -1485,8 +1595,8 @@
         try {
             const response = await fetch(`/api/admin/users/${selectedUserId}/status`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ active: newStatus })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({active: newStatus})
             });
 
             if (response.ok) {
@@ -1512,7 +1622,7 @@
         if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
 
         try {
-            const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+            const response = await fetch(`/api/admin/users/${userId}`, {method: 'DELETE'});
 
             if (response.ok) {
                 showToast('User deleted successfully!', 'success');
@@ -1528,7 +1638,7 @@
     }
 
     async function logout() {
-        await fetch('/logout', { method: 'POST' });
+        await fetch('/logout', {method: 'POST'});
         window.location.href = '/';
     }
 

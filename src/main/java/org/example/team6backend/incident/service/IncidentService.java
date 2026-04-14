@@ -197,6 +197,35 @@ public class IncidentService {
 	}
 
 	@Transactional
+	public Incident updateIncidentStatus(Long incidentId, IncidentStatus newStatus, AppUser currentUser) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+
+		IncidentStatus oldStatus = incident.getIncidentStatus();
+
+		if (oldStatus == newStatus) {
+			return incident;
+		}
+
+		incident.setIncidentStatus(newStatus);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("STATUS_CHANGED",
+				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus, savedIncident,
+				currentUser);
+
+		if (savedIncident.getCreatedBy() != null && !savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
+
+			notificationService.createNotification(
+					"Your incident status was changed from " + oldStatus + " to " + newStatus,
+					savedIncident.getCreatedBy(), savedIncident);
+		}
+		return incidentRepository.findByIdWithDocuments(savedIncident.getId())
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+	}
+
 	public Incident unassignIncident(Long incidentId, AppUser currentUser) {
 		if (currentUser.getRole() != UserRole.ADMIN) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can unassign incidents");
