@@ -39,6 +39,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .incident-title {
@@ -65,6 +67,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             font-size: 0.75rem;
             color: #6b7280;
         }
@@ -81,6 +85,38 @@
         .btn:hover {
             border-color: #10b981;
             color: #10b981;
+        }
+
+        .resolve-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: none;
+            background: #10b981;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .resolve-btn:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .close-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            border: none;
+            background: #ef4444;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .close-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
         }
 
         .back-dashboard-btn {
@@ -100,16 +136,49 @@
             border-color: #10b981;
             color: #10b981;
         }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background: #1a1a1a;
+            border-left: 4px solid;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
 <body th:attr="data-role=${role}">
 <div class="container">
 
-    <a href="/dashboard" class="back-dashboard-btn">Back to dashboard</a>
+    <a href="/dashboard" class="back-dashboard-btn">← Back to dashboard</a>
 
-    <h2 id="title">Active incidents</h2>
-    <div id="incidents"></div>
+    <h2 id="title">Loading...</h2>
+    <div id="incidents">
+        <div class="loading" style="text-align: center; padding: 2rem; color: #6b7280;">Loading incidents...</div>
+    </div>
 </div>
 
 <script>
@@ -124,15 +193,16 @@
         } else if (role === "HANDLER") {
             url = "/api/incidents/assigned";
         } else if (role !== "RESIDENT") {
-            console.error("Unknown role:", role)
+            console.error("Unknown role:", role);
+            document.getElementById("incidents").innerHTML = '<div class="loading">Unable to load incidents</div>';
             return;
         }
 
         const title = document.getElementById("title");
 
-        if (role == "ADMIN") {
+        if (role === "ADMIN") {
             title.textContent = "All Incidents";
-        } else if (role == "HANDLER") {
+        } else if (role === "HANDLER") {
             title.textContent = "Assigned Incidents";
         } else {
             title.textContent = "My Incidents";
@@ -148,11 +218,39 @@
             const data = await response.json();
 
             const list = document.getElementById("incidents");
+
+            if (!data.content || data.content.length === 0) {
+                list.innerHTML = '<div class="loading">No incidents found.</div>';
+                return;
+            }
+
             list.innerHTML = "";
 
             data.content.forEach(incident => {
                 const card = document.createElement("div");
                 card.className = "incident-card";
+
+                const status = incident.incidentStatus;
+                const isClosed = status === 'CLOSED';
+                const isResolved = status === 'RESOLVED';
+                const isInProgress = status === 'IN_PROGRESS';
+                const isOpen = status === 'OPEN';
+
+                let resolveButtonHtml = '';
+                if ((role === 'ADMIN' || role === 'HANDLER') && !isClosed && !isResolved) {
+                    resolveButtonHtml = `<button class="resolve-btn" onclick="resolveIncident(${incident.id})">Resolve</button>`;
+                }
+
+                let closeButtonHtml = '';
+                if ((role === 'ADMIN' || role === 'HANDLER') && isResolved) {
+                    closeButtonHtml = `<button class="close-btn" onclick="closeIncident(${incident.id})">Close</button>`;
+                }
+
+                let statusColor = '#6b7280';
+                if (status === 'OPEN') statusColor = '#f59e0b';
+                else if (status === 'IN_PROGRESS') statusColor = '#3b82f6';
+                else if (status === 'RESOLVED') statusColor = '#10b981';
+                else if (status === 'CLOSED') statusColor = '#6b7280';
 
                 card.innerHTML = `
                     <div class="incident-header">
@@ -167,30 +265,81 @@
                         ${escapeHtml(incident.description || "No description")}
                     </div>
 
-                <div class="incident-footer">
-                    <span>ID: ${incident.id}</span>
+                    <div class="incident-footer">
+                        <span>ID: ${incident.id}</span>
+                        <span>Status: <span style="display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; background: ${statusColor}; color: white;">${status}</span></span>
+                        <span>Created: ${new Date(incident.createdAt).toLocaleDateString()}</span>
 
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn" onclick="viewIncident(${incident.id})">View</button>
-                    ${
-                    (role === "ADMIN" || role === "HANDLER")
-                        ? `<button class="btn" onclick="editIncident(${incident.id})">Edit</button>`
-                        : ''
-                }
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" onclick="viewIncident(${incident.id})">View</button>
+                            ${resolveButtonHtml}
+                            ${closeButtonHtml}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
                 list.appendChild(card);
             });
         } catch (error) {
             console.error(error);
-            document.getElementById("incidents").innerHTML = "<p>Failed to load incidents.</p>";
+            document.getElementById("incidents").innerHTML = '<div class="loading">Failed to load incidents.</div>';
         }
     }
 
-    function editIncident(id) {
-        alert("Edit incident " + id);
+    async function resolveIncident(incidentId) {
+        if (!confirm('Mark this incident as resolved?')) return;
+
+        try {
+            const response = await fetch(`/api/incidents/${incidentId}/resolve`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                showToast('Incident marked as resolved!', 'success');
+                loadIncidents();
+            } else {
+                const error = await response.text();
+                showToast('Failed to resolve incident: ' + error, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error resolving incident', 'error');
+        }
+    }
+
+    async function closeIncident(incidentId) {
+        if (!confirm('Are you sure you want to close this incident?')) return;
+
+        try {
+            const response = await fetch(`/api/incidents/${incidentId}/close`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                showToast('Incident closed successfully!', 'success');
+                loadIncidents();
+            } else {
+                const error = await response.text();
+                showToast('Failed to close incident: ' + error, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error closing incident', 'error');
+        }
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     function viewIncident(id) {
@@ -204,11 +353,10 @@
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")
             .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;")
+            .replaceAll("'", "&#039;");
     }
 
     loadIncidents();
-
 </script>
 </body>
 </html>

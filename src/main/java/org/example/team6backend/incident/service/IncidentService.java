@@ -263,4 +263,81 @@ public class IncidentService {
 
 		return savedIncident;
 	}
+
+	@Transactional
+	public Incident closeIncident(Long incidentId, AppUser currentUser) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+
+		if (currentUser.getRole() != UserRole.HANDLER && currentUser.getRole() != UserRole.ADMIN) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only handlers or admins can close incidents");
+		}
+
+		if (currentUser.getRole() != UserRole.ADMIN && (incident.getAssignedTo() == null
+				|| !incident.getAssignedTo().getId().equals(currentUser.getId()))) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only close incidents assigned to you");
+		}
+
+		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
+			throw new IllegalStateException("Incident is already closed");
+		}
+
+		IncidentStatus oldStatus = incident.getIncidentStatus();
+
+		incident.setIncidentStatus(IncidentStatus.CLOSED);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("INCIDENT_CLOSED",
+				currentUser.getName() + " closed incident (status changed from " + oldStatus + " to CLOSED)",
+				savedIncident, currentUser);
+
+		notificationService.createNotification(
+				"Incident #" + incident.getId() + " has been closed by " + currentUser.getName(),
+				savedIncident.getCreatedBy(), savedIncident);
+
+		log.info("Closed incident {} by {} (role: {})", incidentId, currentUser.getId(), currentUser.getRole());
+		return savedIncident;
+	}
+
+	@Transactional
+	public Incident resolveIncident(Long incidentId, AppUser currentUser) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+
+		if (currentUser.getRole() != UserRole.HANDLER && currentUser.getRole() != UserRole.ADMIN) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only handlers or admins can resolve incidents");
+		}
+
+		if (currentUser.getRole() != UserRole.ADMIN && (incident.getAssignedTo() == null
+				|| !incident.getAssignedTo().getId().equals(currentUser.getId()))) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only resolve incidents assigned to you");
+		}
+
+		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
+			throw new IllegalStateException("Cannot resolve a closed incident");
+		}
+
+		if (incident.getIncidentStatus() == IncidentStatus.RESOLVED) {
+			throw new IllegalStateException("Incident is already resolved");
+		}
+
+		IncidentStatus oldStatus = incident.getIncidentStatus();
+		incident.setIncidentStatus(IncidentStatus.RESOLVED);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		activityLogService.log("INCIDENT_RESOLVED",
+				currentUser.getName() + " resolved incident (status changed from " + oldStatus + " to RESOLVED)",
+				savedIncident, currentUser);
+
+		notificationService.createNotification(
+				"Incident #" + incident.getId() + " has been marked as resolved by " + currentUser.getName(),
+				savedIncident.getCreatedBy(), savedIncident);
+
+		log.info("Resolved incident {} by {} (role: {})", incidentId, currentUser.getId(), currentUser.getRole());
+		return savedIncident;
+	}
 }

@@ -97,6 +97,22 @@ public class IncidentController {
 		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(updatedIncident));
 	}
 
+	@PreAuthorize("hasAnyRole('ADMIN', 'HANDLER')")
+	@PatchMapping("/{incidentId}/close")
+	public ResponseEntity<IncidentResponse> closeIncident(@PathVariable Long incidentId,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		Incident closedIncident = incidentService.closeIncident(incidentId, userDetails.getUser());
+		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(closedIncident));
+	}
+
+	@PreAuthorize("hasAnyRole('ADMIN', 'HANDLER')")
+	@PatchMapping("/{incidentId}/resolve")
+	public ResponseEntity<IncidentResponse> resolveIncident(@PathVariable Long incidentId,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		Incident resolvedIncident = incidentService.resolveIncident(incidentId, userDetails.getUser());
+		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(resolvedIncident));
+	}
+
 	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{incidentId}/status")
 	public IncidentResponse updateStatus(@PathVariable Long incidentId,
