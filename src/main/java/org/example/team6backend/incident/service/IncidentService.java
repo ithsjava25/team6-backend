@@ -181,4 +181,39 @@ public class IncidentService {
 		log.info("Assigned incident {} to handler {} by admin {}", incidentId, handlerId, currentUser.getId());
 		return savedIncident;
 	}
+
+	@Transactional
+	public Incident updateIncidentStatus(Long incidentId, IncidentStatus newStatus, AppUser currentUser) {
+		Incident incident = incidentRepository.findById(incidentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+
+		IncidentStatus oldStatus = incident.getIncidentStatus();
+
+		incident.setIncidentStatus(newStatus);
+		incident.setUpdatedAt(LocalDateTime.now());
+
+		Incident savedIncident = incidentRepository.save(incident);
+
+		if (oldStatus == newStatus) {
+			return incident;
+		}
+
+		activityLogService.log(
+				"STATUS_CHANGED",
+				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus,
+				savedIncident,
+				currentUser
+		);
+
+		if (savedIncident.getCreatedBy() != null &&
+		!savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
+
+			notificationService.createNotification(
+					"Your incident status was changed from " + oldStatus + " to " + newStatus,
+					savedIncident.getCreatedBy(),
+					savedIncident
+			);
+		}
+		return savedIncident;
+	}
 }

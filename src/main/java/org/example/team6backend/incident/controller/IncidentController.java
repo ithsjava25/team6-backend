@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.team6backend.incident.dto.AssignIncidentRequest;
 import org.example.team6backend.incident.dto.IncidentRequest;
 import org.example.team6backend.incident.dto.IncidentResponse;
+import org.example.team6backend.incident.dto.UpdateIncidentStatusRequest;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
 import org.example.team6backend.security.CustomUserDetails;
@@ -87,6 +88,22 @@ public class IncidentController {
 				adminUser.getUser());
 		return IncidentResponse.fromEntity(updatedIncident);
 	}
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{incidentId}/status")
+    public IncidentResponse updateStatus(
+            @PathVariable Long incidentId,
+            @Valid @RequestBody UpdateIncidentStatusRequest request,
+            @AuthenticationPrincipal CustomUserDetails adminUser) {
+
+        Incident updateIncident = incidentService.updateIncidentStatus(
+                incidentId,
+                request.status(),
+                adminUser.getUser()
+        );
+
+        return IncidentResponse.fromEntity(updateIncident);
+    }
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/handlers")
