@@ -2,14 +2,14 @@ package org.example.team6backend.notification.dto;
 
 import org.example.team6backend.notification.entity.Notification;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class NotificationResponse {
 
 	private Long id;
 	private String message;
 	private Boolean read;
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 	private Long incidentId;
 
 	public static NotificationResponse fromEntity(Notification notification) {
@@ -46,11 +46,11 @@ public class NotificationResponse {
 		this.read = read;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 

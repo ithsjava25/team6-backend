@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.user.entity.AppUser;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "activity_log")
@@ -16,7 +16,7 @@ public class ActivityLog {
 
 	private String action;
 	private String description;
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@ManyToOne
 	@JoinColumn(name = "incident_id", nullable = false)
@@ -28,7 +28,7 @@ public class ActivityLog {
 
 	@PrePersist
 	void onCreated() {
-		createdAt = LocalDateTime.now();
+		createdAt = Instant.now();
 	}
 
 	public Long getId() {
@@ -55,11 +55,11 @@ public class ActivityLog {
 		this.description = description;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 

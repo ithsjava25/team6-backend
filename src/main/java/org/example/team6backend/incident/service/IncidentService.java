@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,8 +75,8 @@ public class IncidentService {
 			incident.setIncidentCategory(incidentRequest.getIncidentCategory());
 			incident.setCreatedBy(user);
 			incident.setIncidentStatus(IncidentStatus.OPEN);
-			incident.setCreatedAt(LocalDateTime.now());
-			incident.setUpdatedAt(LocalDateTime.now());
+			incident.setCreatedAt(Instant.now());
+			incident.setUpdatedAt(Instant.now());
 
 			Incident savedIncident = incidentRepository.save(incident);
 
@@ -172,7 +173,7 @@ public class IncidentService {
 
 		AppUser oldHandler = incident.getAssignedTo();
 		incident.setAssignedTo(handler);
-		incident.setUpdatedAt(LocalDateTime.now());
+		incident.setUpdatedAt(Instant.now());
 
 		if (incident.getIncidentStatus() == IncidentStatus.OPEN) {
 			incident.setIncidentStatus(IncidentStatus.IN_PROGRESS);
@@ -208,7 +209,7 @@ public class IncidentService {
 		}
 
 		incident.setIncidentStatus(newStatus);
-		incident.setUpdatedAt(LocalDateTime.now());
+		incident.setUpdatedAt(Instant.now());
 
 		Incident savedIncident = incidentRepository.save(incident);
 
@@ -245,7 +246,7 @@ public class IncidentService {
 		}
 
 		incident.setAssignedTo(null);
-		incident.setUpdatedAt(LocalDateTime.now());
+		incident.setUpdatedAt(Instant.now());
 
 		if (incident.getIncidentStatus() == IncidentStatus.IN_PROGRESS) {
 			incident.setIncidentStatus(IncidentStatus.OPEN);
@@ -285,7 +286,7 @@ public class IncidentService {
 		IncidentStatus oldStatus = incident.getIncidentStatus();
 
 		incident.setIncidentStatus(IncidentStatus.CLOSED);
-		incident.setUpdatedAt(LocalDateTime.now());
+		incident.setUpdatedAt(Instant.now());
 
 		Incident savedIncident = incidentRepository.save(incident);
 
@@ -325,7 +326,7 @@ public class IncidentService {
 
 		IncidentStatus oldStatus = incident.getIncidentStatus();
 		incident.setIncidentStatus(IncidentStatus.RESOLVED);
-		incident.setUpdatedAt(LocalDateTime.now());
+		incident.setUpdatedAt(Instant.now());
 
 		Incident savedIncident = incidentRepository.save(incident);
 

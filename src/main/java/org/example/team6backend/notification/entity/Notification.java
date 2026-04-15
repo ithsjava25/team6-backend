@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.user.entity.AppUser;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "notification")
@@ -21,7 +21,7 @@ public class Notification {
 	private boolean read = false;
 
 	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
@@ -33,7 +33,7 @@ public class Notification {
 
 	@PrePersist
 	public void onCreate() {
-		this.createdAt = LocalDateTime.now();
+		this.createdAt = Instant.now();
 	}
 
 	public Long getId() {
@@ -60,11 +60,11 @@ public class Notification {
 		this.read = read;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 

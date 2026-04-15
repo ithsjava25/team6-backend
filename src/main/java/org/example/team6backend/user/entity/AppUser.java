@@ -18,7 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
@@ -58,21 +58,21 @@ public class AppUser implements UserDetails {
 	private boolean active = true;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@Column(name = "updated_at", nullable = false)
-	private LocalDateTime updatedAt;
+	private Instant updatedAt;
 
 	@PrePersist
 	protected void onCreate() {
-		LocalDateTime now = LocalDateTime.now();
+		Instant now = Instant.now();
 		this.createdAt = now;
 		this.updatedAt = now;
 	}
 
 	@PreUpdate
 	protected void onUpdate() {
-		this.updatedAt = LocalDateTime.now();
+		this.updatedAt = Instant.now();
 	}
 
 	@Override

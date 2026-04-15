@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService Tests")
@@ -30,8 +30,8 @@ class UserServiceTest {
 		user.setName("Test User");
 		user.setRole(UserRole.RESIDENT);
 		user.setActive(true);
-		user.setCreatedAt(LocalDateTime.now());
-		user.setUpdatedAt(LocalDateTime.now());
+		user.setCreatedAt(Instant.now());
+		user.setUpdatedAt(Instant.now());
 		return user;
 	}
 }

@@ -1,13 +1,13 @@
 package org.example.team6backend.exception;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class ErrorResponse {
 
 	private int status;
 	private String message;
-	private LocalDateTime timestamp;
+	private Instant timestamp;
 
-	public ErrorResponse(int status, String message, LocalDateTime timestamp) {
+	public ErrorResponse(int status, String message, Instant timestamp) {
 		this.status = status;
 		this.message = message;
 		this.timestamp = timestamp;
@@ -19,7 +19,7 @@ public class ErrorResponse {
 	public String getMessage() {
 		return message;
 	}
-	public LocalDateTime getTimestamp() {
+	public Instant getTimestamp() {
 		return timestamp;
 	}
 }

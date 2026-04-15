@@ -3,7 +3,8 @@ package org.example.team6backend.incident.entity;
 import jakarta.persistence.*;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.user.entity.AppUser;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -36,23 +37,23 @@ public class Incident {
 	private AppUser assignedTo;
 
 	@Column(name = "created_at")
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
+	private Instant updatedAt;
 
 	@OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Document> documents;
 
 	@PrePersist
 	protected void onCreate() {
-		createdAt = LocalDateTime.now();
-		updatedAt = LocalDateTime.now();
+		createdAt = Instant.now();
+		updatedAt = Instant.now();
 	}
 
 	@PreUpdate
 	protected void onUpdate() {
-		updatedAt = LocalDateTime.now();
+		updatedAt = Instant.now();
 	}
 
 	public Long getId() {
@@ -87,11 +88,11 @@ public class Incident {
 		return assignedTo;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public LocalDateTime getUpdatedAt() {
+	public Instant getUpdatedAt() {
 		return updatedAt;
 	}
 
@@ -131,11 +132,11 @@ public class Incident {
 		this.assignedTo = assignedTo;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 
-	public void setUpdatedAt(LocalDateTime updatedAt) {
+	public void setUpdatedAt(Instant updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 
