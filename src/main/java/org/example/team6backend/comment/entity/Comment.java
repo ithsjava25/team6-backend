@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.user.entity.AppUser;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "comment")
@@ -30,11 +30,11 @@ public class Comment {
 	private AppUser user;
 
 	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@PrePersist
 	protected void onCreated() {
-		createdAt = LocalDateTime.now();
+		createdAt = Instant.now();
 	}
 
 }
