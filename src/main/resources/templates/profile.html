@@ -254,7 +254,7 @@
 
             <div class="info-group">
                 <div class="info-label">Account Created</div>
-                <div class="info-value" th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">-</div>
+                <div class="info-value" id="accountCreated" th:attr="data-created-at=${user.createdAt}" >-</div>
             </div>
 
             <div th:if="${role == 'PENDING'}" class="pending-note">
@@ -269,6 +269,27 @@
         await fetch('/logout', { method: 'POST' });
         window.location.href = '/';
     }
+
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        return new Date(dateString).toLocaleString("sv-SE", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const accountCreated = document.getElementById("accountCreated");
+        const createdAt = accountCreated?.dataset.createdAt;
+
+        if (accountCreated && createdAt) {
+            accountCreated.textContent = formatDate(createdAt);
+        }
+    });
 </script>
 </body>
 </html>
