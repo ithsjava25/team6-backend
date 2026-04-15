@@ -7,7 +7,7 @@ import org.example.team6backend.incident.entity.IncidentCategory;
 import org.example.team6backend.incident.entity.IncidentStatus;
 import org.hibernate.Hibernate;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class IncidentResponse {
 	private IncidentCategory incidentCategory;
 	private String createdBy;
 	private String assignedTo;
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 	private boolean hasDocuments;
 	private List<DocumentDTO> documents;
 

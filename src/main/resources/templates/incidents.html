@@ -268,7 +268,7 @@
                     <div class="incident-footer">
                         <span>ID: ${incident.id}</span>
                         <span>Status: <span style="display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; background: ${statusColor}; color: white;">${status}</span></span>
-                        <span>Created: ${new Date(incident.createdAt).toLocaleDateString()}</span>
+                        <span>Created: ${formatDate(incident.createdAt)}</span>
 
                         <div style="display: flex; gap: 0.5rem;">
                             <button class="btn" onclick="viewIncident(${incident.id})">View</button>
@@ -354,6 +354,18 @@
             .replaceAll(">", "&gt;")
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        return new Date(dateString).toLocaleString("sv-SE", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
     }
 
     loadIncidents();

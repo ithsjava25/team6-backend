@@ -1196,7 +1196,7 @@
                         ${user.active ? 'Active' : 'Inactive'}
                     </span>
                 </td>
-                <td style="font-size: 0.8rem;">${new Date(user.createdAt).toLocaleDateString()}</td>
+                <td style="font-size: 0.8rem;">${formatDate(user.createdAt)}</td>
                 <td>
                     <div class="action-buttons">
                         ${user.role === 'PENDING' ?
@@ -1344,7 +1344,7 @@
                 `<span class="unassigned">Unassigned</span>`
             }
                 </td>
-                <td style="font-size: 0.8rem;">${new Date(incident.createdAt).toLocaleDateString()}</td>
+                <td style="font-size: 0.8rem;">${formatDate(incident.createdAt)}</td>
                 <td>
                     <div class="action-buttons">
                         ${actionButton}
@@ -1655,6 +1655,18 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        return new Date(dateString).toLocaleString("sv-SE", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
     }
 </script>
 </body>

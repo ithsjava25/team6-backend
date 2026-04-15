@@ -1,13 +1,14 @@
 package org.example.team6backend.activity.dto;
 
 import org.example.team6backend.activity.entity.ActivityLog;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 public class ActivityLogResponse {
 
 	private String action;
 	private String description;
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 	private String userName;
 
 	public static ActivityLogResponse fromEntity(ActivityLog activityLog) {
@@ -35,11 +36,11 @@ public class ActivityLogResponse {
 		this.description = description;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 

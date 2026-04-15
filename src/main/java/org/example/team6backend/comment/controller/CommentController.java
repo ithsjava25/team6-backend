@@ -2,7 +2,7 @@ package org.example.team6backend.comment.controller;
 
 import jakarta.validation.Valid;
 import org.example.team6backend.comment.dto.CommentRequest;
-import org.example.team6backend.comment.entity.Comment;
+import org.example.team6backend.comment.dto.CommentResponse;
 import org.example.team6backend.comment.service.CommentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,8 +22,10 @@ public class CommentController {
 
 	@GetMapping("/incident/{incidentId}")
 	@ResponseBody
-	public ResponseEntity<List<Comment>> getCommentByIncidentId(@PathVariable Long incidentId) {
-		List<Comment> comments = commentService.getCommentByIncidentId(incidentId);
+	public ResponseEntity<List<CommentResponse>> getCommentByIncidentId(@PathVariable Long incidentId) {
+		List<CommentResponse> comments = commentService.getCommentByIncidentId(incidentId).stream()
+				.map(CommentResponse::fromEntity).toList();
+
 		return ResponseEntity.ok(comments);
 	}
 

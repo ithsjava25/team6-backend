@@ -819,7 +819,7 @@
                         <div class="incident-item" onclick="window.location.href='/incidents/${i.id}'" style="cursor:pointer;">
                             <div>
                                 <div class="incident-title">${escapeHtml(i.subject)}</div>
-                                <div class="incident-date">${new Date(i.createdAt).toLocaleDateString()}</div>
+                                <div class="incident-date">${formatDate(i.createdAt)}</div>
                             </div>
                             <span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span>
                         </div>
@@ -949,7 +949,7 @@
             container.innerHTML = notifications.map(notification => `
                 <button class="notification-item" onclick="openNotification(${notification.id}, ${notification.incidentId})">
                     <div class="notification-message">${escapeHtml(notification.message)}</div>
-                    <div class="notification-date">${new Date(notification.createdAt).toLocaleDateString()}</div>
+                    <div class="notification-date">${formatDate(notification.createdAt)}</div>
                 </button>
             `).join('');
         } catch (error) {
@@ -975,6 +975,18 @@
         } catch (error) {
             console.error('Error opening notification', error);
         }
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        return new Date(dateString).toLocaleString("sv-SE", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
