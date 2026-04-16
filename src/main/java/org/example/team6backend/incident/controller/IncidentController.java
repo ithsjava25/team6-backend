@@ -32,7 +32,8 @@ public class IncidentController {
 	private final UserMapper userMapper;
 	private final NotificationService notificationService;
 
-	public IncidentController(IncidentService incidentService, UserService userService, UserMapper userMapper, NotificationService notificationService) {
+	public IncidentController(IncidentService incidentService, UserService userService, UserMapper userMapper,
+			NotificationService notificationService) {
 		this.incidentService = incidentService;
 		this.userService = userService;
 		this.userMapper = userMapper;

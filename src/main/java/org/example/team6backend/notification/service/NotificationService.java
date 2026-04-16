@@ -54,8 +54,8 @@ public class NotificationService {
 
 	@Transactional
 	public void markNotificationAsReadForIncident(String userId, Long incidentId) {
-		List<Notification> notifications =
-				notificationRepository.findByUserIdAndIncidentIdAndReadFalse(userId, incidentId);
+		List<Notification> notifications = notificationRepository.findByUserIdAndIncidentIdAndReadFalse(userId,
+				incidentId);
 
 		for (Notification notification : notifications) {
 			notification.setRead(true);
