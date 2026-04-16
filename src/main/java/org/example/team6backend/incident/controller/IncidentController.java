@@ -7,6 +7,7 @@ import org.example.team6backend.incident.dto.IncidentResponse;
 import org.example.team6backend.incident.dto.UpdateIncidentStatusRequest;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
+import org.example.team6backend.notification.service.NotificationService;
 import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.dto.UserResponse;
 import org.example.team6backend.user.entity.AppUser;
@@ -29,11 +30,13 @@ public class IncidentController {
 	private final IncidentService incidentService;
 	private final UserService userService;
 	private final UserMapper userMapper;
+	private final NotificationService notificationService;
 
-	public IncidentController(IncidentService incidentService, UserService userService, UserMapper userMapper) {
+	public IncidentController(IncidentService incidentService, UserService userService, UserMapper userMapper, NotificationService notificationService) {
 		this.incidentService = incidentService;
 		this.userService = userService;
 		this.userMapper = userMapper;
+		this.notificationService = notificationService;
 	}
 
 	/** Create new incident */
@@ -77,7 +80,11 @@ public class IncidentController {
 	@GetMapping("/{id}")
 	public IncidentResponse getIncidentById(@PathVariable Long id,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
-		return IncidentResponse.fromEntityWithDocuments(incidentService.getById(id, userDetails.getUser()));
+
+		AppUser currentUser = userDetails.getUser();
+		notificationService.markNotificationAsReadForIncident(currentUser.getId(), id);
+
+		return IncidentResponse.fromEntityWithDocuments(incidentService.getById(id, currentUser));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
