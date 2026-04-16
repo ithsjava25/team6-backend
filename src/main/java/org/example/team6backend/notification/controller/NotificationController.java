@@ -23,7 +23,8 @@ public class NotificationController {
 
 		String userId = userDetails.getUser().getId();
 
-		return notificationService.getUserNotifications(userId).stream().map(NotificationResponse::fromEntity).toList();
+		return notificationService.getUnreadNotifications(userId).stream().map(NotificationResponse::fromEntity)
+				.toList();
 	}
 
 	@GetMapping("/user/unread-count")

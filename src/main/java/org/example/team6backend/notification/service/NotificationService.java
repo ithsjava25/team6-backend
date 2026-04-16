@@ -6,6 +6,7 @@ import org.example.team6backend.notification.entity.Notification;
 import org.example.team6backend.notification.repository.NotificationRepository;
 import org.example.team6backend.user.entity.AppUser;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class NotificationService {
 	}
 
 	public List<Notification> getUnreadNotifications(String userId) {
-		return notificationRepository.findByUserIdAndReadFalse(userId);
+		return notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId);
 	}
 
 	public long getUnreadCount(String userId) {
@@ -49,5 +50,17 @@ public class NotificationService {
 
 		notification.setRead(true);
 		notificationRepository.save(notification);
+	}
+
+	@Transactional
+	public void markNotificationAsReadForIncident(String userId, Long incidentId) {
+		List<Notification> notifications = notificationRepository.findByUserIdAndIncidentIdAndReadFalse(userId,
+				incidentId);
+
+		for (Notification notification : notifications) {
+			notification.setRead(true);
+		}
+
+		notificationRepository.saveAll(notifications);
 	}
 }

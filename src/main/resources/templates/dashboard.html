@@ -961,20 +961,14 @@
     }
 
     async function openNotification(notificationId, incidentId) {
-        try {
-            const response = await fetch(`/notifications/${notificationId}/read`, {
-                method: 'PATCH'
-            });
+       const badge = document.getElementById("notificationBadge");
+       if (badge) {
+           badge.style.display = "none";
+       }
 
-            if (!response.ok) {
-                throw new Error(`Failed to mark notifications as read: ${response.status}`);
-            }
-
-            loadNotificationCount();
-            window.location.href = `/incidents/${incidentId}`;
-        } catch (error) {
-            console.error('Error opening notification', error);
-        }
+       if (incidentId) {
+           window.location.href = `/incidents/${incidentId}`;
+       }
     }
 
     function formatDate(dateString) {
