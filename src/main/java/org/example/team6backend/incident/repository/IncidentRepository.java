@@ -24,5 +24,4 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
 	@Query("SELECT i FROM Incident i LEFT JOIN FETCH i.documents WHERE i.id = :id")
 	Optional<Incident> findByIdWithDocuments(@Param("id") Long id);
-
 }

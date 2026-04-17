@@ -16,10 +16,14 @@ import org.example.team6backend.user.mapper.UserMapper;
 import org.example.team6backend.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -42,6 +46,7 @@ public class IncidentController {
 
 	/** Create new incident */
 	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
 	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
 	public IncidentResponse createIncident(@RequestBody @Valid IncidentRequest incidentRequest,
 			@AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -79,10 +84,16 @@ public class IncidentController {
 
 	@PreAuthorize("hasAnyRole('RESIDENT', 'HANDLER', 'ADMIN')")
 	@GetMapping("/{id}")
-	public IncidentResponse getIncidentById(@PathVariable Long id,
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
+	public IncidentResponse getIncidentById(@PathVariable Long id) {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
 
 		AppUser currentUser = userDetails.getUser();
+
 		notificationService.markNotificationAsReadForIncident(currentUser.getId(), id);
 
 		return IncidentResponse.fromEntityWithDocuments(incidentService.getById(id, currentUser));
