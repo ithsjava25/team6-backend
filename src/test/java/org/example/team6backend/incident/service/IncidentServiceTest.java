@@ -56,7 +56,7 @@ class IncidentServiceTest {
 	private Incident incident;
 	private AppUser user;
 	private AppUser handler;
-    private AppUser admin;
+	private AppUser admin;
 
 	@BeforeEach
 	void setUp() {
@@ -71,9 +71,9 @@ class IncidentServiceTest {
 		handler.setName("Handler");
 		handler.setRole(UserRole.HANDLER);
 
-        admin = new AppUser();
-        admin.setId("99");
-        admin.setRole(UserRole.ADMIN);
+		admin = new AppUser();
+		admin.setId("99");
+		admin.setRole(UserRole.ADMIN);
 
 		incident = new Incident();
 		incident.setId(1L);
