@@ -56,6 +56,7 @@ class IncidentServiceTest {
 	private Incident incident;
 	private AppUser user;
 	private AppUser handler;
+    private AppUser admin;
 
 	@BeforeEach
 	void setUp() {
@@ -69,6 +70,10 @@ class IncidentServiceTest {
 		handler.setId("2");
 		handler.setName("Handler");
 		handler.setRole(UserRole.HANDLER);
+
+        admin = new AppUser();
+        admin.setId("99");
+        admin.setRole(UserRole.ADMIN);
 
 		incident = new Incident();
 		incident.setId(1L);
@@ -171,7 +176,7 @@ class IncidentServiceTest {
 
 		when(incidentRepository.save(any())).thenReturn(incident);
 
-		incidentService.assignIncidentToHandler(1L, "2", user);
+		incidentService.assignIncidentToHandler(1L, "2", admin);
 
 		assertEquals(handler, incident.getAssignedTo());
 		verify(incidentRepository).save(incident);
