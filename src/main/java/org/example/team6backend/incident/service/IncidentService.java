@@ -129,14 +129,21 @@ public class IncidentService {
 		Incident incident = incidentRepository.findByIdWithDocuments(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found"));
 
-		boolean isAdmin = user.getRole().name().equals("ADMIN");
-		boolean isHandler = incident.getAssignedTo() != null && incident.getAssignedTo().getId().equals(user.getId());
-		boolean isResident = incident.getCreatedBy().getId().equals(user.getId());
-
-		if (!isAdmin && !isHandler && !isResident) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		if (user.getRole() == UserRole.PENDING) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed!");
 		}
-		return incident;
+
+		boolean isAdmin = user.getRole() == UserRole.ADMIN;
+
+		boolean isAssignedHandler = incident.getAssignedTo() != null
+				&& incident.getAssignedTo().getId().equals(user.getId());
+
+		boolean isOwner = incident.getCreatedBy() != null && incident.getCreatedBy().getId().equals(user.getId());
+
+		if (isAdmin || isAssignedHandler || isOwner) {
+			return incident;
+		}
+		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed!");
 	}
 
 	@Transactional

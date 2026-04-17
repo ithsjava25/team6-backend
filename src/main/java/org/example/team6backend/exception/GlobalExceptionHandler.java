@@ -1,12 +1,15 @@
 package org.example.team6backend.exception;
 
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
+import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,11 +39,31 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+		return new ResponseEntity<>(new ErrorResponse(401, "Unauthorized!", Instant.now()), HttpStatus.UNAUTHORIZED);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
 		ex.printStackTrace();
 		ErrorResponse error = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Something went wrong!",
 				Instant.now());
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@ExceptionHandler(ResponseStatusException.class)
+	public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+		ErrorResponse error = new ErrorResponse(ex.getStatusCode().value(),
+				ex.getReason() != null ? ex.getReason() : ex.getStatusCode().toString(), Instant.now());
+		return new ResponseEntity<>(error, HttpStatus.valueOf(ex.getStatusCode().value()));
+	}
+
+	@ExceptionHandler
+	public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+		String message = ex.getBindingResult().getAllErrors().stream().map(error -> error.getDefaultMessage())
+				.filter(Objects::nonNull).findFirst().orElse("Validation failed");
+
+		return ResponseEntity.badRequest().body(new ErrorResponse(400, message, Instant.now()));
 	}
 }
