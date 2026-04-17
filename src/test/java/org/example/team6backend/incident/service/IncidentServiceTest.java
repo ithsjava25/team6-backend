@@ -119,12 +119,25 @@ class IncidentServiceTest {
 	@Test
 	@DisplayName("Should return assigned incidents for Handler")
 	void getById_shouldReturnIncidentsForHandler() {
-		user.setRole(UserRole.HANDLER);
+		incident.setAssignedTo(handler);
+
 		when(incidentRepository.findByIdWithDocuments(1L)).thenReturn(Optional.of(incident));
 
-		Incident result = incidentService.getById(1L, user);
+		Incident result = incidentService.getById(1L, handler);
 
 		assertEquals(incident, result);
+	}
+
+	@Test
+	@DisplayName("Should throw when handler is not assigned")
+	void getById_shouldDenyUnassignedHandler() {
+		AppUser otherHandler = new AppUser();
+		otherHandler.setId("99");
+		otherHandler.setRole(UserRole.HANDLER);
+
+		when(incidentRepository.findByIdWithDocuments(1L)).thenReturn(Optional.of(incident));
+
+		assertThrows(ResponseStatusException.class, () -> incidentService.getById(1L, otherHandler));
 	}
 
 	@Test

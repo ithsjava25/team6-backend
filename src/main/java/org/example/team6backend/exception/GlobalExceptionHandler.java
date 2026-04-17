@@ -1,6 +1,6 @@
 package org.example.team6backend.exception;
 
-import org.h2.security.auth.AuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.Instant;
+import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -61,7 +61,8 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler
 	public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-		String message = ex.getBindingResult().getFieldError().getDefaultMessage();
+		String message = ex.getBindingResult().getAllErrors().stream().map(error -> error.getDefaultMessage())
+				.filter(Objects::nonNull).findFirst().orElse("Validation failed");
 
 		return ResponseEntity.badRequest().body(new ErrorResponse(400, message, Instant.now()));
 	}

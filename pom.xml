@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>25</java.version>
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <minio.version>8.6.0</minio.version>
         <springdoc.version>3.0.2</springdoc.version>
@@ -133,10 +133,6 @@
                 <version>3.14.1</version>
                 <configuration>
                     <release>25</release>
-                    <fork>true</fork>
-                    <compilerArgs>
-                        <arg>-J--enable-preview</arg>
-                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

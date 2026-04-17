@@ -7,6 +7,7 @@ import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
 import org.example.team6backend.user.mapper.UserMapper;
 import org.example.team6backend.user.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -51,6 +52,11 @@ class IncidentControllerTest {
 
 	@MockitoBean
 	private NotificationService notificationService;
+
+	@AfterEach
+	void clearContext() {
+		SecurityContextHolder.clearContext();
+	}
 
 	// Create Incident as Resident//
 	@Test
@@ -125,9 +131,19 @@ class IncidentControllerTest {
 	}
 
 	@Test
-	void getById_shouldBlockIfUnauthorized() throws Exception {
-
+	void getById_shouldBlockIfAnonymous() throws Exception {
 		mockMvc.perform(get("/api/incidents/1").with(anonymous())).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void getById_shouldReturn401_whenPrincipalIsWrongType() throws Exception {
+		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("plainUser", null,
+				List.of(() -> "ROLE_RESIDENT"));
+
+		SecurityContext context = SecurityContextHolder.createEmptyContext();
+		context.setAuthentication(auth);
+		SecurityContextHolder.setContext(context);
+		mockMvc.perform(get("/api/incidents/1")).andExpect(status().isUnauthorized());
 	}
 
 	@Test
