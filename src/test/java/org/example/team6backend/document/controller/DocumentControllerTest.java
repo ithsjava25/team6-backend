@@ -6,15 +6,17 @@ import org.example.team6backend.document.service.MinioService;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
 import org.example.team6backend.security.CustomOAuth2UserService;
+import org.example.team6backend.security.CustomUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import java.io.ByteArrayInputStream;
+import java.util.Map;
 import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,6 +24,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.example.team6backend.user.entity.AppUser;
 
 @WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = {
 		org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration.class,
@@ -40,8 +45,21 @@ public class DocumentControllerTest {
 	@MockitoBean
 	private CustomOAuth2UserService customOAuth2UserService;
 
+	@BeforeEach
+	void setupSecurity() {
+		AppUser appUser = new AppUser();
+		appUser.setName("Test User");
+		appUser.setEmail("test@test.com");
+
+		CustomUserDetails principal = new CustomUserDetails(appUser, Map.of());
+
+		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
+				principal.getAuthorities());
+
+		SecurityContextHolder.getContext().setAuthentication(auth);
+	}
+
 	@Test
-	@WithMockUser
 	void getFile_shouldReturnDocument() throws Exception {
 		Incident incident = new Incident();
 		incident.setId(1L);
@@ -63,7 +81,6 @@ public class DocumentControllerTest {
 	}
 
 	@Test
-	@WithMockUser
 	void getFile_shouldReturn404_whenMissing() throws Exception {
 		when(documentService.getByFileKey("abc")).thenReturn(Optional.empty());
 
