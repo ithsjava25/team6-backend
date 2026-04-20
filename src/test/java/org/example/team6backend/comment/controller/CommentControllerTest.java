@@ -22,51 +22,44 @@ import static org.mockito.Mockito.verify;
 
 @WebMvcTest(CommentController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@ImportAutoConfiguration(exclude = {
-        OAuth2ClientAutoConfiguration.class,
-        OAuth2ClientWebSecurityAutoConfiguration.class
-})
+@ImportAutoConfiguration(exclude = {OAuth2ClientAutoConfiguration.class,
+		OAuth2ClientWebSecurityAutoConfiguration.class})
 class CommentControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @MockitoBean
-    private CommentService commentService;
+	@MockitoBean
+	private CommentService commentService;
 
-    @Test
-    void shouldReturnCommentsForIncidentId() throws Exception {
-        AppUser user = new AppUser();
-        user.setId("user-1");
-        user.setName("Edvin");
+	@Test
+	void shouldReturnCommentsForIncidentId() throws Exception {
+		AppUser user = new AppUser();
+		user.setId("user-1");
+		user.setName("Edvin");
 
-        Incident incident = new Incident();
-        incident.setId(1L);
+		Incident incident = new Incident();
+		incident.setId(1L);
 
-        Comment comment = new Comment();
-        comment.setMessage("Test comment");
-        comment.setUser(user);
-        comment.setIncident(incident);
+		Comment comment = new Comment();
+		comment.setMessage("Test comment");
+		comment.setUser(user);
+		comment.setIncident(incident);
 
-        when(commentService.getCommentByIncidentId(1L)).thenReturn(List.of(comment));
+		when(commentService.getCommentByIncidentId(1L)).thenReturn(List.of(comment));
 
-        mockMvc.perform(get("/comments/incident/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].message").value("Test comment"));
+		mockMvc.perform(get("/comments/incident/1")).andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].message").value("Test comment"));
 
-        verify(commentService).getCommentByIncidentId(1L);
-    }
+		verify(commentService).getCommentByIncidentId(1L);
+	}
 
-    @Test
-    void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
-        mockMvc.perform(post("/comments")
-                .param("incidentId", "1")
-                .param("userId", "user-1")
-                .param("message", "Hello"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/incidents/1"));
+	@Test
+	void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
+		mockMvc.perform(post("/comments").param("incidentId", "1").param("userId", "user-1").param("message", "Hello"))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/incidents/1"));
 
-        verify(commentService).createComment(1L, "user-1", "Hello");
+		verify(commentService).createComment(1L, "user-1", "Hello");
 
-    }
+	}
 }

@@ -26,141 +26,128 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceTest {
 
-    @Mock
-    private CommentRepository commentRepository;
+	@Mock
+	private CommentRepository commentRepository;
 
-    @Mock
-    private IncidentRepository incidentRepository;
+	@Mock
+	private IncidentRepository incidentRepository;
 
-    @Mock
-    private AppUserRepository appUserRepository;
+	@Mock
+	private AppUserRepository appUserRepository;
 
-    @Mock
-    private ActivityLogService activityLogService;
+	@Mock
+	private ActivityLogService activityLogService;
 
-    @Mock
-    private NotificationService notificationService;
+	@Mock
+	private NotificationService notificationService;
 
-    @InjectMocks
-    private CommentService commentService;
+	@InjectMocks
+	private CommentService commentService;
 
-    @Test
-    void shouldReturnCommentsForIncidentId() {
-        Long incidentId = 1L;
+	@Test
+	void shouldReturnCommentsForIncidentId() {
+		Long incidentId = 1L;
 
-        when(commentRepository.findByIncidentId(incidentId))
-                .thenReturn(List.of(new Comment(), new Comment()));
+		when(commentRepository.findByIncidentId(incidentId)).thenReturn(List.of(new Comment(), new Comment()));
 
-        List<Comment> result = commentService.getCommentByIncidentId(incidentId);
+		List<Comment> result = commentService.getCommentByIncidentId(incidentId);
 
-        assertThat(result).hasSize(2);
-        verify(commentRepository).findByIncidentId(incidentId);
-    }
+		assertThat(result).hasSize(2);
+		verify(commentRepository).findByIncidentId(incidentId);
+	}
 
-    @Test
-    void shouldCreateCommentWhenEverythingIsValid() {
-        Long incidentId = 1L;
-        String userID = "user-1";
-        String message = "Test";
+	@Test
+	void shouldCreateCommentWhenEverythingIsValid() {
+		Long incidentId = 1L;
+		String userID = "user-1";
+		String message = "Test";
 
-        Incident incident = new Incident();
-        incident.setId(incidentId);
+		Incident incident = new Incident();
+		incident.setId(incidentId);
 
-        AppUser user = new AppUser();
-        user.setId(userID);
-        user.setName("Edvin");
+		AppUser user = new AppUser();
+		user.setId(userID);
+		user.setName("Edvin");
 
-        when(incidentRepository.findById(incidentId)).thenReturn(Optional.of(incident));
-        when(appUserRepository.findById(userID)).thenReturn(Optional.of(user));
-        when(commentRepository.save(any(Comment.class))).thenAnswer(i -> i.getArgument(0));
+		when(incidentRepository.findById(incidentId)).thenReturn(Optional.of(incident));
+		when(appUserRepository.findById(userID)).thenReturn(Optional.of(user));
+		when(commentRepository.save(any(Comment.class))).thenAnswer(i -> i.getArgument(0));
 
-        Comment result = commentService.createComment(incidentId, userID, message);
+		Comment result = commentService.createComment(incidentId, userID, message);
 
-        assertThat(result.getMessage()).isEqualTo(message);
+		assertThat(result.getMessage()).isEqualTo(message);
 
-        verify(commentRepository).save(any(Comment.class));
-        verify(activityLogService).log(
-                eq("COMMENT_ADDED"),
-                eq("Edvin added a comment"),
-                eq(incident),
-                eq(user)
-        );
-    }
+		verify(commentRepository).save(any(Comment.class));
+		verify(activityLogService).log(eq("COMMENT_ADDED"), eq("Edvin added a comment"), eq(incident), eq(user));
+	}
 
-    @Test
-    void shouldThrowExceptionWhenIncidentNotFound() {
-        when(incidentRepository.findById(any())).thenReturn(Optional.empty());
+	@Test
+	void shouldThrowExceptionWhenIncidentNotFound() {
+		when(incidentRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                commentService.createComment(1L, "user", "message"))
-                .isInstanceOf(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> commentService.createComment(1L, "user", "message"))
+				.isInstanceOf(ResourceNotFoundException.class);
 
-        verify(commentRepository, never()).save(any());
-    }
+		verify(commentRepository, never()).save(any());
+	}
 
-    @Test
-    void shouldCreateNotificationWhenDifferentUserComments() {
-        AppUser creator = new AppUser();
-        creator.setId("user-1");
+	@Test
+	void shouldCreateNotificationWhenDifferentUserComments() {
+		AppUser creator = new AppUser();
+		creator.setId("user-1");
 
-        Incident incident = new Incident();
-        incident.setCreatedBy(creator);
+		Incident incident = new Incident();
+		incident.setCreatedBy(creator);
 
-        AppUser commenter = new AppUser();
-        commenter.setId("user-2");
-        commenter.setName("Edvin");
+		AppUser commenter = new AppUser();
+		commenter.setId("user-2");
+		commenter.setName("Edvin");
 
-        when(incidentRepository.findById(any())).thenReturn(Optional.of(incident));
-        when(appUserRepository.findById(any())).thenReturn(Optional.of(commenter));
-        when(commentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+		when(incidentRepository.findById(any())).thenReturn(Optional.of(incident));
+		when(appUserRepository.findById(any())).thenReturn(Optional.of(commenter));
+		when(commentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        commentService.createComment(1L, "user-2", "message");
+		commentService.createComment(1L, "user-2", "message");
 
-        verify(notificationService).createNotification(
-                contains("commented"),
-                eq(creator),
-                eq(incident)
-        );
-    }
+		verify(notificationService).createNotification(contains("commented"), eq(creator), eq(incident));
+	}
 
-    @Test
-    void shouldThrowExceptionWhenUserNotFound() {
-        Incident incident = new Incident();
-        incident.setId(1L);
+	@Test
+	void shouldThrowExceptionWhenUserNotFound() {
+		Incident incident = new Incident();
+		incident.setId(1L);
 
-        when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
-        when(appUserRepository.findById("user-1")).thenReturn(Optional.empty());
+		when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
+		when(appUserRepository.findById("user-1")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                commentService.createComment(1L, "user-1", "message"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("User not found");
+		assertThatThrownBy(() -> commentService.createComment(1L, "user-1", "message"))
+				.isInstanceOf(ResourceNotFoundException.class).hasMessage("User not found");
 
-        verify(commentRepository, never()).save(any());
-        verify(activityLogService, never()).log(anyString(), anyString(), any(), any());
-        verify(notificationService, never()).createNotification(anyString(), any(), any());
-    }
+		verify(commentRepository, never()).save(any());
+		verify(activityLogService, never()).log(anyString(), anyString(), any(), any());
+		verify(notificationService, never()).createNotification(anyString(), any(), any());
+	}
 
-    @Test
-    void shouldNotCreateNotificationWhenUserCommentsOnOwnIncident() {
-        AppUser creator = new AppUser();
-        creator.setId("user-1");
-        creator.setName("Edvin");
+	@Test
+	void shouldNotCreateNotificationWhenUserCommentsOnOwnIncident() {
+		AppUser creator = new AppUser();
+		creator.setId("user-1");
+		creator.setName("Edvin");
 
-        Incident incident = new Incident();
-        incident.setId(1L);
-        incident.setCreatedBy(creator);
+		Incident incident = new Incident();
+		incident.setId(1L);
+		incident.setCreatedBy(creator);
 
-        AppUser sameUser = new AppUser();
-        sameUser.setId("user-1");
-        sameUser.setName("Edvin");
+		AppUser sameUser = new AppUser();
+		sameUser.setId("user-1");
+		sameUser.setName("Edvin");
 
-        when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
-        when(appUserRepository.findById("user-1")).thenReturn(Optional.of(sameUser));
-        when(commentRepository.save(any(Comment.class))).thenAnswer(i -> i.getArgument(0));
+		when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
+		when(appUserRepository.findById("user-1")).thenReturn(Optional.of(sameUser));
+		when(commentRepository.save(any(Comment.class))).thenAnswer(i -> i.getArgument(0));
 
-        commentService.createComment(1L, "user-1", "message");
+		commentService.createComment(1L, "user-1", "message");
 
-        verify(notificationService, never()).createNotification(anyString(), any(), any());
-    }
+		verify(notificationService, never()).createNotification(anyString(), any(), any());
+	}
 }
