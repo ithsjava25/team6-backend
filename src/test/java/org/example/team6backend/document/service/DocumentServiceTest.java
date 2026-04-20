@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
@@ -63,7 +64,9 @@ class DocumentServiceTest {
 		when(documentRepository.save(any())).thenThrow(new RuntimeException());
 
 		assertThrows(RuntimeException.class, () -> documentService.uploadFile(file, incident));
-		verify(minioService).deleteFile(anyString());
+		ArgumentCaptor<String> uploadedKey = ArgumentCaptor.forClass(String.class);
+		verify(minioService).uploadFile(uploadedKey.capture(), eq(file));
+		verify(minioService).deleteFile(uploadedKey.getValue());
 	}
 
 	@Test
@@ -84,6 +87,7 @@ class DocumentServiceTest {
 
 		doThrow(new RuntimeException()).when(minioService).deleteFile("abc");
 		assertDoesNotThrow(() -> documentService.deleteFile(document));
+		verify(minioService).deleteFile("abc");
 		verify(documentRepository).delete(document);
 	}
 
