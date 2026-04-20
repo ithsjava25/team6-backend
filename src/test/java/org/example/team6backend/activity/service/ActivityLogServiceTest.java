@@ -21,59 +21,58 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ActivityLogServiceTest {
 
-    @Mock
-    private ActivityLogRepository activityLogRepository;
+	@Mock
+	private ActivityLogRepository activityLogRepository;
 
-    @InjectMocks
-    private ActivityLogService activityLogService;
+	@InjectMocks
+	private ActivityLogService activityLogService;
 
-    @Test
-    void shouldCreateAndSaveActivityLog() {
-        String action = "COMMENT_ADDED";
-        String description = "Edvin added a comment";
+	@Test
+	void shouldCreateAndSaveActivityLog() {
+		String action = "COMMENT_ADDED";
+		String description = "Edvin added a comment";
 
-        Incident incident = new Incident();
-        incident.setId(1L);
+		Incident incident = new Incident();
+		incident.setId(1L);
 
-        AppUser user = new AppUser();
-        user.setId("user-1");
-        user.setName("Edvin");
+		AppUser user = new AppUser();
+		user.setId("user-1");
+		user.setName("Edvin");
 
-        ActivityLog savedLog = new ActivityLog();
-        savedLog.setAction(action);
-        savedLog.setDescription(description);
-        savedLog.setIncident(incident);
-        savedLog.setUser(user);
+		ActivityLog savedLog = new ActivityLog();
+		savedLog.setAction(action);
+		savedLog.setDescription(description);
+		savedLog.setIncident(incident);
+		savedLog.setUser(user);
 
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(savedLog);
+		when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(savedLog);
 
-        ActivityLog result = activityLogService.log(action, description, incident, user);
+		ActivityLog result = activityLogService.log(action, description, incident, user);
 
-        assertThat(result).isEqualTo(savedLog);
+		assertThat(result).isEqualTo(savedLog);
 
-        ArgumentCaptor<ActivityLog> captor = ArgumentCaptor.forClass(ActivityLog.class);
-        verify(activityLogRepository).save(captor.capture());
+		ArgumentCaptor<ActivityLog> captor = ArgumentCaptor.forClass(ActivityLog.class);
+		verify(activityLogRepository).save(captor.capture());
 
-        ActivityLog logToSave = captor.getValue();
-        assertThat(logToSave.getAction()).isEqualTo(action);
-        assertThat(logToSave.getDescription()).isEqualTo(description);
-        assertThat(logToSave.getIncident()).isEqualTo(incident);
-        assertThat(logToSave.getUser()).isEqualTo(user);
-    }
+		ActivityLog logToSave = captor.getValue();
+		assertThat(logToSave.getAction()).isEqualTo(action);
+		assertThat(logToSave.getDescription()).isEqualTo(description);
+		assertThat(logToSave.getIncident()).isEqualTo(incident);
+		assertThat(logToSave.getUser()).isEqualTo(user);
+	}
 
-    @Test
-    void shouldReturnActivityLogsForIncidentId() {
-        Long incidentId = 1L;
+	@Test
+	void shouldReturnActivityLogsForIncidentId() {
+		Long incidentId = 1L;
 
-        List<ActivityLog> logs = List.of(new ActivityLog(), new ActivityLog());
+		List<ActivityLog> logs = List.of(new ActivityLog(), new ActivityLog());
 
-        when(activityLogRepository.findByIncidentIdOrderByCreatedAtDesc(incidentId))
-                .thenReturn(logs);
+		when(activityLogRepository.findByIncidentIdOrderByCreatedAtDesc(incidentId)).thenReturn(logs);
 
-        List<ActivityLog> result = activityLogService.getByIncidentId(incidentId);
+		List<ActivityLog> result = activityLogService.getByIncidentId(incidentId);
 
-        assertThat(result).hasSize(2);
-        assertThat(result).isEqualTo(logs);
-        verify(activityLogRepository).findByIncidentIdOrderByCreatedAtDesc(incidentId);
-    }
+		assertThat(result).hasSize(2);
+		assertThat(result).isEqualTo(logs);
+		verify(activityLogRepository).findByIncidentIdOrderByCreatedAtDesc(incidentId);
+	}
 }
