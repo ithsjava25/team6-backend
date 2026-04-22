@@ -146,7 +146,7 @@
 <div class="container">
 
     <a href="/dashboard" class="back-dashboard-btn">Back to dashboard</a>
-    
+
     <h2>Incident details</h2>
 
     <div id="incident"></div>
@@ -156,27 +156,24 @@
         <div id="comments"></div>
     </div>
 
+    <form id="commentForm">
+        <input type="hidden" id="incidentIdInput"/>
+        <input type="hidden" id="userIdInput" th:value="${userId}">
+        <input type="hidden" id="csrfToken" th:value="${_csrf.token}">
+        <input type="hidden" id="csrfHeader" th:value="${_csrf.headerName}">
+
+        <textarea id="messageInput" rows="4"
+                  placeholder="Write a comment..."
+                  style="width: 100%; box-sizing: border-box; background: #111; color: white; border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1rem; resize: vertical;"></textarea>
+
+        <button type="submit" class="btn" style="margin-top: 0.75rem;">
+            Add comment
+        </button>
+    </form>
+
     <div class="comments-card">
-        <div class="section-title">Add comment</div>
-
-        <form action="/comments" method="post">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            <input type="hidden" name="incidentId" id="incidentIdInput"/>
-            <input type="hidden" name="userId" th:value="${userId}">
-
-            <textarea name="message" rows="4"
-                      placeholder="Write a comment..."
-                      style="width: 100%; box-sizing: border-box; background: #111; color: white; border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1rem; resize: vertical;"></textarea>
-
-            <button type="submit" class="btn" style="margin-top: 0.75rem;">
-                Add comment
-            </button>
-
-            <div class="comments-card">
-                <div class="section-title">Activity</div>
-                <div id="activity-log"></div>
-            </div>
-        </form>
+        <div class="section-title">Activity</div>
+        <div id="activity-log"></div>
     </div>
 
     <a href="/incidents" class="btn">Back</a>
@@ -360,6 +357,48 @@
             minute: "2-digit"
         });
     }
+
+    async function submitComment(event) {
+        event.preventDefault()
+
+        const incidentId = document.getElementById("incidentIdInput").value;
+        const userId = document.getElementById("userIdInput").value;
+        const message = document.getElementById("messageInput").value.trim();
+        const csrfToken = document.getElementById("csrfToken").value;
+        const csrfHeader = document.getElementById("csrfHeader").value;
+
+        if (!message) {
+            alert("Comment cannot be empty")
+            return;
+        }
+
+        try {
+            const response = await fetch("/comments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({
+                    incidentId: Number(incidentId),
+                    userId: userId,
+                    message: message
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to post comment");
+            }
+            document.getElementById("messageInput").value = "";
+            await loadComments();
+            await loadActivityLog();
+        } catch (error) {
+            console.error(error);
+            alert("Failed to post comment");
+        }
+    }
+
+    document.getElementById("commentForm").addEventListener("submit", submitComment);
 
     loadIncident();
     loadComments();

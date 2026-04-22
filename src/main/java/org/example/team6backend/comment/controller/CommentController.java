@@ -5,12 +5,11 @@ import org.example.team6backend.comment.dto.CommentRequest;
 import org.example.team6backend.comment.dto.CommentResponse;
 import org.example.team6backend.comment.service.CommentService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/comments")
 public class CommentController {
 
@@ -21,7 +20,6 @@ public class CommentController {
 	}
 
 	@GetMapping("/incident/{incidentId}")
-	@ResponseBody
 	public ResponseEntity<List<CommentResponse>> getCommentByIncidentId(@PathVariable Long incidentId) {
 		List<CommentResponse> comments = commentService.getCommentByIncidentId(incidentId).stream()
 				.map(CommentResponse::fromEntity).toList();
@@ -30,8 +28,8 @@ public class CommentController {
 	}
 
 	@PostMapping
-	public String createComment(@Valid CommentRequest request) {
+	public ResponseEntity<Void> createComment(@RequestBody @Valid CommentRequest request) {
 		commentService.createComment(request.getIncidentId(), request.getUserId(), request.getMessage());
-		return "redirect:/incidents/" + request.getIncidentId();
+		return ResponseEntity.ok().build();
 	}
 }
