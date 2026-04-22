@@ -145,7 +145,7 @@
 <body th:attr="data-role=${role}">
 <div class="container">
 
-    <a href="/dashboard" class="back-dashboard-btn">Back to dashboard</a>
+    <a href="/dashboard.html" class="back-dashboard-btn">Back to dashboard</a>
 
     <h2>Incident details</h2>
 
@@ -176,13 +176,13 @@
         <div id="activity-log"></div>
     </div>
 
-    <a href="/incidents" class="btn">Back</a>
+    <a href="/incidents.html" class="btn">Back</a>
 </div>
 
 <script>
     function getIncidentIdFromUrl() {
-        const parts = window.location.pathname.split("/")
-        return parts[parts.length - 1];
+        const params = new URLSearchParams(window.location.search);
+        return params.get("id");
     }
 
     function escapeHtml(str) {
@@ -197,6 +197,10 @@
 
     async function loadIncident() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL")
+            return;
+        }
 
         try {
             const response = await fetch(`/api/incidents/${incidentId}`);
@@ -270,6 +274,10 @@
 
     async function loadComments() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL");
+            return;
+        }
 
         try {
             const response = await fetch(`/comments/incident/${incidentId}`);
@@ -306,6 +314,10 @@
 
     async function loadActivityLog() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL");
+            return;
+        }
 
         try {
             const response = await fetch(`/activity/incident/${incidentId}`);
@@ -341,6 +353,10 @@
 
     function setIncidentIdInForm() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL");
+            return;
+        }
         document.getElementById("incidentIdInput").value = incidentId;
     }
 

@@ -210,8 +210,8 @@
         <a href="/">Incident Management System</a>
     </div>
     <div class="nav-links">
-        <a href="/dashboard">Home</a>
-        <a th:if="${role != 'PENDING'}" href="/incidents">Incidents</a>
+        <a href="/dashboard.html">Home</a>
+        <a th:if="${role != 'PENDING'}" href="/incidents.html">Incidents</a>
         <a href="/profile">Profile</a>
         <div th:if="${role == 'ADMIN'}">
             <a href="/admin">Admin</a>

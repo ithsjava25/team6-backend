@@ -20,17 +20,18 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(
 				auth -> auth.requestMatchers("/", "/index", "/demo", "/error", "/login/**", "/oauth2/**", "/dev/**")
-						.permitAll().requestMatchers("/dashboard", "/profile").authenticated()
-						.requestMatchers("/incidents", "/api/incidents/**").hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
-						.requestMatchers("/admin", "/api/admin/**").hasRole("ADMIN")
-						.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
-						.anyRequest().authenticated())
+						.permitAll().requestMatchers("/dashboard.html", "/profile.html", "/viewincident.html")
+						.authenticated().requestMatchers("/incidents.html/**", "/api/incidents/**")
+						.hasAnyRole("RESIDENT", "HANDLER", "ADMIN").requestMatchers("/admin.html", "/api/admin/**")
+						.hasRole("ADMIN").requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+						.hasRole("ADMIN").anyRequest().authenticated())
 				.oauth2Login(
 						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-								.defaultSuccessUrl("/dashboard", true))
+								.defaultSuccessUrl("/dashboard.html", true))
 				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
 						.deleteCookies("JSESSIONID"))
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/dev/**"));
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/api/documents/**",
+						"/dev/**"));
 
 		return http.build();
 	}
