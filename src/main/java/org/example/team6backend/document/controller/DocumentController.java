@@ -40,6 +40,10 @@ public class DocumentController {
 	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
+		if (userDetails == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+
 		AppUser user = userDetails.getUser();
 
 		Document document = documentService.getByFileKey(fileKey)

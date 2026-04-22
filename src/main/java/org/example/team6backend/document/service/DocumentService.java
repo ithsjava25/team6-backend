@@ -60,11 +60,10 @@ public class DocumentService {
 	/** Delete file */
 	@Transactional
 	public void deleteFile(Document document) {
-		documentRepository.delete(document);
-
-		try {
-			minioService.deleteFile(document.getFileKey());
-		} catch (Exception e) {
+        try {
+            documentRepository.delete(document);
+            minioService.deleteFile(document.getFileKey());
+		} catch (Throwable e) {
 			log.warn("Could not delete file: {}", document.getFileKey(), e);
 		}
 	}
