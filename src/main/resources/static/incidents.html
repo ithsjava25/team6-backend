@@ -173,7 +173,7 @@
 <body th:attr="data-role=${role}">
 <div class="container">
 
-    <a href="/dashboard" class="back-dashboard-btn">← Back to dashboard</a>
+    <a href="/dashboard.html" class="back-dashboard-btn">← Back to dashboard</a>
 
     <h2 id="title">Loading...</h2>
     <div id="incidents">
@@ -343,7 +343,7 @@
     }
 
     function viewIncident(id) {
-        window.location.href = `/incidents/${id}`;
+        window.location.href = `/incidents.html?id=${id}`;
     }
 
     function escapeHtml(str) {

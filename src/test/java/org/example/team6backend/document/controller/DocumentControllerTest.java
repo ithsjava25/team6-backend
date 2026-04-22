@@ -76,7 +76,7 @@ public class DocumentControllerTest {
 
 		when(minioService.getFile("abc")).thenReturn(new ByteArrayInputStream("hello".getBytes()));
 
-		mockMvc.perform(get("/documents/abc")).andExpect(status().isOk())
+		mockMvc.perform(get("/api/documents/abc")).andExpect(status().isOk())
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"test.pdf\""));
 	}
 
@@ -84,6 +84,6 @@ public class DocumentControllerTest {
 	void getFile_shouldReturn404_whenMissing() throws Exception {
 		when(documentService.getByFileKey("abc")).thenReturn(Optional.empty());
 
-		mockMvc.perform(get("/documents/abc")).andExpect(status().isNotFound());
+		mockMvc.perform(get("/api/documents/abc")).andExpect(status().isNotFound());
 	}
 }

@@ -85,7 +85,9 @@ class DocumentServiceTest {
 		Document document = new Document();
 		document.setFileKey("abc");
 
-		doThrow(new RuntimeException()).when(minioService).deleteFile("abc");
+		doThrow(new RuntimeException("MinIO Failure")).when(minioService).deleteFile(anyString());
+		System.out.println(minioService.getClass());
+
 		assertDoesNotThrow(() -> documentService.deleteFile(document));
 		verify(minioService).deleteFile("abc");
 		verify(documentRepository).delete(document);

@@ -597,11 +597,11 @@
         <a href="/">Incident Management System</a>
     </div>
     <div class="nav-links">
-        <a href="/dashboard">Home</a>
-        <a th:if="${role != 'PENDING' && user.active}" href="/incidents">Incidents</a>
-        <a href="/profile">Profile</a>
+        <a href="/dashboard.html">Home</a>
+        <a th:if="${role != 'PENDING' && user.active}" href="/incidents.html">Incidents</a>
+        <a href="/profile.html">Profile</a>
         <div th:if="${role == 'ADMIN' && user.active}">
-            <a href="/admin">Admin</a>
+            <a href="/admin.html">Admin</a>
         </div>
 
         <div th:if="${@environment.getProperty('dev.mode.enabled') == 'true'}"
@@ -700,7 +700,7 @@
         <div class="incidents-card">
             <div class="card-header">
                 <h3>Recent incidents</h3>
-                <a href="/incidents" class="btn btn-outline">View all →</a>
+                <a href="/incidents.html" class="btn btn-outline">View all →</a>
             </div>
             <div id="incidentsList" class="incident-list">
                 <p style="text-align: center; color: #6b7280;">Loading incidents...</p>
@@ -765,7 +765,7 @@
         fetch(`/dev/switch-user?githubLogin=${githubLogin}`)
             .then(response => {
                 if (response.ok) {
-                    window.location.href = '/dashboard';
+                    window.location.href = '/dashboard.html';
                 } else {
                     console.error('Failed to switch role');
                 }
@@ -816,7 +816,7 @@
                 container.innerHTML = '<p style="text-align: center; color: #6b7280;">No incidents yet.</p>';
             } else {
                 container.innerHTML = incidents.map(i => `
-                        <div class="incident-item" onclick="window.location.href='/incidents/${i.id}'" style="cursor:pointer;">
+                        <div class="incident-item" onclick="window.location.href='/incidents.html/${i.id}'" style="cursor:pointer;">
                             <div>
                                 <div class="incident-title">${escapeHtml(i.subject)}</div>
                                 <div class="incident-date">${formatDate(i.createdAt)}</div>
@@ -967,7 +967,7 @@
        }
 
        if (incidentId) {
-           window.location.href = `/incidents/${incidentId}`;
+           window.location.href = `/incidents.html?id=${incidentId}`;
        }
     }
 

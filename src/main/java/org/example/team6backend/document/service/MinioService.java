@@ -57,7 +57,7 @@ public class MinioService {
 		try {
 			minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(fileKey).build());
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to delete file " + fileKey, e);
+			System.err.println("MinIO delete failed for " + fileKey + ": " + e.getMessage());
 		}
 	}
 
