@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,8 +21,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.InputStream;
 import java.util.List;
 
-@Controller
-@RequestMapping("/documents")
+@RestController
+@RequestMapping("/api/documents")
 public class DocumentController {
 
 	private final DocumentService documentService;
@@ -38,7 +37,6 @@ public class DocumentController {
 	}
 
 	@GetMapping("/{fileKey}")
-	@ResponseBody
 	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -64,8 +62,8 @@ public class DocumentController {
 	}
 
 	@PostMapping("/upload/{incidentId}")
-	public String uploadFile(@PathVariable Long incidentId, @RequestParam("files") List<MultipartFile> files,
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
+	public ResponseEntity<Void> uploadFile(@PathVariable Long incidentId,
+			@RequestParam("files") List<MultipartFile> files, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		AppUser user = userDetails.getUser();
 		Incident incident = incidentService.getById(incidentId, user);
@@ -75,22 +73,18 @@ public class DocumentController {
 				documentService.uploadFile(file, incident);
 			}
 		}
-		return "redirect:/incidents/" + incidentId;
+		return ResponseEntity.ok().build();
 	}
 
-	@GetMapping("/download/{incidentId}")
-	public ResponseEntity<InputStreamResource> downloadFile(@PathVariable Long incidentId,
+	@GetMapping("/{fileKey}/download")
+	public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String fileKey,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		AppUser user = userDetails.getUser();
-		Incident incident = incidentService.getById(incidentId, user);
 
-		List<Document> documents = documentService.getDocumentsByIncident(incident);
-		if (documents.isEmpty()) {
-			return ResponseEntity.notFound().build();
-		}
-		Document document = documents.get(0);
+		Document document = documentService.getByFileKey(fileKey)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-		InputStream stream = documentService.downloadFile(document.getFileKey());
+		InputStream stream = minioService.getFile(fileKey);
 
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + document.getFileName() + "\"")
