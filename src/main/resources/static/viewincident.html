@@ -184,8 +184,8 @@
 
 <script>
     function getIncidentIdFromUrl() {
-        const parts = window.location.pathname.split("/")
-        return parts[parts.length - 1];
+        const params = new URLSearchParams(window.location.search);
+        return params.get("id");
     }
 
     function escapeHtml(str) {
@@ -200,6 +200,10 @@
 
     async function loadIncident() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL")
+            return;
+        }
 
         try {
             const response = await fetch(`/api/incidents/${incidentId}`);
@@ -273,6 +277,10 @@
 
     async function loadComments() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL");
+            return;
+        }
 
         try {
             const response = await fetch(`/comments/incident/${incidentId}`);
@@ -309,6 +317,10 @@
 
     async function loadActivityLog() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL");
+            return;
+        }
 
         try {
             const response = await fetch(`/activity/incident/${incidentId}`);
@@ -344,6 +356,10 @@
 
     function setIncidentIdInForm() {
         const incidentId = getIncidentIdFromUrl();
+        if (!incidentId) {
+            console.error("No incident ID in URL");
+            return;
+        }
         document.getElementById("incidentIdInput").value = incidentId;
     }
 
@@ -365,6 +381,8 @@
     loadComments();
     loadActivityLog();
     setIncidentIdInForm();
+
+
 </script>
 </body>
 </html>

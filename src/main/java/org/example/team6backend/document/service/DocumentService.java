@@ -63,7 +63,7 @@ public class DocumentService {
 		try {
 			documentRepository.delete(document);
 			minioService.deleteFile(document.getFileKey());
-		} catch (Throwable e) {
+		} catch (RuntimeException e) {
 			log.warn("Could not delete file: {}", document.getFileKey(), e);
 		}
 	}
