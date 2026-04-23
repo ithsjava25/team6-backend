@@ -27,7 +27,7 @@ public class SecurityConfig {
 
 				.requestMatchers("/api/incidents/**").hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
 				.requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/api/users/me").authenticated()
-				.requestMatchers("/comments/**", "/activity/**", "/documents/**").authenticated()
+				.requestMatchers("/comments/**", "/activity/**", "/documents/**", "/notifications/**").authenticated()
 				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN").anyRequest()
 				.authenticated())
 				.oauth2Login(
@@ -35,8 +35,8 @@ public class SecurityConfig {
 								.defaultSuccessUrl("/dashboard.html", true))
 				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
 						.deleteCookies("JSESSIONID"))
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/comments",
-						"/dev/**"));
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/comments", "/dev/**",
+						"/notifications/**"));
 
 		return http.build();
 	}
