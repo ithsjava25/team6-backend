@@ -10,48 +10,64 @@ import org.example.team6backend.security.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Optional;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.example.team6backend.user.entity.AppUser;
+import org.example.team6backend.user.entity.UserRole;
 
-@WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = {
-		org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration.class,
-		org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration.class})
+@WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = {OAuth2ClientAutoConfiguration.class,
+		OAuth2ClientWebSecurityAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
+@ImportAutoConfiguration(exclude = {OAuth2ClientAutoConfiguration.class,
+		OAuth2ClientWebSecurityAutoConfiguration.class})
 public class DocumentControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
+
 	@MockitoBean
 	private DocumentService documentService;
+
 	@MockitoBean
 	private IncidentService incidentService;
+
 	@MockitoBean
 	private MinioService minioService;
+
 	@MockitoBean
 	private CustomOAuth2UserService customOAuth2UserService;
 
+	private AppUser testUser;
+
 	@BeforeEach
 	void setupSecurity() {
-		AppUser appUser = new AppUser();
-		appUser.setName("Test User");
-		appUser.setEmail("test@test.com");
+		testUser = new AppUser();
+		testUser.setId("test-user-id");
+		testUser.setName("Test User");
+		testUser.setEmail("test@test.com");
+		testUser.setRole(UserRole.ADMIN);
+		testUser.setActive(true);
 
-		CustomUserDetails principal = new CustomUserDetails(appUser, Map.of());
+		CustomUserDetails principal = new CustomUserDetails(testUser, Map.of());
 
 		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
 				principal.getAuthorities());
@@ -71,19 +87,54 @@ public class DocumentControllerTest {
 		document.setIncident(incident);
 
 		when(documentService.getByFileKey("abc")).thenReturn(Optional.of(document));
-
 		when(incidentService.getById(eq(1L), any())).thenReturn(incident);
-
 		when(minioService.getFile("abc")).thenReturn(new ByteArrayInputStream("hello".getBytes()));
 
-		mockMvc.perform(get("/api/documents/abc")).andExpect(status().isOk())
+		mockMvc.perform(get("/documents/abc")).andExpect(status().isOk())
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"test.pdf\""));
 	}
 
 	@Test
-	void getFile_shouldReturn404_whenMissing() throws Exception {
+	void getFile_shouldReturn404_whenDocumentNotFound() throws Exception {
 		when(documentService.getByFileKey("abc")).thenReturn(Optional.empty());
 
-		mockMvc.perform(get("/api/documents/abc")).andExpect(status().isNotFound());
+		mockMvc.perform(get("/documents/abc")).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void getFile_shouldReturn404_whenIncidentNotFound() throws Exception {
+		Document document = new Document();
+		document.setFileName("test.pdf");
+		document.setContentType("application/pdf");
+		document.setFileKey("abc");
+
+		Incident incident = new Incident();
+		incident.setId(1L);
+		document.setIncident(incident);
+
+		when(documentService.getByFileKey("abc")).thenReturn(Optional.of(document));
+		when(incidentService.getById(eq(1L), any())).thenReturn(null);
+
+		mockMvc.perform(get("/documents/abc")).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void uploadFile_shouldReturnCreated() throws Exception {
+		Incident incident = new Incident();
+		incident.setId(1L);
+
+		Document document = new Document();
+		document.setFileName("test.pdf");
+		document.setContentType("application/pdf");
+		document.setFileKey("abc");
+		document.setFileSize(1024L);
+		document.setIncident(incident);
+
+		MockMultipartFile mockFile = new MockMultipartFile("files", "test.pdf", "application/pdf", "hello".getBytes());
+
+		when(incidentService.getById(eq(1L), any())).thenReturn(incident);
+		when(documentService.uploadFile(any(), eq(incident))).thenReturn(document);
+
+		mockMvc.perform(multipart("/documents/upload/1").file(mockFile)).andExpect(status().isCreated());
 	}
 }

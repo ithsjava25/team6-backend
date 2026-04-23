@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Incident Manager</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -23,13 +19,12 @@
             justify-content: space-between;
             align-items: center;
             padding: 1rem 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: #000000;
             position: sticky;
             top: 0;
-            background: #000000;
             z-index: 100;
         }
 
@@ -38,29 +33,36 @@
             color: #ffffff;
             font-weight: 600;
             font-size: 1.25rem;
+            transition: opacity 0.2s;
         }
+
+        .logo a:hover { opacity: 0.8; }
 
         .nav-links {
             display: flex;
             gap: 1.5rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .nav-links a {
             text-decoration: none;
             color: #6b7280;
             font-size: 0.875rem;
-            transition: color 0.2s;
+            transition: all 0.2s;
+            padding: 0.5rem 0;
         }
 
-        .nav-links a:hover, .nav-links a.active {
-            color: #ffffff;
+        .nav-links a:hover { color: #ffffff; }
+
+        .nav-links a.active {
+            color: #10b981;
         }
 
         .user-info {
             display: flex;
-            align-items: center;
             gap: 1rem;
+            align-items: center;
         }
 
         .user-name {
@@ -73,9 +75,6 @@
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 500;
-        }
-
-        .role-badge.admin {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
         }
@@ -88,6 +87,7 @@
             border-radius: 9999px;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.875rem;
         }
 
         .logout-btn:hover {
@@ -109,6 +109,10 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff, #10b981);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .admin-header p {
@@ -128,10 +132,11 @@
             border-radius: 1rem;
             padding: 1.25rem;
             transition: all 0.2s;
+            cursor: pointer;
         }
 
         .stat-card:hover {
-            border-color: #2a2a2a;
+            border-color: #10b981;
             transform: translateY(-2px);
         }
 
@@ -195,22 +200,22 @@
             gap: 0.5rem;
         }
 
-        .search-box input {
-            flex: 1;
+        .search-box input, .filter-group select {
             background: #0a0a0a;
             border: 1px solid #2a2a2a;
             border-radius: 0.5rem;
             padding: 0.625rem 1rem;
             color: #ffffff;
             font-size: 0.875rem;
+            transition: all 0.2s;
         }
 
-        .search-box input:focus {
+        .search-box input:focus, .filter-group select:focus {
             outline: none;
             border-color: #10b981;
         }
 
-        .search-box button, .filter-group button {
+        .search-box button, .filter-group button, .clear-filters {
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
             color: #ffffff;
@@ -222,119 +227,17 @@
 
         .search-box button:hover, .filter-group button:hover {
             background: #2a2a2a;
-        }
-
-        .filter-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .filter-group select {
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
-            border-radius: 0.5rem;
-            padding: 0.625rem 1rem;
-            color: #ffffff;
-            font-size: 0.875rem;
-            cursor: pointer;
+            border-color: #10b981;
         }
 
         .clear-filters {
             background: transparent;
-            border: 1px solid #2a2a2a;
             color: #6b7280;
-            padding: 0.625rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
         }
 
         .clear-filters:hover {
             border-color: #ef4444;
             color: #ef4444;
-        }
-
-        .incident-badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-
-        .incident-badge.OPEN {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .incident-badge.IN_PROGRESS {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .incident-badge.RESOLVED {
-            background: #10b981;
-            color: white;
-        }
-
-        .incident-badge.CLOSED {
-            background: #6b7280;
-            color: white;
-        }
-
-        .category-badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            background: #2a2a2a;
-            color: #ffffff;
-        }
-
-        .assign-btn {
-            background: #3b82f6;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .assign-btn:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-        }
-
-        .unassign-btn {
-            background: #f59e0b;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .unassign-btn:hover {
-            background: #d97706;
-            transform: scale(1.05);
-        }
-
-        .assigned-to {
-            font-size: 0.8rem;
-            color: #10b981;
-        }
-
-        .unassigned {
-            font-size: 0.8rem;
-            color: #6b7280;
         }
 
         .users-table-container {
@@ -399,25 +302,10 @@
             font-weight: 500;
         }
 
-        .role-badge-small.PENDING {
-            background: #6b7280;
-            color: white;
-        }
-
-        .role-badge-small.RESIDENT {
-            background: #10b981;
-            color: white;
-        }
-
-        .role-badge-small.HANDLER {
-            background: #f97316;
-            color: white;
-        }
-
-        .role-badge-small.ADMIN {
-            background: #ef4444;
-            color: white;
-        }
+        .role-badge-small.PENDING { background: #6b7280; color: white; }
+        .role-badge-small.RESIDENT { background: #10b981; color: white; }
+        .role-badge-small.HANDLER { background: #f97316; color: white; }
+        .role-badge-small.ADMIN { background: #ef4444; color: white; }
 
         .status-badge {
             display: inline-block;
@@ -427,15 +315,8 @@
             font-weight: 500;
         }
 
-        .status-badge.active {
-            background: #10b981;
-            color: white;
-        }
-
-        .status-badge.inactive {
-            background: #6b7280;
-            color: white;
-        }
+        .status-badge.active { background: #10b981; color: white; }
+        .status-badge.inactive { background: #6b7280; color: white; }
 
         .action-buttons {
             display: flex;
@@ -444,55 +325,48 @@
         }
 
         .action-btn {
-            background: transparent;
+            background: #0a0a0a;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.7rem;
+            border: 1.5px solid;
+            transition: all 0.2s;
+            color: #ffffff;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.02);
+            background: #141414;
+        }
+
+        .action-btn.approve { border-color: #10b981; color: #10b981; }
+        .action-btn.approve:hover { background: #10b981; color: white; box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+        .action-btn.role { border-color: #3b82f6; color: #3b82f6; }
+        .action-btn.role:hover { background: #3b82f6; color: white; box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
+        .action-btn.status { border-color: #f59e0b; color: #f59e0b; }
+        .action-btn.status:hover { background: #f59e0b; color: white; box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+        .action-btn.delete { border-color: #ef4444; color: #ef4444; }
+        .action-btn.delete:hover { background: #ef4444; color: white; box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+        .action-btn.assign { border-color: #10b981; color: #10b981; }
+        .action-btn.assign:hover { background: #10b981; color: white; box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+
+        .status-select {
+            appearance: none;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.7rem;
+            font-weight: 500;
             border: none;
             cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: all 0.2s;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .action-btn.approve {
-            background: #10b981;
             color: white;
         }
 
-        .action-btn.approve:hover {
-            background: #059669;
-            transform: scale(1.05);
-        }
-
-        .action-btn.role {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .action-btn.role:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-        }
-
-        .action-btn.status {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .action-btn.status:hover {
-            background: #d97706;
-            transform: scale(1.05);
-        }
-
-        .action-btn.delete {
-            background: #ef4444;
-            color: white;
-        }
-
-        .action-btn.delete:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
+        .status-open { background: #f59e0b; }
+        .status-in_progress { background: #3b82f6; }
+        .status-resolved { background: #10b981; }
+        .status-closed { background: #6b7280; }
 
         .modal {
             display: none;
@@ -501,15 +375,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: #0a0a0a;
@@ -523,6 +395,7 @@
         .modal-content h3 {
             margin-bottom: 1rem;
             font-size: 1.25rem;
+            color: #ffffff;
         }
 
         .modal-content .form-group {
@@ -536,18 +409,13 @@
             font-size: 0.875rem;
         }
 
-        .modal-content select, .modal-content textarea {
+        .modal-content select {
             width: 100%;
             background: #0f0f0f;
             border: 1px solid #2a2a2a;
             border-radius: 0.5rem;
             padding: 0.625rem;
             color: #ffffff;
-        }
-
-        .modal-content textarea {
-            resize: vertical;
-            min-height: 80px;
         }
 
         .modal-buttons {
@@ -562,6 +430,7 @@
             border-radius: 0.5rem;
             cursor: pointer;
             font-weight: 500;
+            transition: all 0.2s;
         }
 
         .modal-buttons .save-btn {
@@ -570,10 +439,18 @@
             color: white;
         }
 
+        .modal-buttons .save-btn:hover {
+            background: #059669;
+        }
+
         .modal-buttons .cancel-btn {
             background: transparent;
             border: 1px solid #2a2a2a;
             color: #ffffff;
+        }
+
+        .modal-buttons .cancel-btn:hover {
+            border-color: #6b7280;
         }
 
         .pagination-container {
@@ -644,12 +521,6 @@
             cursor: pointer;
         }
 
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #6b7280;
-        }
-
         .toast {
             position: fixed;
             bottom: 2rem;
@@ -662,107 +533,31 @@
             animation: slideIn 0.3s ease;
         }
 
-        .toast.success {
-            border-left-color: #10b981;
-        }
-
-        .toast.error {
-            border-left-color: #ef4444;
-        }
-
-        .toast.info {
-            border-left-color: #3b82f6;
-        }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
         }
 
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .filters-bar {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .filter-group {
-                width: 100%;
-            }
-
-            .filter-group select {
-                flex: 1;
-            }
-
-            .users-table th, .users-table td {
-                padding: 0.75rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .action-btn {
-                width: 100%;
-                text-align: center;
-            }
-
-            .pagination-container {
-                flex-direction: column;
-                align-items: center;
-            }
+            .navbar { flex-direction: column; }
+            .filters-bar { flex-direction: column; }
+            .search-box { width: 100%; }
+            .filter-group { width: 100%; }
+            .filter-group select { flex: 1; }
+            .users-table th, .users-table td { padding: 0.75rem; }
+            .action-buttons { flex-direction: column; }
+            .action-btn { width: 100%; text-align: center; }
+            .pagination-container { flex-direction: column; align-items: center; }
         }
-
-        .status-selected:hover {
-            border-color: #10b981;
-        }
-
-        .status-selected:focus {
-            border-color: #3b82f6;
-        }
-
-        .status-select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            border-radius: 9999px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.7rem;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            color: white;
-        }
-
-        .status-open {
-            background: #f59e0b;
-        }
-
-        .status-in_progress {
-            background: #3b82f6;
-        }
-
-        .status-resolved {
-            background: #10b981;
-        }
-
-        .status-closed {
-            background: #6b7280;
-        }
-
     </style>
 </head>
 <body>
@@ -771,13 +566,13 @@
         <a href="/">Incident Management System</a>
     </div>
     <div class="nav-links">
-        <a href="/dashboard.html">Dashboard</a>
-        <a href="/incidents.html">Incidents</a>
-        <a href="/profile.html">Profile</a>
-        <a href="/admin.html" class="active">Admin</a>
+        <a href="dashboard.html">Home</a>
+        <a href="incidents.html">Incidents</a>
+        <a href="profile.html">Profile</a>
+        <a href="admin.html" class="active">Admin</a>
         <div class="user-info">
-            <span class="user-name" th:text="${user.name != null ? user.name : user.githubLogin}">User</span>
-            <span class="role-badge admin" th:text="${role}">ADMIN</span>
+            <span class="user-name" id="userName">Loading...</span>
+            <span class="role-badge" id="userRole">ADMIN</span>
             <button class="logout-btn" onclick="logout()">Sign out</button>
         </div>
     </div>
@@ -790,30 +585,12 @@
     </div>
 
     <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-            <div class="stat-title">Total Users</div>
-            <div class="stat-number" id="totalUsers">-</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Pending Approval</div>
-            <div class="stat-number" id="pendingUsers">-</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Residents</div>
-            <div class="stat-number" id="residentCount">-</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Handlers</div>
-            <div class="stat-number" id="handlerCount">-</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Admins</div>
-            <div class="stat-number" id="adminCount">-</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Total Incidents</div>
-            <div class="stat-number" id="totalIncidents">-</div>
-        </div>
+        <div class="stat-card"><div class="stat-title">Total Users</div><div class="stat-number" id="totalUsers">-</div></div>
+        <div class="stat-card"><div class="stat-title">Pending Approval</div><div class="stat-number" id="pendingUsers">-</div></div>
+        <div class="stat-card"><div class="stat-title">Residents</div><div class="stat-number" id="residentCount">-</div></div>
+        <div class="stat-card"><div class="stat-title">Handlers</div><div class="stat-number" id="handlerCount">-</div></div>
+        <div class="stat-card"><div class="stat-title">Admins</div><div class="stat-number" id="adminCount">-</div></div>
+        <div class="stat-card"><div class="stat-title">Total Incidents</div><div class="stat-number" id="totalIncidents">-</div></div>
     </div>
 
     <div class="tabs">
@@ -824,7 +601,7 @@
     <div id="usersTab">
         <div class="filters-bar">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search by name, email, or GitHub username...">
+                <input type="text" id="searchInput" placeholder="Search by name, email, or GitHub...">
                 <button onclick="searchUsers()">Search</button>
             </div>
             <div class="filter-group">
@@ -849,31 +626,19 @@
         <div class="users-table-container">
             <table class="users-table">
                 <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Email / GitHub</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
+                <tr><th>User</th><th>Email / GitHub</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr>
                 </thead>
                 <tbody id="usersTableBody">
-                <tr>
-                    <td colspan="6" class="loading">Loading users...</td>
-                </tr>
+                <tr><td colspan="6" class="loading">Loading users...</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div class="pagination-container">
-            <div class="pagination-info" id="paginationInfo">
-                Showing 0-0 of 0 users
-            </div>
-            <div class="pagination-controls" id="paginationControls">
-            </div>
+            <div class="pagination-info" id="paginationInfo">Showing 0-0 of 0 users</div>
+            <div class="pagination-controls" id="paginationControls"></div>
             <div class="page-size-selector">
-                <label>Rows per page:</label>
+                <label>Rows:</label>
                 <select id="pageSizeSelect" onchange="changePageSize()">
                     <option value="10">10</option>
                     <option value="20" selected>20</option>
@@ -905,33 +670,19 @@
         <div class="users-table-container">
             <table class="users-table">
                 <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Subject</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Created By</th>
-                    <th>Assigned To</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
+                <tr><th>ID</th><th>Subject</th><th>Category</th><th>Status</th><th>Created By</th><th>Assigned To</th><th>Created</th><th>Actions</th></tr>
                 </thead>
                 <tbody id="incidentsTableBody">
-                <tr>
-                    <td colspan="8" class="loading">Loading incidents...</td>
-                </tr>
+                <tr><td colspan="8" class="loading">Loading incidents...</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div class="pagination-container">
-            <div class="pagination-info" id="incidentPaginationInfo">
-                Showing 0-0 of 0 incidents
-            </div>
-            <div class="pagination-controls" id="incidentPaginationControls">
-            </div>
+            <div class="pagination-info" id="incidentPaginationInfo">Showing 0-0 of 0 incidents</div>
+            <div class="pagination-controls" id="incidentPaginationControls"></div>
             <div class="page-size-selector">
-                <label>Rows per page:</label>
+                <label>Rows:</label>
                 <select id="incidentPageSizeSelect" onchange="changeIncidentPageSize()">
                     <option value="10">10</option>
                     <option value="20" selected>20</option>
@@ -987,10 +738,6 @@
                 <option value="">Loading handlers...</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>Assignment Notes (optional)</label>
-            <textarea id="assignmentNotes" placeholder="Add any notes about this assignment..."></textarea>
-        </div>
         <div class="modal-buttons">
             <button class="save-btn" onclick="saveAssignment()">Assign</button>
             <button class="cancel-btn" onclick="closeAssignModal()">Cancel</button>
@@ -1018,20 +765,31 @@
     let incidentPageSize = 20;
     let handlersList = [];
 
+    async function loadCurrentUser() {
+        try {
+            const r = await fetch('/api/users/me');
+            if (r.ok) {
+                const u = await r.json();
+                document.getElementById('userName').textContent = u.name || u.githubLogin;
+                document.getElementById('userRole').textContent = u.role;
+            }
+        } catch(e) { console.error(e); }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        loadCurrentUser();
         loadStats();
         loadUsers();
         loadHandlers();
 
-        const savedPageSize = localStorage.getItem('adminPageSize');
-        if (savedPageSize) {
-            pageSize = parseInt(savedPageSize);
+        const sps = localStorage.getItem('adminPageSize');
+        if (sps) {
+            pageSize = parseInt(sps);
             document.getElementById('pageSizeSelect').value = pageSize;
         }
-
-        const savedIncidentPageSize = localStorage.getItem('adminIncidentPageSize');
-        if (savedIncidentPageSize) {
-            incidentPageSize = parseInt(savedIncidentPageSize);
+        const sips = localStorage.getItem('adminIncidentPageSize');
+        if (sips) {
+            incidentPageSize = parseInt(sips);
             document.getElementById('incidentPageSizeSelect').value = incidentPageSize;
         }
     });
@@ -1045,7 +803,6 @@
                 btn.classList.remove('active');
             }
         });
-
         if (tab === 'users') {
             document.getElementById('usersTab').style.display = 'block';
             document.getElementById('incidentsTab').style.display = 'none';
@@ -1057,17 +814,15 @@
         }
     }
 
-    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+    document.getElementById('searchInput')?.addEventListener('keypress', e => {
         if (e.key === 'Enter') searchUsers();
     });
-
-    document.getElementById('roleFilter').addEventListener('change', (e) => {
+    document.getElementById('roleFilter')?.addEventListener('change', e => {
         currentRole = e.target.value;
         currentPage = 0;
         loadUsers();
     });
-
-    document.getElementById('statusFilter').addEventListener('change', (e) => {
+    document.getElementById('statusFilter')?.addEventListener('change', e => {
         currentStatus = e.target.value;
         currentPage = 0;
         loadUsers();
@@ -1099,160 +854,89 @@
 
     async function loadStats() {
         try {
-            const response = await fetch('/api/admin/stats');
-            const stats = await response.json();
+            const r = await fetch('/api/admin/stats');
+            const s = await r.json();
+            document.getElementById('totalUsers').textContent = s.totalUsers || 0;
+            document.getElementById('pendingUsers').textContent = s.pendingUsers || 0;
+            document.getElementById('residentCount').textContent = s.residents || 0;
+            document.getElementById('handlerCount').textContent = s.handlers || 0;
+            document.getElementById('adminCount').textContent = s.admins || 0;
 
-            document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
-            document.getElementById('pendingUsers').textContent = stats.pendingUsers || 0;
-            document.getElementById('residentCount').textContent = stats.residents || 0;
-            document.getElementById('handlerCount').textContent = stats.handlers || 0;
-            document.getElementById('adminCount').textContent = stats.admins || 0;
-
-            const incidentResponse = await fetch('/api/incidents/all?page=0&size=1');
-            const incidentData = await incidentResponse.json();
-            document.getElementById('totalIncidents').textContent = incidentData.totalElements || 0;
-        } catch (error) {
-            console.error('Error loading stats:', error);
-        }
+            const ir = await fetch('/api/incidents/all?page=0&size=1');
+            const id = await ir.json();
+            document.getElementById('totalIncidents').textContent = id.totalElements || 0;
+        } catch(e) { console.error(e); }
     }
 
     async function loadHandlers() {
         try {
-            const response = await fetch('/api/incidents/handlers');
-            handlersList = await response.json();
-
-            const select = document.getElementById('handlerSelect');
-            select.innerHTML = '<option value="">Select a handler...</option>' +
-                handlersList.map(handler =>
-                    `<option value="${handler.id}">${handler.name} (${handler.email || handler.githubLogin})</option>`
-                ).join('');
-        } catch (error) {
-            console.error('Error loading handlers:', error);
-        }
+            const r = await fetch('/api/incidents/handlers');
+            handlersList = await r.json();
+            const s = document.getElementById('handlerSelect');
+            s.innerHTML = '<option value="">Select a handler...</option>' +
+                handlersList.map(h => `<option value="${h.id}">${h.name} (${h.email || h.githubLogin})</option>`).join('');
+        } catch(e) { console.error(e); }
     }
 
     async function loadUsers() {
-        let url = '/api/admin/users?page=' + currentPage + '&size=' + pageSize;
+        let params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('size', pageSize);
+        if (currentRole) params.append('role', currentRole);
+        if (currentStatus) params.append('active', currentStatus);
+        if (currentSearch) params.append('search', currentSearch);
 
-        if (currentRole !== '') {
-            url += '&role=' + currentRole;
-        }
-
-        if (currentStatus !== '') {
-            url += '&active=' + currentStatus;
-        }
-
-        if (currentSearch) {
-            url += '&search=' + encodeURIComponent(currentSearch);
-        }
+        let url = '/api/admin/users?' + params.toString();
 
         try {
-            const response = await fetch(url);
-            const data = await response.json();
-
-            totalPages = data.totalPages;
-            totalElements = data.totalElements;
-
-            renderUsersTable(data.content);
+            const r = await fetch(url);
+            const d = await r.json();
+            totalPages = d.totalPages;
+            totalElements = d.totalElements;
+            renderUsersTable(d.content);
             renderPagination();
             updatePaginationInfo();
-        } catch (error) {
-            console.error('Error loading users:', error);
-            document.getElementById('usersTableBody').innerHTML =
-                '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error loading users</td></tr>';
+        } catch(e) {
+            console.error(e);
+            document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="6" class="loading">Error loading users</td></tr>';
         }
     }
 
     function renderUsersTable(users) {
         const tbody = document.getElementById('usersTableBody');
-
         if (!users || users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No users found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">No users found</td></tr>';
             return;
         }
-
         tbody.innerHTML = users.map(user => `
             <tr>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        ${user.avatarUrl ?
-            `<img src="${user.avatarUrl}" class="user-avatar" alt="${escapeHtml(user.name)}">` :
-            `<div class="avatar-placeholder">${escapeHtml((user.name || user.githubLogin).charAt(0).toUpperCase())}</div>`
-        }
-                        <div>
-                            <div style="font-weight: 500;">${escapeHtml(user.name || user.githubLogin)}</div>
-                            <div style="font-size: 0.7rem; color: #6b7280;">@${escapeHtml(user.githubLogin)}</div>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div style="font-size: 0.875rem;">${escapeHtml(user.email || '-')}</div>
-                </td>
-                <td>
-                    <span class="role-badge-small ${user.role}">${user.role}</span>
-                </td>
-                <td>
-                    <span class="status-badge ${user.active ? 'active' : 'inactive'}">
-                        ${user.active ? 'Active' : 'Inactive'}
-                    </span>
-                </td>
-                <td style="font-size: 0.8rem;">${formatDate(user.createdAt)}</td>
-                <td>
-                    <div class="action-buttons">
-                        ${user.role === 'PENDING' ?
-            `<button class="action-btn approve" onclick="approveUser('${user.id}')">Approve</button>` : ''
-        }
-                        <button class="action-btn role" onclick="openRoleModal('${user.id}')">Change Role</button>
-                        <button class="action-btn status" onclick="openStatusModal('${user.id}', ${user.active})">${user.active ? 'Deactivate' : 'Activate'}</button>
-                        <button class="action-btn delete" onclick="deleteUser('${user.id}')">Delete</button>
-                    </div>
-                </td>
+                <td><div style="display:flex;align-items:center;gap:0.75rem;">${user.avatarUrl ? `<img src="${user.avatarUrl}" class="user-avatar">` : `<div class="avatar-placeholder">${escapeHtml((user.name || user.githubLogin).charAt(0).toUpperCase())}</div>`}<div><div style="font-weight:500;">${escapeHtml(user.name || user.githubLogin)}</div><div style="font-size:0.7rem;color:#6b7280;">@${escapeHtml(user.githubLogin)}</div></div></div></td>
+                <td>${escapeHtml(user.email || '-')}</td>
+                <td><span class="role-badge-small ${user.role}">${user.role}</span></td>
+                <td><span class="status-badge ${user.active ? 'active' : 'inactive'}">${user.active ? 'Active' : 'Inactive'}</span></td>
+                <td>${formatDate(user.createdAt)}</td>
+                <td><div class="action-buttons">${user.role === 'PENDING' ? `<button class="action-btn approve" onclick="approveUser('${user.id}')">Approve</button>` : ''}<button class="action-btn role" onclick="openRoleModal('${user.id}')">Role</button><button class="action-btn status" onclick="openStatusModal('${user.id}',${user.active})">${user.active ? 'Deactivate' : 'Activate'}</button><button class="action-btn delete" onclick="deleteUser('${user.id}')">Delete</button></div></td>
             </tr>
         `).join('');
     }
 
     function renderPagination() {
-        const paginationDiv = document.getElementById('paginationControls');
-
+        const div = document.getElementById('paginationControls');
         if (totalPages <= 1) {
-            paginationDiv.innerHTML = '';
+            div.innerHTML = '';
             return;
         }
-
         let html = '';
         html += `<button class="pagination-btn" onclick="goToPage(0)" ${currentPage === 0 ? 'disabled' : ''}>« First</button>`;
         html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>‹ Previous</button>`;
-
-        const maxVisiblePages = 5;
-        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(0, endPage - maxVisiblePages + 1);
-        }
-
-        if (startPage > 0) {
-            html += `<button class="pagination-btn" onclick="goToPage(0)">1</button>`;
-            if (startPage > 1) {
-                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
-            }
-        }
-
+        let startPage = Math.max(0, currentPage - 2);
+        let endPage = Math.min(totalPages - 1, startPage + 4);
         for (let i = startPage; i <= endPage; i++) {
             html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i + 1}</button>`;
         }
-
-        if (endPage < totalPages - 1) {
-            if (endPage < totalPages - 2) {
-                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
-            }
-            html += `<button class="pagination-btn" onclick="goToPage(${totalPages - 1})">${totalPages}</button>`;
-        }
-
         html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next ›</button>`;
         html += `<button class="pagination-btn" onclick="goToPage(${totalPages - 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Last »</button>`;
-
-        paginationDiv.innerHTML = html;
+        div.innerHTML = html;
     }
 
     function updatePaginationInfo() {
@@ -1265,138 +949,87 @@
         if (page < 0 || page >= totalPages) return;
         currentPage = page;
         loadUsers();
-        document.querySelector('.users-table-container').scrollIntoView({behavior: 'smooth'});
+        document.querySelector('.users-table-container').scrollIntoView({ behavior: 'smooth' });
     }
 
     async function loadIncidents() {
-        let url = '/api/incidents/all?page=' + currentIncidentPage + '&size=' + incidentPageSize;
+        let params = new URLSearchParams();
+        params.append('page', currentIncidentPage);
+        params.append('size', incidentPageSize);
+        if (currentIncidentStatus) params.append('status', currentIncidentStatus);
+        if (currentIncidentSearch) params.append('search', currentIncidentSearch);
 
-        if (currentIncidentStatus !== '') {
-            url += '&status=' + currentIncidentStatus;
-        }
-
-        if (currentIncidentSearch) {
-            url += '&search=' + encodeURIComponent(currentIncidentSearch);
-        }
+        let url = '/api/incidents/all?' + params.toString();
 
         try {
-            const response = await fetch(url);
-            const data = await response.json();
-
-            incidentTotalPages = data.totalPages;
-            incidentTotalElements = data.totalElements;
-
-            renderIncidentsTable(data.content);
+            const r = await fetch(url);
+            const d = await r.json();
+            incidentTotalPages = d.totalPages;
+            incidentTotalElements = d.totalElements;
+            renderIncidentsTable(d.content);
             renderIncidentPagination();
             updateIncidentPaginationInfo();
-        } catch (error) {
-            console.error('Error loading incidents:', error);
-            document.getElementById('incidentsTableBody').innerHTML =
-                '<tr><td colspan="8" style="text-align: center; color: #ef4444;">Error loading incidents</td></tr>';
+        } catch(e) {
+            console.error(e);
+            document.getElementById('incidentsTableBody').innerHTML = '<tr><td colspan="8" class="loading">Error loading incidents</td></tr>';
         }
     }
 
     function renderIncidentsTable(incidents) {
         const tbody = document.getElementById('incidentsTableBody');
-
         if (!incidents || incidents.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" class="loading">No incidents found</td></tr>';
             return;
         }
-
         tbody.innerHTML = incidents.map(incident => {
             const isClosed = incident.incidentStatus === 'CLOSED';
-
             let actionButton = '';
             if (!isClosed) {
                 if (!incident.assignedTo) {
-                    actionButton = `<button class="assign-btn" onclick="openAssignModal(${incident.id})">Assign</button>`;
+                    actionButton = `<button class="action-btn assign" onclick="openAssignModal(${incident.id})">Assign</button>`;
                 } else {
-                    actionButton = `<button class="unassign-btn" onclick="unassignIncident(${incident.id})">Unassign</button>`;
+                    actionButton = `<button class="action-btn status" onclick="unassignIncident(${incident.id})">Unassign</button>`;
                 }
             } else {
-                actionButton = `<span class="closed-badge" style="background: #4a4a4a; color: #9ca3af; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem;">Closed</span>`;
+                actionButton = `<span style="background:#4a4a4a;color:#9ca3af;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.75rem;">Closed</span>`;
             }
-
             return `
             <tr>
-                <td style="font-weight: 500;">#${incident.id}</td>
-                <td>
-                    <div style="font-weight: 500;">${escapeHtml(incident.subject)}</div>
-                    <div style="font-size: 0.7rem; color: #6b7280;">${escapeHtml(incident.description?.substring(0, 50) || '')}${incident.description?.length > 50 ? '...' : ''}</div>
-                </td>
-                <td><span class="category-badge">${incident.incidentCategory}</span></td>
-                <td>
-                    <select
-                        class="status-select status-${incident.incidentStatus.toLowerCase()}"
-                        onchange="updateIncidentStatus(${incident.id}, this.value)">
-
-                        <option value="OPEN" ${incident.incidentStatus === 'OPEN' ? 'selected' : ''}>OPEN</option>
-                        <option value="IN_PROGRESS" ${incident.incidentStatus === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
-                        <option value="RESOLVED" ${incident.incidentStatus === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
-                        <option value="CLOSED" ${incident.incidentStatus === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
-                    </select>
-                </td>
-                <td style="font-size: 0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
-                <td>
-                    ${incident.assignedTo ?
-                `<span class="assigned-to">✓ ${escapeHtml(incident.assignedTo)}</span>` :
-                `<span class="unassigned">Unassigned</span>`
-            }
-                </td>
-                <td style="font-size: 0.8rem;">${formatDate(incident.createdAt)}</td>
-                <td>
-                    <div class="action-buttons">
-                        ${actionButton}
-                    </div>
-                </td>
+                <td>#${incident.id}</td>
+                <td><div style="font-weight:500;">${escapeHtml(incident.subject)}</div><div style="font-size:0.7rem;color:#6b7280;">${escapeHtml((incident.description || '').substring(0, 50))}${(incident.description || '').length > 50 ? '...' : ''}</div></div></td>
+                <td><span class="role-badge-small">${incident.incidentCategory}</span></td>
+                <td><select class="status-select status-${incident.incidentStatus.toLowerCase()}" onchange="updateIncidentStatus(${incident.id}, this.value)">
+                    <option value="OPEN" ${incident.incidentStatus === 'OPEN' ? 'selected' : ''}>OPEN</option>
+                    <option value="IN_PROGRESS" ${incident.incidentStatus === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                    <option value="RESOLVED" ${incident.incidentStatus === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
+                    <option value="CLOSED" ${incident.incidentStatus === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
+                </select></td>
+                <td style="font-size:0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
+                <td>${incident.assignedTo ? `<span style="color:#10b981;">✓ ${escapeHtml(incident.assignedTo)}</span>` : '<span style="color:#6b7280;">Unassigned</span>'}</td>
+                <td style="font-size:0.8rem;">${formatDate(incident.createdAt)}</td>
+                <td><div class="action-buttons">${actionButton}</div></td>
             </tr>
-        `;
+            `;
         }).join('');
     }
 
     function renderIncidentPagination() {
-        const paginationDiv = document.getElementById('incidentPaginationControls');
-
+        const div = document.getElementById('incidentPaginationControls');
         if (incidentTotalPages <= 1) {
-            paginationDiv.innerHTML = '';
+            div.innerHTML = '';
             return;
         }
-
         let html = '';
         html += `<button class="pagination-btn" onclick="goToIncidentPage(0)" ${currentIncidentPage === 0 ? 'disabled' : ''}>« First</button>`;
         html += `<button class="pagination-btn" onclick="goToIncidentPage(${currentIncidentPage - 1})" ${currentIncidentPage === 0 ? 'disabled' : ''}>‹ Previous</button>`;
-
-        const maxVisiblePages = 5;
-        let startPage = Math.max(0, currentIncidentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(incidentTotalPages - 1, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(0, endPage - maxVisiblePages + 1);
-        }
-
-        if (startPage > 0) {
-            html += `<button class="pagination-btn" onclick="goToIncidentPage(0)">1</button>`;
-            if (startPage > 1) {
-                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
-            }
-        }
-
+        let startPage = Math.max(0, currentIncidentPage - 2);
+        let endPage = Math.min(incidentTotalPages - 1, startPage + 4);
         for (let i = startPage; i <= endPage; i++) {
             html += `<button class="pagination-btn ${i === currentIncidentPage ? 'active' : ''}" onclick="goToIncidentPage(${i})">${i + 1}</button>`;
         }
-
-        if (endPage < incidentTotalPages - 1) {
-            if (endPage < incidentTotalPages - 2) {
-                html += `<span style="color: #6b7280; padding: 0 0.5rem;">...</span>`;
-            }
-            html += `<button class="pagination-btn" onclick="goToIncidentPage(${incidentTotalPages - 1})">${incidentTotalPages}</button>`;
-        }
-
         html += `<button class="pagination-btn" onclick="goToIncidentPage(${currentIncidentPage + 1})" ${currentIncidentPage >= incidentTotalPages - 1 ? 'disabled' : ''}>Next ›</button>`;
         html += `<button class="pagination-btn" onclick="goToIncidentPage(${incidentTotalPages - 1})" ${currentIncidentPage >= incidentTotalPages - 1 ? 'disabled' : ''}>Last »</button>`;
-
-        paginationDiv.innerHTML = html;
+        div.innerHTML = html;
     }
 
     function updateIncidentPaginationInfo() {
@@ -1433,13 +1066,12 @@
         loadIncidents();
     }
 
-    document.getElementById('statusFilterIncident')?.addEventListener('change', (e) => {
+    document.getElementById('statusFilterIncident')?.addEventListener('change', e => {
         currentIncidentStatus = e.target.value;
         currentIncidentPage = 0;
         loadIncidents();
     });
-
-    document.getElementById('incidentSearchInput')?.addEventListener('keypress', (e) => {
+    document.getElementById('incidentSearchInput')?.addEventListener('keypress', e => {
         if (e.key === 'Enter') searchIncidents();
     });
 
@@ -1456,69 +1088,61 @@
 
     async function saveAssignment() {
         const handlerId = document.getElementById('handlerSelect').value;
-
         if (!handlerId) {
             showToast('Please select a handler', 'error');
             return;
         }
-
         try {
-            const response = await fetch(`/api/incidents/${selectedIncidentId}/assign`, {
+            const r = await fetch(`/api/incidents/${selectedIncidentId}/assign`, {
                 method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({handlerId: handlerId})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handlerId: handlerId })
             });
-
-            if (response.ok) {
+            if (r.ok) {
                 showToast('Incident assigned successfully!', 'success');
                 closeAssignModal();
                 loadIncidents();
                 loadStats();
             } else {
-                const error = await response.text();
-                showToast('Failed to assign incident: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to assign incident: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error assigning incident', 'error');
         }
     }
 
     async function updateIncidentStatus(incidentId, newStatus) {
         try {
-            const response = await fetch(`/api/incidents/${incidentId}/status`, {
-                method: "PATCH",
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({status: newStatus})
+            const r = await fetch(`/api/incidents/${incidentId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
             });
-
-            if (response.ok) {
-                showToast('Status updated!', 'success')
+            if (r.ok) {
+                showToast('Status updated!', 'success');
                 loadIncidents();
             } else {
-                const error = await response.text();
-                showToast('Failed to update incident status: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to update incident status: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error updating incident status', 'error');
         }
     }
 
     async function unassignIncident(incidentId) {
         if (!confirm('Are you sure you want to unassign this incident?')) return;
-
         try {
-            const response = await fetch(`/api/incidents/${incidentId}/unassign`, {
-                method: 'PATCH'
-            });
-
-            if (response.ok) {
+            const r = await fetch(`/api/incidents/${incidentId}/unassign`, { method: 'PATCH' });
+            if (r.ok) {
                 showToast('Incident unassigned successfully!', 'success');
                 loadIncidents();
             } else {
-                const error = await response.text();
-                showToast('Failed to unassign incident: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to unassign incident: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error unassigning incident', 'error');
         }
     }
@@ -1526,24 +1150,21 @@
     function closeAssignModal() {
         document.getElementById('assignModal').classList.remove('active');
         selectedIncidentId = null;
-        document.getElementById('assignmentNotes').value = '';
     }
 
     async function approveUser(userId) {
         if (!confirm('Approve this user? They will get RESIDENT role.')) return;
-
         try {
-            const response = await fetch(`/api/admin/users/${userId}/approve`, {method: 'POST'});
-
-            if (response.ok) {
+            const r = await fetch(`/api/admin/users/${userId}/approve`, { method: 'POST' });
+            if (r.ok) {
                 showToast('User approved successfully!', 'success');
                 loadStats();
                 loadUsers();
             } else {
-                const error = await response.text();
-                showToast('Failed to approve user: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to approve user: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error approving user', 'error');
         }
     }
@@ -1555,24 +1176,22 @@
 
     async function saveRoleChange() {
         const newRole = document.getElementById('newRoleSelect').value;
-
         try {
-            const response = await fetch(`/api/admin/users/${selectedUserId}/role`, {
+            const r = await fetch(`/api/admin/users/${selectedUserId}/role`, {
                 method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({role: newRole})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole })
             });
-
-            if (response.ok) {
+            if (r.ok) {
                 showToast('Role updated successfully!', 'success');
                 closeRoleModal();
                 loadStats();
                 loadUsers();
             } else {
-                const error = await response.text();
-                showToast('Failed to update role: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to update role: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error updating role', 'error');
         }
     }
@@ -1584,31 +1203,29 @@
 
     function openStatusModal(userId, currentActive) {
         selectedUserId = userId;
-        const select = document.getElementById('newStatusSelect');
-        select.value = currentActive ? 'false' : 'true';
+        const s = document.getElementById('newStatusSelect');
+        s.value = currentActive ? 'false' : 'true';
         document.getElementById('statusModal').classList.add('active');
     }
 
     async function saveStatusChange() {
         const newStatus = document.getElementById('newStatusSelect').value === 'true';
-
         try {
-            const response = await fetch(`/api/admin/users/${selectedUserId}/status`, {
+            const r = await fetch(`/api/admin/users/${selectedUserId}/status`, {
                 method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({active: newStatus})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active: newStatus })
             });
-
-            if (response.ok) {
+            if (r.ok) {
                 showToast('Status updated successfully!', 'success');
                 closeStatusModal();
                 loadStats();
                 loadUsers();
             } else {
-                const error = await response.text();
-                showToast('Failed to update status: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to update status: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error updating status', 'error');
         }
     }
@@ -1619,48 +1236,45 @@
     }
 
     async function deleteUser(userId) {
-        if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
-
+        if (!confirm('Delete this user? This action cannot be undone.')) return;
         try {
-            const response = await fetch(`/api/admin/users/${userId}`, {method: 'DELETE'});
-
-            if (response.ok) {
+            const r = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+            if (r.ok) {
                 showToast('User deleted successfully!', 'success');
                 loadStats();
                 loadUsers();
             } else {
-                const error = await response.text();
-                showToast('Failed to delete user: ' + error, 'error');
+                const e = await r.text();
+                showToast('Failed to delete user: ' + e, 'error');
             }
-        } catch (error) {
+        } catch(e) {
             showToast('Error deleting user', 'error');
         }
     }
 
     async function logout() {
-        await fetch('/logout', {method: 'POST'});
+        await fetch('/logout', { method: 'POST' });
         window.location.href = '/';
     }
 
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+    function showToast(message, type) {
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = message;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
     }
 
     function escapeHtml(text) {
         if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
     }
 
-    function formatDate(dateString) {
-        if (!dateString) return "-";
-
-        return new Date(dateString).toLocaleString("sv-SE", {
+    function formatDate(ds) {
+        if (!ds) return "-";
+        return new Date(ds).toLocaleString("sv-SE", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",

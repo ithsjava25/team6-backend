@@ -6,6 +6,8 @@ import lombok.Data;
 public class DocumentDTO {
 	private String fileName;
 	private String fileKey;
-	private String fileUrl;
+	private String contentType;
+	private Long fileSize;
 	private boolean image;
+	private String fileUrl;
 }

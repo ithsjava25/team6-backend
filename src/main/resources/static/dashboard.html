@@ -1,201 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Incident Manager</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #000000;
             color: #ffffff;
             min-height: 100vh;
         }
-
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1rem 2rem;
-            max-width: 1280px;
-            margin: 0 auto;
-            width: 100%;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .logo a {
-            text-decoration: none;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 1.25rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
+            border-bottom: 1px solid #1a1a1a;
             flex-wrap: wrap;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #6b7280;
-            font-size: 0.875rem;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: #ffffff;
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-btn {
-            background: #1a1a1a;
-            color: #f59e0b;
-            border: 1px solid #2a2a2a;
-            padding: 0.4rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .dropdown-btn:hover {
-            background: #2a2a2a;
-            border-color: #f59e0b;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
-            border-radius: 0.75rem;
-            min-width: 250px;
-            z-index: 1000;
-            margin-top: 0.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .dropdown-content.show {
-            display: block;
-        }
-
-        .dropdown-header {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #1a1a1a;
-            font-size: 0.7rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .dropdown-user {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid #1a1a1a;
-        }
-
-        .dropdown-user:hover {
-            background: #1a1a1a;
-        }
-
-        .dropdown-user:last-child {
-            border-bottom: none;
-        }
-
-        .dropdown-user-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-        }
-
-        .dropdown-user-name {
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .dropdown-user-email {
-            font-size: 0.65rem;
-            color: #6b7280;
-        }
-
-        .dropdown-user-role {
-            padding: 0.2rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.6rem;
-            font-weight: 500;
-        }
-
-        .dropdown-user-role.ADMIN { background: #ef4444; color: white; }
-        .dropdown-user-role.HANDLER { background: #f97316; color: white; }
-        .dropdown-user-role.RESIDENT { background: #10b981; color: white; }
-        .dropdown-user-role.PENDING { background: #6b7280; color: white; }
-        .dropdown-user-role-inactive { background: #4a4a4a; color: #9ca3af; text-decoration: line-through; }
-
-        .user-info {
-            display: flex;
-            align-items: center;
             gap: 1rem;
         }
-
-        .user-name {
-            font-size: 0.875rem;
-            color: #ffffff;
-        }
-
-        .role-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .role-badge.admin {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
-
-        .role-badge.handler {
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            color: white;
-        }
-
-        .role-badge.resident {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .role-badge.pending {
-            background: #6b7280;
-            color: white;
-        }
-
-        .role-badge.inactive {
-            background: #4a4a4a;
-            color: #9ca3af;
-        }
-
+        .logo a { text-decoration: none; color: #fff; font-weight: 600; font-size: 1.25rem; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #6b7280; font-size: 0.875rem; }
+        .nav-links a:hover { color: #ffffff; }
+        .user-info { display: flex; gap: 1rem; align-items: center; }
+        .user-name { font-size: 0.875rem; color: #ffffff; }
+        .role-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; }
+        .role-badge.admin { background: #ef4444; color: white; }
+        .role-badge.handler { background: #f97316; color: white; }
+        .role-badge.resident { background: #10b981; color: white; }
+        .role-badge.pending { background: #6b7280; color: white; }
         .logout-btn {
             background: transparent;
             border: 1px solid #2a2a2a;
@@ -203,143 +39,33 @@
             padding: 0.5rem 1rem;
             border-radius: 9999px;
             cursor: pointer;
-            transition: all 0.2s;
         }
-
-        .logout-btn:hover {
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-        }
-
+        .logout-btn:hover { border-color: #ef4444; color: #ef4444; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
         .welcome-card {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
             border-radius: 1.5rem;
             padding: 2rem;
             margin-bottom: 2rem;
         }
-
-        .welcome-card h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .welcome-card p {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
+        .welcome-card h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .stat-card {
             background: #0a0a0a;
             border: 1px solid #1a1a1a;
             border-radius: 1rem;
             padding: 1.25rem;
-            transition: all 0.2s;
         }
-
-        .stat-card:hover {
-            border-color: #2a2a2a;
-            transform: translateY(-2px);
-        }
-
-        .stat-title {
-            font-size: 0.75rem;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
+        .stat-title { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; }
+        .stat-number { font-size: 2rem; font-weight: 700; }
         .incidents-card {
             background: #0a0a0a;
             border: 1px solid #1a1a1a;
             border-radius: 1rem;
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
         }
-
-        .pending-card {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-
-        .inactive-card {
-            background: #0a0a0a;
-            border: 1px solid #ef4444;
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-
-        .card-header h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-
-        .pending-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .pending-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.875rem;
-            background: #0f0f0f;
-            border-radius: 0.75rem;
-            transition: background 0.2s;
-        }
-
-        .pending-item:hover {
-            background: #1a1a1a;
-        }
-
-        .pending-name {
-            font-weight: 500;
-        }
-
-        .pending-email {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-top: 0.25rem;
-        }
-
-        .incident-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+        .incident-list { display: flex; flex-direction: column; gap: 0.5rem; }
         .incident-item {
             display: flex;
             justify-content: space-between;
@@ -347,303 +73,45 @@
             padding: 0.875rem;
             background: #0f0f0f;
             border-radius: 0.75rem;
-            transition: background 0.2s;
+            cursor: pointer;
         }
-
-        .incident-item:hover {
-            background: #1a1a1a;
-        }
-
-        .incident-title {
-            font-weight: 500;
-        }
-
-        .incident-date {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-top: 0.25rem;
-        }
-
-        .incident-status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-
-        .status-OPEN {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .status-IN_PROGRESS {
-            background: #dbeafe;
-            color: #3b82f6;
-        }
-
-        .status-RESOLVED {
-            background: #d1fae5;
-            color: #10b981;
-        }
-
-        .status-CLOSED {
-            background: #1f2937;
-            color: #9ca3af;
-        }
-
+        .incident-item:hover { background: #1a1a1a; }
+        .incident-title { font-weight: 500; }
+        .incident-date { font-size: 0.7rem; color: #6b7280; margin-top: 0.25rem; }
+        .incident-status { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; }
+        .status-OPEN { background: #fef3c7; color: #d97706; }
+        .status-IN_PROGRESS { background: #dbeafe; color: #3b82f6; }
+        .status-RESOLVED { background: #d1fae5; color: #10b981; }
+        .status-CLOSED { background: #1f2937; color: #9ca3af; }
         .btn {
             padding: 0.5rem 1rem;
             border-radius: 9999px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
             text-decoration: none;
             display: inline-block;
             font-weight: 500;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-handler {
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            border: none;
-            color: white;
-        }
-
-        .btn-handler:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-        }
-
-        .btn-admin {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border: none;
-            color: white;
-        }
-
-        .btn-admin:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #2a2a2a;
-            color: #ffffff;
-        }
-
-        .btn-outline:hover {
-            background: #1a1a1a;
-            border-color: #3b82f6;
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .dev-badge {
-            font-size: 0.7rem;
-            color: #f59e0b;
-            background: #1a1a1a;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-        }
-
+        .btn-primary { background: #10b981; color: white; }
+        .btn-handler { background: #f97316; color: white; }
+        .btn-admin { background: #ef4444; color: white; }
+        .btn-outline { background: transparent; border: 1px solid #2a2a2a; color: white; }
+        .action-buttons { margin-top: 1rem; display: flex; gap: 1rem; }
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .navbar { flex-direction: column; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .notification-wrapper {
-            position: relative;
-        }
-
-        .notification-btn{
-            background: transparent;
-            border: 1px solid #2a2a2a;
-            color: #ffffff;
-            padding: 0.5rem 0.75rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-            font-size: 1rem;
-        }
-
-        .notification-btn:hover {
-            background: #1a1a1a;
-            border-color: #3b82f6;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            background: #ef4444;
-            color: white;
-            font-size: 0.7rem;
-            min-width: 18px;
-            height: 18px;
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 5px;
-            font-weight: 600;
-        }
-
-        .notification-dropdown {
-            display: none;
-            position: absolute;
-            top: 115%;
-            right: 0;
-            width: 320px;
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .notification-dropdown.show {
-            display: block;
-        }
-
-        .notification-header {
-            padding: 1rem;
-            border-bottom: 1px solid #1a1a1a;
-            font-weight: 600;
-        }
-
-        .notification-empty {
-            padding: 1rem;
-            color: #6b7280;
-            text-align: center;
-        }
-
-        .notification-item {
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: transparent;
-            border: none;
-            padding: 1rem;
-            border-bottom: 1px solid #1a1a1a;
-            cursor: pointer;
-            transition: 0.2s;
-            color: inherit;
-            font: inherit;
-
-        }
-
-        .notification-item:hover {
-            background: #141414;
-        }
-
-        .notification-item:last-child {
-            border-bottom: none;
-        }
-
-        .notification-message {
-            font-size: 0.95rem;
-            color: #ffffff;
-            margin-bottom: 0.35rem;
-            line-height: 1.4;
-        }
-
-        .notification-date {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        .notification-item:focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: -2px;
-        }
-
     </style>
 </head>
-<body th:attr="data-role=${role}, data-user-id=${user.id}, data-user-active=${user.active}">
+<body>
 <nav class="navbar">
-    <div class="logo">
-        <a href="/">Incident Management System</a>
-    </div>
+    <div class="logo"><a href="/">Incident Management System</a></div>
     <div class="nav-links">
-        <a href="/dashboard.html">Home</a>
-        <a th:if="${role != 'PENDING' && user.active}" href="/incidents.html">Incidents</a>
-        <a href="/profile.html">Profile</a>
-        <div th:if="${role == 'ADMIN' && user.active}">
-            <a href="/admin.html">Admin</a>
-        </div>
-
-        <div th:if="${@environment.getProperty('dev.mode.enabled') == 'true'}"
-             style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="dev-badge">DEV</span>
-            <button onclick="switchRole('test_resident')"
-                    style="background: #10b981; border: none; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; cursor: pointer;">Resident</button>
-            <button onclick="switchRole('test_handler')"
-                    style="background: #f97316; border: none; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; cursor: pointer;">Handler</button>
-            <button onclick="switchRole('test_admin')"
-                    style="background: #ef4444; border: none; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; cursor: pointer;">Admin</button>
-
-            <div class="dropdown">
-                <button class="dropdown-btn" onclick="toggleUserDropdown(event)">
-                    👥 All Users ▼
-                </button>
-                <div class="dropdown-content" id="userDropdown">
-                    <div class="dropdown-header">Switch to user</div>
-                    <div id="dropdownUsersList">
-                        <div style="padding: 0.75rem; text-align: center; color: #6b7280;">Loading...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <a href="dashboard.html">Home</a>
+        <a href="incidents.html" id="incidentsLink" style="display: none;">Incidents</a>
+        <a href="profile.html">Profile</a>
+        <a href="admin.html" id="adminLink" style="display: none;">Admin</a>  <!-- Ändrad: Default hidden -->
         <div class="user-info">
-            <div class="notification-wrapper">
-                <button class="notification-btn" id="notificationBtn" type="button" onclick="toggleNotificationDropdown()">
-                    🔔
-                    <span class="notification-badge" id="notificationBadge" style="display: none;"></span>
-                </button>
-
-                <div class="notification-dropdown" id="notificationDropdown">
-                    <div class="notification-header">Notifications</div>
-                    <div id="notificationList">
-                        <div class="notification-empty">No notifications</div>
-                    </div>
-                </div>
-            </div>
-
-            <span class="user-name" th:text="${user.name != null ? user.name : user.githubLogin}">User</span>
-            <span class="role-badge" th:classappend="${!user.active ? 'inactive' : role.toLowerCase()}" th:text="${!user.active ? 'INACTIVE' : role}">-</span>
+            <span class="user-name" id="userName">Loading...</span>
+            <span class="role-badge" id="userRole">-</span>
             <button class="logout-btn" onclick="logout()">Sign out</button>
         </div>
     </div>
@@ -651,233 +119,84 @@
 
 <div class="container">
     <div class="welcome-card">
-        <h1 th:text="'Welcome, ' + (${user.name != null ? user.name : user.githubLogin}) + '!'">Welcome!</h1>
+        <h1 id="welcomeMessage">Welcome!</h1>
+        <p id="userEmail"></p>
     </div>
-
-    <div th:if="${!user.active}">
-        <div class="inactive-card">
-            <h3>⚠️ Account Deactivated</h3>
-            <p>Your account has been deactivated. Please contact an administrator.</p>
-            <button onclick="logout()" class="btn btn-outline" style="margin-top: 1rem;">Sign out</button>
+    <div id="activeContent">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-title">Total Incidents</div><div class="stat-number" id="totalIncidents">0</div></div>
+            <div class="stat-card"><div class="stat-title">Open</div><div class="stat-number" id="openIncidents">0</div></div>
+            <div class="stat-card"><div class="stat-title">Resolved</div><div class="stat-number" id="resolvedIncidents">0</div></div>
         </div>
-    </div>
-
-    <div th:if="${user.active && role == 'PENDING'}">
-        <div class="pending-card">
-            <h3>⏳ Account pending approval</h3>
-            <p>Your account is waiting for admin approval. You will be notified when your account is activated.</p>
-        </div>
-    </div>
-
-    <div th:if="${user.active && role != 'PENDING'}">
-        <div id="statsContainer">
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-title">Total Incidents</div>
-                    <div class="stat-number" id="totalIncidents">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Open</div>
-                    <div class="stat-number" id="openIncidents">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Resolved</div>
-                    <div class="stat-number" id="resolvedIncidents">0</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="pending-card" th:if="${role == 'ADMIN'}" id="pendingUsersCard">
-            <div class="card-header">
-                <h3>Pending Users Approval</h3>
-                <a href="/admin" class="btn btn-outline btn-sm">Manage all →</a>
-            </div>
-            <div id="pendingUsersList" class="pending-list">
-                <p style="text-align: center; color: #6b7280;">Loading pending users...</p>
-            </div>
-        </div>
-
         <div class="incidents-card">
-            <div class="card-header">
-                <h3>Recent incidents</h3>
-                <a href="/incidents.html" class="btn btn-outline">View all →</a>
-            </div>
-            <div id="incidentsList" class="incident-list">
-                <p style="text-align: center; color: #6b7280;">Loading incidents...</p>
-            </div>
-            <div id="actionButtons" class="action-buttons">
-                <a th:if="${role == 'RESIDENT'}" href="/create-incident" class="btn btn-primary">Create new incident</a>
-                <a th:if="${role == 'HANDLER'}" href="/incidents" class="btn btn-handler">Manage incidents</a>
-                <a th:if="${role == 'ADMIN'}" href="/admin" class="btn btn-admin">Go to Admin Panel</a>
-            </div>
+            <div class="card-header"><h3>Recent incidents</h3><a href="incidents.html" class="btn btn-outline">View all →</a></div>
+            <div id="incidentsList" class="incident-list"><p style="text-align: center; color: #6b7280;">Loading incidents...</p></div>
+            <div id="actionButtons" class="action-buttons"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const userId = document.body.dataset.userId;
-    const userRole = document.body.dataset.role;
-    const userActive = document.body.dataset.userActive === 'true';
+    let currentUser = null;
 
-    function toggleUserDropdown(event) {
-        event.stopPropagation();
-        const dropdown = document.getElementById('userDropdown');
-        dropdown.classList.toggle('show');
-    }
-
-    document.addEventListener('click', function() {
-        const dropdown = document.getElementById('userDropdown');
-        if (dropdown) {
-            dropdown.classList.remove('show');
-        }
-    });
-
-    async function loadDropdownUsers() {
-        const container = document.getElementById('dropdownUsersList');
-        if (!container) return;
-
+    async function loadCurrentUser() {
         try {
-            const response = await fetch('/dev/all-users');
-            const users = await response.json();
+            const response = await fetch('/api/users/me');
+            if (response.ok) {
+                currentUser = await response.json();
+                document.getElementById('userName').textContent = currentUser.name || currentUser.githubLogin;
+                document.getElementById('userEmail').textContent = currentUser.email || '';
+                document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser.name || currentUser.githubLogin}!`;
+                const roleBadge = document.getElementById('userRole');
+                roleBadge.textContent = currentUser.role;
+                roleBadge.className = `role-badge ${currentUser.role.toLowerCase()}`;
 
-            if (users.length === 0) {
-                container.innerHTML = '<div style="padding: 0.75rem; text-align: center; color: #6b7280;">No users found</div>';
-            } else {
-                container.innerHTML = users.map(user => `
-                    <div class="dropdown-user" onclick="switchRole('${escapeHtml(user.githubLogin)}')">
-                        <div class="dropdown-user-info">
-                            <div class="dropdown-user-name">${escapeHtml(user.name || user.githubLogin)}</div>
-                            <div class="dropdown-user-email">${escapeHtml(user.email || 'No email')}</div>
-                        </div>
-                        <span class="dropdown-user-role ${user.active === false ? 'dropdown-user-role-inactive' : user.role}">${user.active === false ? 'INACTIVE' : user.role}</span>
-                    </div>
-                `).join('');
-            }
-        } catch (error) {
-            console.error('Error loading users:', error);
-            container.innerHTML = '<div style="padding: 0.75rem; text-align: center; color: #ef4444;">Failed to load users</div>';
-        }
-    }
-
-    function switchRole(githubLogin) {
-        if (!githubLogin) return;
-
-        fetch(`/dev/switch-user?githubLogin=${githubLogin}`)
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '/dashboard.html';
-                } else {
-                    console.error('Failed to switch role');
+                if (currentUser.role !== 'PENDING' && currentUser.active) {
+                    document.getElementById('incidentsLink').style.display = 'inline';
+                    if (currentUser.role === 'ADMIN') {
+                        document.getElementById('adminLink').style.display = 'inline';
+                    }
+                    loadIncidents();
                 }
-            })
-            .catch(error => console.error('Error:', error));
+            } else { window.location.href = '/'; }
+        } catch (error) { window.location.href = '/'; }
     }
 
     async function loadIncidents() {
-        if (!userActive || userRole === 'PENDING') return;
-
+        if (!currentUser) return;
         let url = '';
-        if (userRole === 'RESIDENT') {
-            url = '/api/incidents/my?size=5&sort=createdAt,desc';
-        } else if (userRole === 'HANDLER') {
-            url = '/api/incidents/assigned?size=5&sort=createdAt,desc';
-        } else if (userRole === 'ADMIN') {
-            url = '/api/incidents/all?size=5&sort=createdAt,desc';
-        } else {
-            return;
-        }
+        if (currentUser.role === 'RESIDENT') url = '/api/incidents/my?size=5&sort=createdAt,desc';
+        else if (currentUser.role === 'HANDLER') url = '/api/incidents/assigned?size=5&sort=createdAt,desc';
+        else if (currentUser.role === 'ADMIN') url = '/api/incidents/all?size=5&sort=createdAt,desc';
+        else return;
 
         try {
             const response = await fetch(url);
             const data = await response.json();
             const incidents = data.content || [];
-
             document.getElementById('totalIncidents').textContent = data.totalElements || 0;
             document.getElementById('openIncidents').textContent = incidents.filter(i => i.incidentStatus === 'OPEN').length;
             document.getElementById('resolvedIncidents').textContent = incidents.filter(i => i.incidentStatus === 'RESOLVED' || i.incidentStatus === 'CLOSED').length;
-
-            if (userRole === 'ADMIN') {
-                const pendingResponse = await fetch('/api/admin/users?page=0&size=1&role=PENDING');
-                const pendingData = await pendingResponse.json();
-                const pendingCount = pendingData.totalElements || 0;
-
-                const statsGrid = document.getElementById('statsGrid');
-                const pendingCard = document.createElement('div');
-                pendingCard.className = 'stat-card';
-                pendingCard.innerHTML = `
-                        <div class="stat-title">Pending Approval</div>
-                        <div class="stat-number">${pendingCount}</div>
-                    `;
-                statsGrid.appendChild(pendingCard);
-            }
 
             const container = document.getElementById('incidentsList');
             if (incidents.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #6b7280;">No incidents yet.</p>';
             } else {
-                container.innerHTML = incidents.map(i => `
-                        <div class="incident-item" onclick="window.location.href='/incidents.html/${i.id}'" style="cursor:pointer;">
-                            <div>
-                                <div class="incident-title">${escapeHtml(i.subject)}</div>
-                                <div class="incident-date">${formatDate(i.createdAt)}</div>
-                            </div>
-                            <span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span>
-                        </div>
-                    `).join('');
+                container.innerHTML = incidents.map(i => `<div class="incident-item" onclick="viewIncident(${i.id})">
+                    <div><div class="incident-title">${escapeHtml(i.subject)}</div><div class="incident-date">${formatDate(i.createdAt)}</div></div>
+                    <span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span>
+                </div>`).join('');
             }
-        } catch (error) {
-            console.error('Error loading incidents:', error);
-        }
+
+            const actionButtons = document.getElementById('actionButtons');
+            if (currentUser.role === 'RESIDENT') actionButtons.innerHTML = '<a href="createincident.html" class="btn btn-primary">Create new incident</a>';
+            else if (currentUser.role === 'HANDLER') actionButtons.innerHTML = '<a href="incidents.html" class="btn btn-handler">Manage incidents</a>';
+            else if (currentUser.role === 'ADMIN') actionButtons.innerHTML = '<a href="admin.html" class="btn btn-admin">Go to Admin Panel</a>';
+        } catch (error) { console.error('Error loading incidents:', error); }
     }
 
-    async function loadPendingUsers() {
-        if (userRole !== 'ADMIN' || !userActive) return;
-
-        try {
-            const response = await fetch('/api/admin/users?page=0&size=5&role=PENDING');
-            const data = await response.json();
-            const pendingUsers = data.content || [];
-
-            const container = document.getElementById('pendingUsersList');
-            if (pendingUsers.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #6b7280;">No pending users.</p>';
-            } else {
-                container.innerHTML = pendingUsers.map(user => `
-                        <div class="pending-item">
-                            <div>
-                                <div class="pending-name">${escapeHtml(user.name || user.githubLogin || user.email)}</div>
-                                <div class="pending-email">${escapeHtml(user.email)}</div>
-                            </div>
-                            <button class="btn btn-sm" style="background: #10b981; border: none;" onclick="approveUser('${user.id}')">Approve</button>
-                        </div>
-                    `).join('');
-            }
-        } catch (error) {
-            console.error('Error loading pending users:', error);
-            document.getElementById('pendingUsersList').innerHTML = '<p style="text-align: center; color: #6b7280;">Could not load pending users.</p>';
-        }
-    }
-
-    async function approveUser(userId) {
-        try {
-            const response = await fetch(`/api/admin/users/${userId}/approve`, {
-                method: 'POST'
-            });
-            if (response.ok) {
-                loadPendingUsers();
-                loadDropdownUsers();
-                const statsGrid = document.getElementById('statsGrid');
-                const pendingStat = statsGrid.querySelector('.stat-card:last-child .stat-number');
-                if (pendingStat) {
-                    const newCount = parseInt(pendingStat.textContent) - 1;
-                    pendingStat.textContent = newCount;
-                }
-            } else {
-                alert('Could not approve user');
-            }
-        } catch (error) {
-            alert('Error approving user');
-        }
+    function viewIncident(id) {
+        window.location.href = `/viewincident.html?id=${id}`;
     }
 
     async function logout() {
@@ -892,88 +211,8 @@
         return div.innerHTML;
     }
 
-    function updateNotificationBadge(count) {
-        const badge = document.getElementById("notificationBadge");
-
-        if (count > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = count;
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-
-    async function loadNotificationCount() {
-        try {
-            const response = await fetch(`/notifications/user/unread-count`);
-
-            if (!response.ok) {
-                throw new Error(`Failed to load unread count: ${response.status}`);
-            }
-
-            const count = await response.text();
-            updateNotificationBadge(Number(count))
-        } catch (error) {
-            console.error('Error loading notification count', error);
-            updateNotificationBadge(0)
-        }
-    }
-
-    function toggleNotificationDropdown() {
-        const dropdown = document.getElementById('notificationDropdown');
-        const isOpening = !dropdown.classList.contains('show')
-
-        dropdown.classList.toggle('show');
-
-        if (isOpening) {
-            loadNotification()
-        }
-    }
-
-    async function loadNotification() {
-        try {
-            const response = await fetch(`/notifications/user`);
-
-            if (!response.ok) {
-                throw new Error(`Failed to load notifications: ${response.status}`);
-            }
-            const notifications = await response.json();
-
-            const container = document.getElementById('notificationList');
-
-            if (!notifications || notifications.length === 0) {
-                container.innerHTML = `<div class="notification-empty">No notifications</div>`;
-                return;
-            }
-
-            container.innerHTML = notifications.map(notification => `
-                <button class="notification-item" onclick="openNotification(${notification.id}, ${notification.incidentId})">
-                    <div class="notification-message">${escapeHtml(notification.message)}</div>
-                    <div class="notification-date">${formatDate(notification.createdAt)}</div>
-                </button>
-            `).join('');
-        } catch (error) {
-            console.error('Error loading notifications:', error);
-
-            const container = document.getElementById('notificationList');
-            container.innerHTML = `<div class="notification-empty">Could not load notifications</div>`;
-        }
-    }
-
-    async function openNotification(notificationId, incidentId) {
-       const badge = document.getElementById("notificationBadge");
-       if (badge) {
-           badge.style.display = "none";
-       }
-
-       if (incidentId) {
-           window.location.href = `/incidents.html?id=${incidentId}`;
-       }
-    }
-
     function formatDate(dateString) {
         if (!dateString) return "-";
-
         return new Date(dateString).toLocaleString("sv-SE", {
             year: "numeric",
             month: "2-digit",
@@ -984,14 +223,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        if (userActive && userRole !== 'PENDING') {
-            loadIncidents();
-        }
-        if (userActive && userRole === 'ADMIN') {
-            loadPendingUsers();
-        }
-        loadNotificationCount();
-        loadDropdownUsers();
+        loadCurrentUser();
     });
 </script>
 </body>

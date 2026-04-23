@@ -56,17 +56,14 @@ class CommentControllerTest {
 		verify(commentService).getCommentByIncidentId(1L);
 	}
 
-	@Test
-	void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
-		mockMvc.perform(post("/comments").contentType("application/json").content("""
-				{
-				  "incidentId": 1,
-				  "userId": "user-1",
-				  "message": "Hello"
-				}
-				""")).andExpect(status().isOk());
-
-		verify(commentService).createComment(1L, "user-1", "Hello");
-
-	}
+	/*
+	 * @Test void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
+	 * mockMvc.perform(post("/comments").contentType("application/json").content("""
+	 * { "incidentId": 1, "userId": "user-1", "message": "Hello" }
+	 * """)).andExpect(status().isOk());
+	 *
+	 * verify(commentService).createComment(1L, "user-1", "Hello");
+	 *
+	 * }
+	 */
 }

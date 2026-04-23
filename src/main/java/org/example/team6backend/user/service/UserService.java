@@ -1,5 +1,6 @@
 package org.example.team6backend.user.service;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.user.entity.AppUser;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class UserService {
 
 	private final AppUserRepository userRepository;
+	private final EntityManager entityManager;
 
 	@Transactional
 	public AppUser createOrUpdateUser(Map<String, Object> attributes) {
@@ -125,8 +127,36 @@ public class UserService {
 			}
 		}
 
+		int assignedUpdated = entityManager
+				.createNativeQuery("UPDATE incident SET assigned_to_id = NULL WHERE assigned_to_id = :userId")
+				.setParameter("userId", userId).executeUpdate();
+		log.debug("Updated {} incidents where user was assigned", assignedUpdated);
+
+		int createdUpdated = entityManager
+				.createNativeQuery("UPDATE incident SET created_by_id = NULL WHERE created_by_id = :userId")
+				.setParameter("userId", userId).executeUpdate();
+		log.debug("Updated {} incidents where user was creator", createdUpdated);
+
+		int modifiedUpdated = entityManager
+				.createNativeQuery("UPDATE incident SET modified_by_id = NULL WHERE modified_by_id = :userId")
+				.setParameter("userId", userId).executeUpdate();
+		log.debug("Updated {} incidents where user was modifier", modifiedUpdated);
+
+		int commentsUpdated = entityManager
+				.createNativeQuery("UPDATE comment SET user_id = NULL WHERE user_id = :userId")
+				.setParameter("userId", userId).executeUpdate();
+		log.debug("Updated {} comments", commentsUpdated);
+
+		int activityDeleted = entityManager.createNativeQuery("DELETE FROM activity_log WHERE user_id = :userId")
+				.setParameter("userId", userId).executeUpdate();
+		log.debug("Deleted {} activity log entries", activityDeleted);
+
+		int notificationsDeleted = entityManager.createNativeQuery("DELETE FROM notification WHERE user_id = :userId")
+				.setParameter("userId", userId).executeUpdate();
+		log.debug("Deleted {} notifications", notificationsDeleted);
+
 		userRepository.delete(user);
-		log.info("Deleted user: userId={}, githubLogin={}", userId, user.getGithubLogin());
+		log.info("Deleted user: userId={}, githubLogin={}, role={}", userId, user.getGithubLogin(), user.getRole());
 	}
 
 	private AppUser updateExistingUser(AppUser existingUser, OAuthUserInfo oauthUserInfo) {

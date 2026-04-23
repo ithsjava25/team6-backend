@@ -8,6 +8,7 @@ import org.example.team6backend.incident.entity.Incident;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -22,8 +23,8 @@ public class DocumentService {
 	private final DocumentRepository documentRepository;
 
 	/** Upload file */
+	@Transactional
 	public Document uploadFile(MultipartFile file, Incident incident) {
-
 		String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
 		boolean uploaded = false;
 
@@ -45,7 +46,7 @@ public class DocumentService {
 				try {
 					minioService.deleteFile(fileKey);
 				} catch (Exception cleanupEx) {
-					log.warn("Failed to cleanup S3 file: {}", fileKey, cleanupEx);
+					log.warn("Failed to cleanup Minio file: {}", fileKey, cleanupEx);
 				}
 			}
 			throw new RuntimeException("File upload failed", e);
@@ -60,19 +61,32 @@ public class DocumentService {
 	/** Delete file */
 	@Transactional
 	public void deleteFile(Document document) {
+		documentRepository.delete(document);
+
 		try {
-			documentRepository.delete(document);
 			minioService.deleteFile(document.getFileKey());
-		} catch (RuntimeException e) {
+		} catch (Exception e) {
 			log.warn("Could not delete file: {}", document.getFileKey(), e);
 		}
 	}
 
 	/** Fetch all files connected to one incident */
-	public List<Document> getDocumentsByIncident(Incident incidentId) {
-		return documentRepository.findByIncident(incidentId);
+	public List<Document> getDocumentsByIncident(Incident incident) {
+		return documentRepository.findByIncident(incident);
 	}
+
+	/** Fetch document by fileKey */
 	public Optional<Document> getByFileKey(String fileKey) {
 		return documentRepository.findByFileKey(fileKey);
+	}
+
+	/** Fetch document by ID */
+	public Optional<Document> getById(Long documentId) {
+		return documentRepository.findById(documentId);
+	}
+
+	/** Fetch documents by incident ID */
+	public List<Document> getDocumentsByIncidentId(Long incidentId) {
+		return documentRepository.findByIncidentId(incidentId);
 	}
 }
