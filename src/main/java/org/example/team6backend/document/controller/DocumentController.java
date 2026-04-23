@@ -1,5 +1,8 @@
 package org.example.team6backend.document.controller;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.team6backend.document.dto.DocumentDTO;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.service.DocumentService;
 import org.example.team6backend.document.service.MinioService;
@@ -19,80 +22,83 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/documents")
+@RequestMapping("/documents")
+@RequiredArgsConstructor
+@Slf4j
 public class DocumentController {
 
-	private final DocumentService documentService;
-	private final IncidentService incidentService;
-	private final MinioService minioService;
+    private final DocumentService documentService;
+    private final IncidentService incidentService;
+    private final MinioService minioService;
 
-	public DocumentController(DocumentService documentService, IncidentService incidentService,
-			MinioService minioService) {
-		this.documentService = documentService;
-		this.incidentService = incidentService;
-		this.minioService = minioService;
-	}
+    @GetMapping("/{fileKey}")
+    public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
+                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-	@GetMapping("/{fileKey}")
-	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("GET /documents/{} - Fetching file", fileKey);
+        AppUser user = userDetails.getUser();
 
-		if (userDetails == null) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-		}
+        Document document = documentService.getByFileKey(fileKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-		AppUser user = userDetails.getUser();
+        Incident incident = incidentService.getById(document.getIncident().getId(), user);
+        if (incident == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
 
-		Document document = documentService.getByFileKey(fileKey)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        InputStream inputStream = minioService.getFile(fileKey);
+        MediaType mediaType = document.getContentType() != null
+                ? MediaType.parseMediaType(document.getContentType())
+                : MediaType.APPLICATION_OCTET_STREAM;
 
-		Incident incident = incidentService.getById(document.getIncident().getId(), user);
-		if (incident == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
+                .body(new InputStreamResource(inputStream));
+    }
 
-		InputStream inputStream = minioService.getFile(fileKey);
+    @PostMapping("/upload/{incidentId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<List<DocumentDTO>> uploadFile(@PathVariable Long incidentId,
+                                                        @RequestParam("files") List<MultipartFile> files,
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		MediaType mediaType = document.getContentType() != null
-				? MediaType.parseMediaType(document.getContentType())
-				: MediaType.APPLICATION_OCTET_STREAM;
+        log.info("POST /documents/upload/{} - Uploading {} files", incidentId, files.size());
+        AppUser user = userDetails.getUser();
+        Incident incident = incidentService.getById(incidentId, user);
+        List<DocumentDTO> uploadedDocs = new ArrayList<>();
 
-		return ResponseEntity.ok().contentType(mediaType)
-				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
-				.body(new InputStreamResource(inputStream));
-	}
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                Document doc = documentService.uploadFile(file, incident);
+                DocumentDTO dto = new DocumentDTO();
+                dto.setFileName(doc.getFileName());
+                dto.setFileKey(doc.getFileKey());
+                dto.setContentType(doc.getContentType());
+                dto.setFileSize(doc.getFileSize());
+                dto.setImage(doc.getContentType() != null && doc.getContentType().startsWith("image/"));
+                uploadedDocs.add(dto);
+                log.debug("Uploaded file: {}", doc.getFileName());
+            }
+        }
 
-	@PostMapping("/upload/{incidentId}")
-	public ResponseEntity<Void> uploadFile(@PathVariable Long incidentId,
-			@RequestParam("files") List<MultipartFile> files, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(uploadedDocs);
+    }
 
-		AppUser user = userDetails.getUser();
-		Incident incident = incidentService.getById(incidentId, user);
+    @DeleteMapping("/{documentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> deleteFile(@PathVariable Long documentId,
+                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		for (MultipartFile file : files) {
-			if (!file.isEmpty()) {
-				documentService.uploadFile(file, incident);
-			}
-		}
-		return ResponseEntity.ok().build();
-	}
+        log.info("DELETE /documents/{} - Deleting file", documentId);
+        Document document = documentService.getById(documentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-	@GetMapping("/{fileKey}/download")
-	public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String fileKey,
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
-		AppUser user = userDetails.getUser();
-
-		Document document = documentService.getByFileKey(fileKey)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-		InputStream stream = minioService.getFile(fileKey);
-
-		return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + document.getFileName() + "\"")
-				.contentType(MediaType.parseMediaType(document.getContentType())).body(new InputStreamResource(stream));
-
-	}
+        documentService.deleteFile(document);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -4,8 +4,10 @@ import lombok.Data;
 
 @Data
 public class DocumentDTO {
-	private String fileName;
-	private String fileKey;
-	private String fileUrl;
-	private boolean image;
+    private String fileName;
+    private String fileKey;
+    private String contentType;
+    private Long fileSize;
+    private boolean image;
+    private String fileUrl;
 }

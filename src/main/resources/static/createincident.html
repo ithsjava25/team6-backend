@@ -1,15 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Incident</title>
-
+    <title>Report Incident - Incident Manager</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, Roboto;
-            background: #000;
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            color: #ffffff;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .role-badge.resident {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #6b7280;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: #ef4444;
+            color: #ef4444;
         }
 
         .container {
@@ -27,120 +106,312 @@
 
         h2 {
             margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
         }
 
         label {
             display: block;
-            margin-top: 1rem;
+            margin-bottom: 0.5rem;
             font-size: 0.875rem;
             color: #6b7280;
+            font-weight: 500;
         }
 
         input, textarea, select {
             width: 100%;
-            margin-top: 0.25rem;
             padding: 0.75rem;
             border-radius: 0.5rem;
             border: 1px solid #2a2a2a;
-            background: #000;
-            color: #fff;
+            background: #000000;
+            color: #ffffff;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
 
-        button {
-            margin-top: 1.5rem;
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input[type="file"] {
+            padding: 0.5rem;
+            background: #0a0a0a;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        button[type="submit"] {
             width: 100%;
             padding: 0.75rem;
             border-radius: 9999px;
             border: none;
-            background: linear-gradient(135deg, #047857, #065f46);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
         }
 
-        button:hover {
-            opacity: 0.9;
+        button[type="submit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
-        .back-dashboard-btn {
+        button[type="submit"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .success-message {
+            color: #10b981;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .error-message-global {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 0.5rem;
+        }
+
+        .back-link {
             display: inline-block;
-            margin-bottom: 1.5rem;
-            margin-left: 0.25rem;
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
             border: 1px solid #2a2a2a;
             background: transparent;
             color: #9ca3af;
             text-decoration: none;
-            font-size: 0.8rem;
-            transition: 0.2s;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
 
-        .back-dashboard-btn:hover {
+        .back-link:hover {
             border-color: #10b981;
             color: #10b981;
+        }
+
+        .file-list {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .file-list span {
+            display: inline-block;
+            background: #1a1a1a;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin: 0.25rem;
         }
     </style>
 </head>
 <body>
-<div class="container">
+<nav class="navbar">
+    <div class="logo">
+        <a href="/">Incident Management System</a>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="incidents.html">Incidents</a>
+        <a href="profile.html">Profile</a>
+        <div class="user-info">
+            <span class="user-name" id="userName">Loading...</span>
+            <span class="role-badge resident" id="userRole">RESIDENT</span>
+            <button class="logout-btn" onclick="logout()">Sign out</button>
+        </div>
+    </div>
+</nav>
 
-    <a href="/dashboard.html" class="back-dashboard-btn">Back to dashboard</a>
+<div class="container">
+    <a href="dashboard.html" class="back-link">← Back to dashboard</a>
 
     <div class="card">
-        <h2>Report Incident</h2>
+        <h2>Report New Incident</h2>
 
-        <form th:action="@{/create-incident}"
-              th:object="${incidentRequest}"
-              method="post"
-              enctype="multipart/form-data">
-
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-            <!-- GLOBAL ERROR -->
-            <div th:if="${#fields.hasErrors('*')}" style="color: red;">
-                Please correct the errors below.
+        <form id="incidentForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="subject">Subject *</label>
+                <input type="text" id="subject" name="subject" required placeholder="Enter incident subject">
+                <div class="error-message" id="subjectError"></div>
             </div>
 
-            <!--SUBJECT-->
-            <label>Subject:</label>
-            <input type="text" th:field="*{subject}"/>
-            <div th:if="${#fields.hasErrors('subject')}"
-                 th:errors="*{subject}"
-                 style="color: red;">
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" placeholder="Describe the issue in detail..."></textarea>
             </div>
 
-            <!--DESCRIPTION-->
-            <label>Description:</label>
-            <textarea th:field="*{description}"></textarea>
-            <div th:if="${#fields.hasErrors('description')}"
-                 th:errors="*{description}"
-                 style="color: red;">
+            <div class="form-group">
+                <label for="incidentCategory">Category *</label>
+                <select id="incidentCategory" name="incidentCategory" required>
+                    <option value="">-- Select Category --</option>
+                    <option value="LAUNDRY_ROOM">Laundry Room</option>
+                    <option value="NOISE_DISTURBANCE">Noise Disturbance</option>
+                    <option value="DAMAGE">Damage</option>
+                    <option value="OTHER">Other</option>
+                </select>
+                <div class="error-message" id="categoryError"></div>
             </div>
 
-            <!--CATEGORY-->
-            <label>Category:</label>
-            <select th:field="*{incidentCategory}">
-                <option value="">-- Select Category --</option>
-                <option value="OTHER">Other</option>
-                <option value="LAUNDRY_ROOM">Laundry room</option>
-                <option value="NOISE_DISTURBANCE">Noise Disturbance</option>
-                <option value="DAMAGE">Damage</option>
-            </select>
-            <!--FILES-->
-            <label>Upload file:</label>
-            <input type="file" name="files" multiple/>
-            <div th:if="${#fields.hasErrors('incidentCategory')}"
-                 th:errors="*{incidentCategory}"
-                 style="color: red;">
+            <div class="form-group">
+                <label for="files">Attach Files (Optional)</label>
+                <input type="file" id="files" name="files" multiple accept="image/*,.pdf,.doc,.docx">
+                <div class="file-list" id="fileList"></div>
             </div>
 
-            <button type="submit">Create Incident</button>
+            <button type="submit" id="submitBtn">Create Incident</button>
         </form>
 
-        <!--SUCCESS-MESSAGE-->
-        <div th:if="${success}" th:text="${success}" style="color:green;"></div>
+        <div id="message"></div>
     </div>
 </div>
+
+<script>
+    let currentUser = null;
+
+    async function loadCurrentUser() {
+        try {
+            const response = await fetch('/api/users/me');
+            if (response.ok) {
+                currentUser = await response.json();
+                document.getElementById('userName').textContent = currentUser.name || currentUser.githubLogin;
+                document.getElementById('userRole').textContent = currentUser.role;
+            } else {
+                window.location.href = '/';
+            }
+        } catch (error) {
+            console.error('Error loading user:', error);
+            window.location.href = '/';
+        }
+    }
+
+    document.getElementById('files').addEventListener('change', function(e) {
+        const fileList = document.getElementById('fileList');
+        const files = Array.from(e.target.files);
+
+        if (files.length === 0) {
+            fileList.innerHTML = '';
+            return;
+        }
+
+        fileList.innerHTML = files.map(file =>
+            `<span>📎 ${escapeHtml(file.name)} (${(file.size / 1024).toFixed(1)} KB)</span>`
+        ).join('');
+    });
+
+    document.getElementById('incidentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        document.getElementById('subjectError').textContent = '';
+        document.getElementById('categoryError').textContent = '';
+        document.getElementById('message').innerHTML = '';
+
+        const subject = document.getElementById('subject').value.trim();
+        const incidentCategory = document.getElementById('incidentCategory').value;
+
+        let hasError = false;
+        if (!subject) {
+            document.getElementById('subjectError').textContent = 'Subject is required';
+            hasError = true;
+        }
+        if (!incidentCategory) {
+            document.getElementById('categoryError').textContent = 'Category is required';
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Creating...';
+        submitBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('subject', subject);
+        formData.append('description', document.getElementById('description').value);
+        formData.append('incidentCategory', incidentCategory);
+
+        const files = document.getElementById('files').files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+
+        try {
+            const response = await fetch('/api/incidents', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const incident = await response.json();
+                document.getElementById('message').innerHTML =
+                    `<div class="success-message">✅ Incident created successfully! Redirecting...</div>`;
+                setTimeout(() => {
+                    window.location.href = `/viewincident.html?id=${incident.id}`;
+                }, 1500);
+            } else {
+                const error = await response.text();
+                document.getElementById('message').innerHTML =
+                    `<div class="error-message-global">❌ Failed to create incident: ${error}</div>`;
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('message').innerHTML =
+                `<div class="error-message-global">❌ Network error. Please try again.</div>`;
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+
+    async function logout() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCurrentUser();
+    });
+</script>
 </body>
 </html>

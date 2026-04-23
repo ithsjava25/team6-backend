@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -22,59 +24,75 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class NotificationControllerTest {
 
-	@Mock
-	private NotificationService notificationService;
+    @Mock
+    private NotificationService notificationService;
 
-	@InjectMocks
-	private NotificationController notificationController;
+    @InjectMocks
+    private NotificationController notificationController;
 
-	private CustomUserDetails createPrincipal() {
-		AppUser user = new AppUser();
-		user.setId("user-1");
-		user.setName("Edvin");
-		user.setRole(UserRole.RESIDENT);
+    private CustomUserDetails createPrincipal() {
+        AppUser user = new AppUser();
+        user.setId("user-1");
+        user.setName("Edvin");
+        user.setRole(UserRole.RESIDENT);
 
-		return new CustomUserDetails(user, Map.of());
-	}
+        return new CustomUserDetails(user, Map.of());
+    }
 
-	@Test
-	void shouldReturnUnreadNotificationsForUser() {
-		Incident incident = new Incident();
-		incident.setId(1L);
+    @Test
+    void shouldReturnUnreadNotificationsForUser() {
+        Incident incident = new Incident();
+        incident.setId(1L);
 
-		Notification notification = new Notification();
-		notification.setMessage("Test notification");
-		notification.setIncident(incident);
+        Notification notification = new Notification();
+        notification.setMessage("Test notification");
+        notification.setIncident(incident);
 
-		when(notificationService.getUnreadNotifications("user-1")).thenReturn(List.of(notification));
+        when(notificationService.getUnreadNotifications("user-1")).thenReturn(List.of(notification));
 
-		CustomUserDetails principal = createPrincipal();
+        CustomUserDetails principal = createPrincipal();
 
-		List<NotificationResponse> result = notificationController.getUserNotifications(principal);
+        ResponseEntity<List<NotificationResponse>> response = notificationController.getUserNotifications(principal);
 
-		assertThat(result).hasSize(1);
-		assertThat(result.getFirst().getMessage()).isEqualTo("Test notification");
-		verify(notificationService).getUnreadNotifications("user-1");
-	}
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().getFirst().getMessage()).isEqualTo("Test notification");
+        verify(notificationService).getUnreadNotifications("user-1");
+    }
 
-	@Test
-	void shouldReturnUnreadCountForUser() {
-		when(notificationService.getUnreadCount("user-1")).thenReturn(3L);
+    @Test
+    void shouldReturnUnreadCountForUser() {
+        when(notificationService.getUnreadCount("user-1")).thenReturn(3L);
 
-		CustomUserDetails principal = createPrincipal();
+        CustomUserDetails principal = createPrincipal();
 
-		long result = notificationController.getUnreadCount(principal);
+        ResponseEntity<Long> response = notificationController.getUnreadCount(principal);
 
-		assertThat(result).isEqualTo(3L);
-		verify(notificationService).getUnreadCount("user-1");
-	}
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(3L);
+        verify(notificationService).getUnreadCount("user-1");
+    }
 
-	@Test
-	void shouldMarkNotificationAsRead() {
-		CustomUserDetails principal = createPrincipal();
+    @Test
+    void shouldMarkNotificationAsRead() {
+        CustomUserDetails principal = createPrincipal();
 
-		notificationController.markAsRead(1L, principal);
+        ResponseEntity<Void> response = notificationController.markAsRead(1L, principal);
 
-		verify(notificationService).markAsRead(1L, "user-1");
-	}
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(notificationService).markAsRead(1L, "user-1");
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoUnreadNotifications() {
+        when(notificationService.getUnreadNotifications("user-1")).thenReturn(List.of());
+
+        CustomUserDetails principal = createPrincipal();
+
+        ResponseEntity<List<NotificationResponse>> response = notificationController.getUserNotifications(principal);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEmpty();
+        verify(notificationService).getUnreadNotifications("user-1");
+    }
 }

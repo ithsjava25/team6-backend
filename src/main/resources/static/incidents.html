@@ -1,365 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Active incidents</title>
-
+    <title>Incidents</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, Roboto;
-            background: #000;
-            color: #fff;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-        }
-
-        h2 {
-            margin-bottom: 1.5rem;
-        }
-
-        .incident-card {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: 0.2s;
-        }
-
-        .incident-card:hover {
-            border-color: #2a2a2a;
-        }
-
-        .incident-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .incident-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .incident-category {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 999px;
-            background: #1f2937;
-            color: #9ca3af;
-        }
-
-        .incident-description {
-            margin-top: 0.75rem;
-            color: #d1d5db;
-            font-size: 0.9rem;
-        }
-
-        .incident-footer {
-            margin-top: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        .btn {
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            border: 1px solid #2a2a2a;
-            background: transparent;
-            color: #9ca3af;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn:hover {
-            border-color: #10b981;
-            color: #10b981;
-        }
-
-        .resolve-btn {
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            border: none;
-            background: #10b981;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        .resolve-btn:hover {
-            background: #059669;
-            transform: scale(1.05);
-        }
-
-        .close-btn {
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            border: none;
-            background: #ef4444;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        .close-btn:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-
-        .back-dashboard-btn {
-            display: inline-block;
-            margin-bottom: 1.2rem;
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            border: 1px solid #2a2a2a;
-            background: transparent;
-            color: #9ca3af;
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: 0.2s;
-        }
-
-        .back-dashboard-btn:hover {
-            border-color: #10b981;
-            color: #10b981;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            background: #1a1a1a;
-            border-left: 4px solid;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-
-        .toast.success {
-            border-left-color: #10b981;
-        }
-
-        .toast.error {
-            border-left-color: #ef4444;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #000; color: #fff; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #1a1a1a; flex-wrap: wrap; gap: 1rem; }
+        .logo a { text-decoration: none; color: #fff; font-weight: 600; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #6b7280; }
+        .nav-links a:hover { color: #fff; }
+        .user-info { display: flex; gap: 1rem; align-items: center; }
+        .logout-btn { background: transparent; border: 1px solid #2a2a2a; color: #6b7280; padding: 0.5rem 1rem; border-radius: 9999px; cursor: pointer; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+        h2 { margin-bottom: 1.5rem; }
+        .incident-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; cursor: pointer; }
+        .incident-card:hover { border-color: #2a2a2a; }
+        .incident-header { display: flex; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+        .incident-title { font-size: 1.1rem; font-weight: 600; }
+        .incident-category { font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: #1f2937; }
+        .incident-status { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
+        .status-OPEN { background: #f59e0b; color: white; }
+        .status-IN_PROGRESS { background: #3b82f6; color: white; }
+        .status-RESOLVED { background: #10b981; color: white; }
+        .status-CLOSED { background: #6b7280; color: white; }
+        .btn { padding: 0.5rem 1rem; border-radius: 9999px; text-decoration: none; display: inline-block; background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; cursor: pointer; }
+        .btn-primary { background: #10b981; border: none; }
+        .loading { text-align: center; padding: 2rem; color: #6b7280; }
+        .error-message { text-align: center; padding: 2rem; color: #ef4444; }
     </style>
 </head>
-
-<body th:attr="data-role=${role}">
-<div class="container">
-
-    <a href="/dashboard.html" class="back-dashboard-btn">← Back to dashboard</a>
-
-    <h2 id="title">Loading...</h2>
-    <div id="incidents">
-        <div class="loading" style="text-align: center; padding: 2rem; color: #6b7280;">Loading incidents...</div>
+<body>
+<nav class="navbar">
+    <div class="logo"><a href="/">Incident Management System</a></div>
+    <div class="nav-links">
+        <a href="dashboard.html">Home</a>
+        <a href="incidents.html">Incidents</a>
+        <a href="profile.html">Profile</a>
+        <a href="admin.html" id="adminLink" style="display: none;">Admin</a>  <!-- Dold som standard -->
+        <div class="user-info"><span id="userName">Loading...</span><button class="logout-btn" onclick="logout()">Sign out</button></div>
     </div>
+</nav>
+<div class="container">
+    <h2 id="title">Loading...</h2>
+    <div id="incidents"><div class="loading">Loading incidents...</div></div>
 </div>
 
 <script>
-    const role = document.body.dataset.role;
+    let userRole = '';
+    let currentUser = null;
+
+    async function loadUser() {
+        try {
+            const r = await fetch('/api/users/me');
+            if (r.ok) {
+                currentUser = await r.json();
+                document.getElementById('userName').textContent = currentUser.name || currentUser.githubLogin;
+                userRole = currentUser.role;
+
+                // ***** Visa Admin-länken ENDAST för ADMIN-rollen *****
+                if (userRole === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline';
+                }
+
+                loadIncidents();
+            } else {
+                window.location.href = '/';
+            }
+        } catch(e) {
+            window.location.href = '/';
+        }
+    }
 
     async function loadIncidents() {
-
-        let url = "/api/incidents/my";
-
-        if (role === "ADMIN") {
-            url = "/api/incidents/all";
-        } else if (role === "HANDLER") {
-            url = "/api/incidents/assigned";
-        } else if (role !== "RESIDENT") {
-            console.error("Unknown role:", role);
-            document.getElementById("incidents").innerHTML = '<div class="loading">Unable to load incidents</div>';
+        let url = '';
+        if (userRole === 'RESIDENT') {
+            url = '/api/incidents/my?sort=createdAt,desc';
+        } else if (userRole === 'HANDLER') {
+            url = '/api/incidents/assigned?sort=createdAt,desc';
+        } else if (userRole === 'ADMIN') {
+            url = '/api/incidents/all?sort=createdAt,desc';
+        } else {
             return;
         }
 
-        const title = document.getElementById("title");
-
-        if (role === "ADMIN") {
-            title.textContent = "All Incidents";
-        } else if (role === "HANDLER") {
-            title.textContent = "Assigned Incidents";
+        const title = document.getElementById('title');
+        if (userRole === 'ADMIN') {
+            title.textContent = 'All Incidents';
+        } else if (userRole === 'HANDLER') {
+            title.textContent = 'Assigned Incidents';
         } else {
-            title.textContent = "My Incidents";
+            title.textContent = 'My Incidents';
         }
 
         try {
-            const response = await fetch(url);
+            const r = await fetch(url);
+            if (!r.ok) throw new Error('Failed to fetch incidents');
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch incidents!");
-            }
+            const d = await r.json();
+            const incidents = d.content || [];
+            const container = document.getElementById('incidents');
 
-            const data = await response.json();
-
-            const list = document.getElementById("incidents");
-
-            if (!data.content || data.content.length === 0) {
-                list.innerHTML = '<div class="loading">No incidents found.</div>';
+            if (incidents.length === 0) {
+                container.innerHTML = '<div class="loading">No incidents found.</div>';
                 return;
             }
 
-            list.innerHTML = "";
-
-            data.content.forEach(incident => {
-                const card = document.createElement("div");
-                card.className = "incident-card";
-
-                const status = incident.incidentStatus;
-                const isClosed = status === 'CLOSED';
-                const isResolved = status === 'RESOLVED';
-                const isInProgress = status === 'IN_PROGRESS';
-                const isOpen = status === 'OPEN';
-
-                let resolveButtonHtml = '';
-                if ((role === 'ADMIN' || role === 'HANDLER') && !isClosed && !isResolved) {
-                    resolveButtonHtml = `<button class="resolve-btn" onclick="resolveIncident(${incident.id})">Resolve</button>`;
-                }
-
-                let closeButtonHtml = '';
-                if ((role === 'ADMIN' || role === 'HANDLER') && isResolved) {
-                    closeButtonHtml = `<button class="close-btn" onclick="closeIncident(${incident.id})">Close</button>`;
-                }
-
-                let statusColor = '#6b7280';
-                if (status === 'OPEN') statusColor = '#f59e0b';
-                else if (status === 'IN_PROGRESS') statusColor = '#3b82f6';
-                else if (status === 'RESOLVED') statusColor = '#10b981';
-                else if (status === 'CLOSED') statusColor = '#6b7280';
-
-                card.innerHTML = `
+            container.innerHTML = incidents.map(i => `
+                <div class="incident-card" onclick="viewIncident(${i.id})">
                     <div class="incident-header">
-                        <div class="incident-title">
-                            ${escapeHtml(incident.subject)}
-                            ${incident.hasDocuments ? '📎' : ''}
-                        </div>
-                        <div class="incident-category">${escapeHtml(incident.incidentCategory)}</div>
+                        <div class="incident-title">${escapeHtml(i.subject)}${i.hasDocuments ? ' 📎' : ''}</div>
+                        <div class="incident-category">${i.incidentCategory}</div>
                     </div>
-
-                    <div class="incident-description">
-                        ${escapeHtml(incident.description || "No description")}
+                    <div class="incident-description">${escapeHtml(i.description || 'No description')}</div>
+                    <div class="incident-footer" style="margin-top:1rem;display:flex;justify-content:space-between;font-size:0.75rem;color:#6b7280;">
+                        <span>ID: ${i.id}</span>
+                        <span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span>
+                        <span>Created: ${formatDate(i.createdAt)}</span>
                     </div>
-
-                    <div class="incident-footer">
-                        <span>ID: ${incident.id}</span>
-                        <span>Status: <span style="display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; background: ${statusColor}; color: white;">${status}</span></span>
-                        <span>Created: ${formatDate(incident.createdAt)}</span>
-
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn" onclick="viewIncident(${incident.id})">View</button>
-                            ${resolveButtonHtml}
-                            ${closeButtonHtml}
-                        </div>
-                    </div>
-                `;
-
-                list.appendChild(card);
-            });
-        } catch (error) {
-            console.error(error);
-            document.getElementById("incidents").innerHTML = '<div class="loading">Failed to load incidents.</div>';
+                </div>
+            `).join('');
+        } catch(e) {
+            console.error('Error loading incidents:', e);
+            document.getElementById('incidents').innerHTML = '<div class="error-message">Failed to load incidents. Please try again.</div>';
         }
-    }
-
-    async function resolveIncident(incidentId) {
-        if (!confirm('Mark this incident as resolved?')) return;
-
-        try {
-            const response = await fetch(`/api/incidents/${incidentId}/resolve`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                showToast('Incident marked as resolved!', 'success');
-                loadIncidents();
-            } else {
-                const error = await response.text();
-                showToast('Failed to resolve incident: ' + error, 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Error resolving incident', 'error');
-        }
-    }
-
-    async function closeIncident(incidentId) {
-        if (!confirm('Are you sure you want to close this incident?')) return;
-
-        try {
-            const response = await fetch(`/api/incidents/${incidentId}/close`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                showToast('Incident closed successfully!', 'success');
-                loadIncidents();
-            } else {
-                const error = await response.text();
-                showToast('Failed to close incident: ' + error, 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Error closing incident', 'error');
-        }
-    }
-
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
     }
 
     function viewIncident(id) {
-        window.location.href = `/incidents.html?id=${id}`;
+        window.location.href = `/viewincident.html?id=${id}`;
     }
 
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return "";
-        return String(str)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
+    async function logout() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
     }
 
-    function formatDate(dateString) {
-        if (!dateString) return "-";
+    function escapeHtml(t) {
+        if (!t) return '';
+        const d = document.createElement('div');
+        d.textContent = t;
+        return d.innerHTML;
+    }
 
-        return new Date(dateString).toLocaleString("sv-SE", {
+    function formatDate(ds) {
+        if (!ds) return "-";
+        return new Date(ds).toLocaleString("sv-SE", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -368,7 +154,7 @@
         });
     }
 
-    loadIncidents();
+    loadUser();
 </script>
 </body>
 </html>
