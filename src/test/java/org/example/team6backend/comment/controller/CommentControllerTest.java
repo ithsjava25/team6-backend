@@ -13,7 +13,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.util.List;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -56,8 +58,13 @@ class CommentControllerTest {
 
 	@Test
 	void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
-		mockMvc.perform(post("/comments").param("incidentId", "1").param("userId", "user-1").param("message", "Hello"))
-				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/incidents/1"));
+		mockMvc.perform(post("/comments").contentType("application/json").content("""
+				{
+				  "incidentId": 1,
+				  "userId": "user-1",
+				  "message": "Hello"
+				}
+				""")).andExpect(status().isOk());
 
 		verify(commentService).createComment(1L, "user-1", "Hello");
 
