@@ -44,6 +44,7 @@ class CommentControllerTest {
 		incident.setId(1L);
 
 		Comment comment = new Comment();
+		comment.setId("10");
 		comment.setMessage("Test comment");
 		comment.setUser(user);
 		comment.setIncident(incident);
@@ -56,14 +57,28 @@ class CommentControllerTest {
 		verify(commentService).getCommentByIncidentId(1L);
 	}
 
-	/*
-	 * @Test void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
-	 * mockMvc.perform(post("/comments").contentType("application/json").content("""
-	 * { "incidentId": 1, "userId": "user-1", "message": "Hello" }
-	 * """)).andExpect(status().isOk());
-	 *
-	 * verify(commentService).createComment(1L, "user-1", "Hello");
-	 *
-	 * }
-	 */
+	@Test
+	void shouldCreateComment() throws Exception {
+		AppUser user = new AppUser();
+		user.setId("user-1");
+		user.setName("Edvin");
+
+		Incident incident = new Incident();
+		incident.setId(1L);
+
+		Comment comment = new Comment();
+		comment.setId("10");
+		comment.setMessage("Hello");
+		comment.setUser(user);
+		comment.setIncident(incident);
+
+		when(commentService.createComment(1L, "user-1", "Hello")).thenReturn(comment);
+
+		mockMvc.perform(post("/comments").contentType("application/json").content("""
+				{ "incidentId": 1, "userId": "user-1", "message": "Hello" }
+				""")).andExpect(status().isCreated()).andExpect(jsonPath("$.message").value("Hello"));
+
+		verify(commentService).createComment(1L, "user-1", "Hello");
+
+	}
 }
