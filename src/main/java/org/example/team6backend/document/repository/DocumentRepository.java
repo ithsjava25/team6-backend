@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-    List<Document> findByIncident(Incident incident);
+	List<Document> findByIncident(Incident incident);
 
-    List<Document> findByIncidentId(Long incidentId);
+	List<Document> findByIncidentId(Long incidentId);
 
-    Optional<Document> findByFileKey(String fileKey);
+	Optional<Document> findByFileKey(String fileKey);
 }

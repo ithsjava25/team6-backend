@@ -19,74 +19,74 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DocumentService {
 
-    private final MinioService minioService;
-    private final DocumentRepository documentRepository;
+	private final MinioService minioService;
+	private final DocumentRepository documentRepository;
 
-    /** Upload file */
-    @Transactional
-    public Document uploadFile(MultipartFile file, Incident incident) {
-        String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        boolean uploaded = false;
+	/** Upload file */
+	@Transactional
+	public Document uploadFile(MultipartFile file, Incident incident) {
+		String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
+		boolean uploaded = false;
 
-        try {
-            minioService.uploadFile(fileKey, file);
-            uploaded = true;
+		try {
+			minioService.uploadFile(fileKey, file);
+			uploaded = true;
 
-            Document document = new Document();
-            document.setFileName(file.getOriginalFilename());
-            document.setContentType(file.getContentType());
-            document.setFileKey(fileKey);
-            document.setFileSize(file.getSize());
-            document.setIncident(incident);
+			Document document = new Document();
+			document.setFileName(file.getOriginalFilename());
+			document.setContentType(file.getContentType());
+			document.setFileKey(fileKey);
+			document.setFileSize(file.getSize());
+			document.setIncident(incident);
 
-            return documentRepository.save(document);
+			return documentRepository.save(document);
 
-        } catch (Exception e) {
-            if (uploaded) {
-                try {
-                    minioService.deleteFile(fileKey);
-                } catch (Exception cleanupEx) {
-                    log.warn("Failed to cleanup Minio file: {}", fileKey, cleanupEx);
-                }
-            }
-            throw new RuntimeException("File upload failed", e);
-        }
-    }
+		} catch (Exception e) {
+			if (uploaded) {
+				try {
+					minioService.deleteFile(fileKey);
+				} catch (Exception cleanupEx) {
+					log.warn("Failed to cleanup Minio file: {}", fileKey, cleanupEx);
+				}
+			}
+			throw new RuntimeException("File upload failed", e);
+		}
+	}
 
-    /** Download file */
-    public InputStream downloadFile(String objectKey) {
-        return minioService.downloadFile(objectKey);
-    }
+	/** Download file */
+	public InputStream downloadFile(String objectKey) {
+		return minioService.downloadFile(objectKey);
+	}
 
-    /** Delete file */
-    @Transactional
-    public void deleteFile(Document document) {
-        documentRepository.delete(document);
+	/** Delete file */
+	@Transactional
+	public void deleteFile(Document document) {
+		documentRepository.delete(document);
 
-        try {
-            minioService.deleteFile(document.getFileKey());
-        } catch (Exception e) {
-            log.warn("Could not delete file: {}", document.getFileKey(), e);
-        }
-    }
+		try {
+			minioService.deleteFile(document.getFileKey());
+		} catch (Exception e) {
+			log.warn("Could not delete file: {}", document.getFileKey(), e);
+		}
+	}
 
-    /** Fetch all files connected to one incident */
-    public List<Document> getDocumentsByIncident(Incident incident) {
-        return documentRepository.findByIncident(incident);
-    }
+	/** Fetch all files connected to one incident */
+	public List<Document> getDocumentsByIncident(Incident incident) {
+		return documentRepository.findByIncident(incident);
+	}
 
-    /** Fetch document by fileKey */
-    public Optional<Document> getByFileKey(String fileKey) {
-        return documentRepository.findByFileKey(fileKey);
-    }
+	/** Fetch document by fileKey */
+	public Optional<Document> getByFileKey(String fileKey) {
+		return documentRepository.findByFileKey(fileKey);
+	}
 
-    /** Fetch document by ID */
-    public Optional<Document> getById(Long documentId) {
-        return documentRepository.findById(documentId);
-    }
+	/** Fetch document by ID */
+	public Optional<Document> getById(Long documentId) {
+		return documentRepository.findById(documentId);
+	}
 
-    /** Fetch documents by incident ID */
-    public List<Document> getDocumentsByIncidentId(Long incidentId) {
-        return documentRepository.findByIncidentId(incidentId);
-    }
+	/** Fetch documents by incident ID */
+	public List<Document> getDocumentsByIncidentId(Long incidentId) {
+		return documentRepository.findByIncidentId(incidentId);
+	}
 }

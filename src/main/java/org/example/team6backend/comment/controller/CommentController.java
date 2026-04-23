@@ -18,22 +18,21 @@ import java.util.List;
 @Slf4j
 public class CommentController {
 
-    private final CommentService commentService;
+	private final CommentService commentService;
 
-    @GetMapping("/incident/{incidentId}")
-    public ResponseEntity<List<CommentResponse>> getCommentByIncidentId(@PathVariable Long incidentId) {
-        log.info("GET /comments/incident/{} - Fetching comments", incidentId);
-        List<CommentResponse> comments = commentService.getCommentByIncidentId(incidentId).stream()
-                .map(CommentResponse::fromEntity)
-                .toList();
-        return ResponseEntity.ok(comments);
-    }
+	@GetMapping("/incident/{incidentId}")
+	public ResponseEntity<List<CommentResponse>> getCommentByIncidentId(@PathVariable Long incidentId) {
+		log.info("GET /comments/incident/{} - Fetching comments", incidentId);
+		List<CommentResponse> comments = commentService.getCommentByIncidentId(incidentId).stream()
+				.map(CommentResponse::fromEntity).toList();
+		return ResponseEntity.ok(comments);
+	}
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<CommentResponse> createComment(@Valid @RequestBody CommentRequest request) {
-        log.info("POST /comments - Creating comment for incident: {}", request.getIncidentId());
-        var comment = commentService.createComment(request.getIncidentId(), request.getUserId(), request.getMessage());
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommentResponse.fromEntity(comment));
-    }
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<CommentResponse> createComment(@Valid @RequestBody CommentRequest request) {
+		log.info("POST /comments - Creating comment for incident: {}", request.getIncidentId());
+		var comment = commentService.createComment(request.getIncidentId(), request.getUserId(), request.getMessage());
+		return ResponseEntity.status(HttpStatus.CREATED).body(CommentResponse.fromEntity(comment));
+	}
 }

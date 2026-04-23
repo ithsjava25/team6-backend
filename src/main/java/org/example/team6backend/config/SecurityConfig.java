@@ -15,38 +15,29 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
+	private final CustomOAuth2UserService customOAuth2UserService;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/dashboard.html", "/incidents.html",
-                                "/profile.html", "/createincident.html", "/viewincident.html",
-                                "/admin.html", "/demo.html", "/error", "/login/**",
-                                "/oauth2/**", "/dev/**", "/css/**", "/js/**", "/images/**").permitAll()
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/", "/index.html", "/dashboard.html", "/incidents.html", "/profile.html",
+						"/createincident.html", "/viewincident.html", "/admin.html", "/demo.html", "/error",
+						"/login/**", "/oauth2/**", "/dev/**", "/css/**", "/js/**", "/images/**")
+				.permitAll()
 
-                        .requestMatchers("/api/incidents/**").hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/me").authenticated()
-                        .requestMatchers("/comments/**", "/activity/**", "/documents/**").authenticated()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .defaultSuccessUrl("/dashboard.html", true)
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                )
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/comments", "/dev/**")
-                );
+				.requestMatchers("/api/incidents/**").hasAnyRole("RESIDENT", "HANDLER", "ADMIN")
+				.requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/api/users/me").authenticated()
+				.requestMatchers("/comments/**", "/activity/**", "/documents/**").authenticated()
+				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN").anyRequest()
+				.authenticated())
+				.oauth2Login(
+						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+								.defaultSuccessUrl("/dashboard.html", true))
+				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
+						.deleteCookies("JSESSIONID"))
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/comments",
+						"/dev/**"));
 
-        return http.build();
-    }
+		return http.build();
+	}
 }

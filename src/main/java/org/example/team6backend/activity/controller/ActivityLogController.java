@@ -18,14 +18,13 @@ import java.util.List;
 @Slf4j
 public class ActivityLogController {
 
-    private final ActivityLogService activityLogService;
+	private final ActivityLogService activityLogService;
 
-    @GetMapping("/incident/{incidentId}")
-    public ResponseEntity<List<ActivityLogResponse>> getActivityByIncidentId(@PathVariable Long incidentId) {
-        log.info("GET /activity/incident/{} - Fetching activity log", incidentId);
-        List<ActivityLogResponse> activityLogs = activityLogService.getByIncidentId(incidentId).stream()
-                .map(ActivityLogResponse::fromEntity)
-                .toList();
-        return ResponseEntity.ok(activityLogs);
-    }
+	@GetMapping("/incident/{incidentId}")
+	public ResponseEntity<List<ActivityLogResponse>> getActivityByIncidentId(@PathVariable Long incidentId) {
+		log.info("GET /activity/incident/{} - Fetching activity log", incidentId);
+		List<ActivityLogResponse> activityLogs = activityLogService.getByIncidentId(incidentId).stream()
+				.map(ActivityLogResponse::fromEntity).toList();
+		return ResponseEntity.ok(activityLogs);
+	}
 }

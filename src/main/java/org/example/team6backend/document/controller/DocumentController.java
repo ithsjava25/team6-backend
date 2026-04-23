@@ -31,74 +31,72 @@ import java.util.List;
 @Slf4j
 public class DocumentController {
 
-    private final DocumentService documentService;
-    private final IncidentService incidentService;
-    private final MinioService minioService;
+	private final DocumentService documentService;
+	private final IncidentService incidentService;
+	private final MinioService minioService;
 
-    @GetMapping("/{fileKey}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
-                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+	@GetMapping("/{fileKey}")
+	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        log.info("GET /documents/{} - Fetching file", fileKey);
-        AppUser user = userDetails.getUser();
+		log.info("GET /documents/{} - Fetching file", fileKey);
+		AppUser user = userDetails.getUser();
 
-        Document document = documentService.getByFileKey(fileKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+		Document document = documentService.getByFileKey(fileKey)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        Incident incident = incidentService.getById(document.getIncident().getId(), user);
-        if (incident == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+		Incident incident = incidentService.getById(document.getIncident().getId(), user);
+		if (incident == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
 
-        InputStream inputStream = minioService.getFile(fileKey);
-        MediaType mediaType = document.getContentType() != null
-                ? MediaType.parseMediaType(document.getContentType())
-                : MediaType.APPLICATION_OCTET_STREAM;
+		InputStream inputStream = minioService.getFile(fileKey);
+		MediaType mediaType = document.getContentType() != null
+				? MediaType.parseMediaType(document.getContentType())
+				: MediaType.APPLICATION_OCTET_STREAM;
 
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
-                .body(new InputStreamResource(inputStream));
-    }
+		return ResponseEntity.ok().contentType(mediaType)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + document.getFileName() + "\"")
+				.body(new InputStreamResource(inputStream));
+	}
 
-    @PostMapping("/upload/{incidentId}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<List<DocumentDTO>> uploadFile(@PathVariable Long incidentId,
-                                                        @RequestParam("files") List<MultipartFile> files,
-                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+	@PostMapping("/upload/{incidentId}")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<List<DocumentDTO>> uploadFile(@PathVariable Long incidentId,
+			@RequestParam("files") List<MultipartFile> files, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        log.info("POST /documents/upload/{} - Uploading {} files", incidentId, files.size());
-        AppUser user = userDetails.getUser();
-        Incident incident = incidentService.getById(incidentId, user);
-        List<DocumentDTO> uploadedDocs = new ArrayList<>();
+		log.info("POST /documents/upload/{} - Uploading {} files", incidentId, files.size());
+		AppUser user = userDetails.getUser();
+		Incident incident = incidentService.getById(incidentId, user);
+		List<DocumentDTO> uploadedDocs = new ArrayList<>();
 
-        for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                Document doc = documentService.uploadFile(file, incident);
-                DocumentDTO dto = new DocumentDTO();
-                dto.setFileName(doc.getFileName());
-                dto.setFileKey(doc.getFileKey());
-                dto.setContentType(doc.getContentType());
-                dto.setFileSize(doc.getFileSize());
-                dto.setImage(doc.getContentType() != null && doc.getContentType().startsWith("image/"));
-                uploadedDocs.add(dto);
-                log.debug("Uploaded file: {}", doc.getFileName());
-            }
-        }
+		for (MultipartFile file : files) {
+			if (!file.isEmpty()) {
+				Document doc = documentService.uploadFile(file, incident);
+				DocumentDTO dto = new DocumentDTO();
+				dto.setFileName(doc.getFileName());
+				dto.setFileKey(doc.getFileKey());
+				dto.setContentType(doc.getContentType());
+				dto.setFileSize(doc.getFileSize());
+				dto.setImage(doc.getContentType() != null && doc.getContentType().startsWith("image/"));
+				uploadedDocs.add(dto);
+				log.debug("Uploaded file: {}", doc.getFileName());
+			}
+		}
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(uploadedDocs);
-    }
+		return ResponseEntity.status(HttpStatus.CREATED).body(uploadedDocs);
+	}
 
-    @DeleteMapping("/{documentId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> deleteFile(@PathVariable Long documentId,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+	@DeleteMapping("/{documentId}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public ResponseEntity<Void> deleteFile(@PathVariable Long documentId,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        log.info("DELETE /documents/{} - Deleting file", documentId);
-        Document document = documentService.getById(documentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+		log.info("DELETE /documents/{} - Deleting file", documentId);
+		Document document = documentService.getById(documentId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        documentService.deleteFile(document);
-        return ResponseEntity.noContent().build();
-    }
+		documentService.deleteFile(document);
+		return ResponseEntity.noContent().build();
+	}
 }
