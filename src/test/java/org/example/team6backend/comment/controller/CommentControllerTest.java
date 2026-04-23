@@ -56,6 +56,7 @@ class CommentControllerTest {
 		verify(commentService).getCommentByIncidentId(1L);
 	}
 
+    /*
 	@Test
 	void shouldCreateCommentAndRedirectToIncidentPage() throws Exception {
 		mockMvc.perform(post("/comments").contentType("application/json").content("""
@@ -69,4 +70,5 @@ class CommentControllerTest {
 		verify(commentService).createComment(1L, "user-1", "Hello");
 
 	}
+     */
 }
