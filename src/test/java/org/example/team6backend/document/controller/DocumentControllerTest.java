@@ -34,118 +34,107 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
 
-@WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = {
-        OAuth2ClientAutoConfiguration.class,
-        OAuth2ClientWebSecurityAutoConfiguration.class})
+@WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = {OAuth2ClientAutoConfiguration.class,
+		OAuth2ClientWebSecurityAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @ImportAutoConfiguration(exclude = {OAuth2ClientAutoConfiguration.class,
-        OAuth2ClientWebSecurityAutoConfiguration.class})
+		OAuth2ClientWebSecurityAutoConfiguration.class})
 public class DocumentControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @MockitoBean
-    private DocumentService documentService;
+	@MockitoBean
+	private DocumentService documentService;
 
-    @MockitoBean
-    private IncidentService incidentService;
+	@MockitoBean
+	private IncidentService incidentService;
 
-    @MockitoBean
-    private MinioService minioService;
+	@MockitoBean
+	private MinioService minioService;
 
-    @MockitoBean
-    private CustomOAuth2UserService customOAuth2UserService;
+	@MockitoBean
+	private CustomOAuth2UserService customOAuth2UserService;
 
-    private AppUser testUser;
+	private AppUser testUser;
 
-    @BeforeEach
-    void setupSecurity() {
-        testUser = new AppUser();
-        testUser.setId("test-user-id");
-        testUser.setName("Test User");
-        testUser.setEmail("test@test.com");
-        testUser.setRole(UserRole.ADMIN);
-        testUser.setActive(true);
+	@BeforeEach
+	void setupSecurity() {
+		testUser = new AppUser();
+		testUser.setId("test-user-id");
+		testUser.setName("Test User");
+		testUser.setEmail("test@test.com");
+		testUser.setRole(UserRole.ADMIN);
+		testUser.setActive(true);
 
-        CustomUserDetails principal = new CustomUserDetails(testUser, Map.of());
+		CustomUserDetails principal = new CustomUserDetails(testUser, Map.of());
 
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
-                principal.getAuthorities());
+		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
+				principal.getAuthorities());
 
-        SecurityContextHolder.getContext().setAuthentication(auth);
-    }
+		SecurityContextHolder.getContext().setAuthentication(auth);
+	}
 
-    @Test
-    void getFile_shouldReturnDocument() throws Exception {
-        Incident incident = new Incident();
-        incident.setId(1L);
+	@Test
+	void getFile_shouldReturnDocument() throws Exception {
+		Incident incident = new Incident();
+		incident.setId(1L);
 
-        Document document = new Document();
-        document.setFileName("test.pdf");
-        document.setContentType("application/pdf");
-        document.setFileKey("abc");
-        document.setIncident(incident);
+		Document document = new Document();
+		document.setFileName("test.pdf");
+		document.setContentType("application/pdf");
+		document.setFileKey("abc");
+		document.setIncident(incident);
 
-        when(documentService.getByFileKey("abc")).thenReturn(Optional.of(document));
-        when(incidentService.getById(eq(1L), any())).thenReturn(incident);
-        when(minioService.getFile("abc")).thenReturn(new ByteArrayInputStream("hello".getBytes()));
+		when(documentService.getByFileKey("abc")).thenReturn(Optional.of(document));
+		when(incidentService.getById(eq(1L), any())).thenReturn(incident);
+		when(minioService.getFile("abc")).thenReturn(new ByteArrayInputStream("hello".getBytes()));
 
-        mockMvc.perform(get("/documents/abc"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"test.pdf\""));
-    }
+		mockMvc.perform(get("/documents/abc")).andExpect(status().isOk())
+				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"test.pdf\""));
+	}
 
-    @Test
-    void getFile_shouldReturn404_whenDocumentNotFound() throws Exception {
-        when(documentService.getByFileKey("abc")).thenReturn(Optional.empty());
+	@Test
+	void getFile_shouldReturn404_whenDocumentNotFound() throws Exception {
+		when(documentService.getByFileKey("abc")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/documents/abc"))
-                .andExpect(status().isNotFound());
-    }
+		mockMvc.perform(get("/documents/abc")).andExpect(status().isNotFound());
+	}
 
-    @Test
-    void getFile_shouldReturn404_whenIncidentNotFound() throws Exception {
-        Document document = new Document();
-        document.setFileName("test.pdf");
-        document.setContentType("application/pdf");
-        document.setFileKey("abc");
+	@Test
+	void getFile_shouldReturn404_whenIncidentNotFound() throws Exception {
+		Document document = new Document();
+		document.setFileName("test.pdf");
+		document.setContentType("application/pdf");
+		document.setFileKey("abc");
 
-        Incident incident = new Incident();
-        incident.setId(1L);
-        document.setIncident(incident);
+		Incident incident = new Incident();
+		incident.setId(1L);
+		document.setIncident(incident);
 
-        when(documentService.getByFileKey("abc")).thenReturn(Optional.of(document));
-        when(incidentService.getById(eq(1L), any())).thenReturn(null);
+		when(documentService.getByFileKey("abc")).thenReturn(Optional.of(document));
+		when(incidentService.getById(eq(1L), any())).thenReturn(null);
 
-        mockMvc.perform(get("/documents/abc"))
-                .andExpect(status().isNotFound());
-    }
+		mockMvc.perform(get("/documents/abc")).andExpect(status().isNotFound());
+	}
 
-    @Test
-    void uploadFile_shouldReturnCreated() throws Exception {
-        Incident incident = new Incident();
-        incident.setId(1L);
+	@Test
+	void uploadFile_shouldReturnCreated() throws Exception {
+		Incident incident = new Incident();
+		incident.setId(1L);
 
-        Document document = new Document();
-        document.setFileName("test.pdf");
-        document.setContentType("application/pdf");
-        document.setFileKey("abc");
-        document.setFileSize(1024L);
-        document.setIncident(incident);
+		Document document = new Document();
+		document.setFileName("test.pdf");
+		document.setContentType("application/pdf");
+		document.setFileKey("abc");
+		document.setFileSize(1024L);
+		document.setIncident(incident);
 
-        MockMultipartFile mockFile = new MockMultipartFile(
-                "files",
-                "test.pdf",
-                "application/pdf",
-                "hello".getBytes()
-        );
+		MockMultipartFile mockFile = new MockMultipartFile("files", "test.pdf", "application/pdf", "hello".getBytes());
 
-        when(incidentService.getById(eq(1L), any())).thenReturn(incident);
-        when(documentService.uploadFile(any(), eq(incident))).thenReturn(document);
+		when(incidentService.getById(eq(1L), any())).thenReturn(incident);
+		when(documentService.uploadFile(any(), eq(incident))).thenReturn(document);
 
-        mockMvc.perform(multipart("/documents/upload/1")
-                        .file(mockFile))
-                .andExpect(status().isCreated());
-    }
+		mockMvc.perform(multipart("/documents/upload/1").file(mockFile)).andExpect(status().isCreated());
+	}
 }
