@@ -3,6 +3,7 @@ package org.example.team6backend.user.service;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.team6backend.auditlog.service.AuditLogService;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
 import org.example.team6backend.exception.UserNotFoundException;
@@ -23,6 +24,7 @@ public class UserService {
 
 	private final AppUserRepository userRepository;
 	private final EntityManager entityManager;
+	private final AuditLogService auditLogService;
 
 	@Transactional
 	public AppUser createOrUpdateUser(Map<String, Object> attributes) {
@@ -115,7 +117,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public AppUser updateUserRole(String userId, UserRole newRole) {
+	public AppUser updateUserRole(String userId, UserRole newRole, AppUser currentAdmin) {
 		log.info("Attempting to update role for user: {} to {}", userId, newRole);
 
 		AppUser user = getUserById(userId);
@@ -126,12 +128,16 @@ public class UserService {
 		user.setRole(newRole);
 		AppUser savedUser = userRepository.save(user);
 
+		auditLogService.log("UPDATE_USER_ROLE",
+				currentAdmin.getName() + " changed " + user.getName() + "'s role from " + oldRole + " to " + newRole,
+				currentAdmin);
+
 		log.info("Role updated for userId={} from {} to {}", userId, oldRole, newRole);
 		return savedUser;
 	}
 
 	@Transactional
-	public AppUser updateUserActiveStatus(String userId, boolean active) {
+	public AppUser updateUserActiveStatus(String userId, boolean active, AppUser currentAdmin) {
 		log.info("Attempting to update active status for user: {} to active={}", userId, active);
 
 		AppUser user = getUserById(userId);
@@ -152,12 +158,15 @@ public class UserService {
 		user.setActive(active);
 		AppUser savedUser = userRepository.save(user);
 
+		auditLogService.log("UPDATE_USER_STATUS",
+				currentAdmin.getName() + (active ? " activated " : " deactivated ") + user.getName(), currentAdmin);
+
 		log.info("Active status updated for userId={} from {} to {}", userId, oldStatus, active);
 		return savedUser;
 	}
 
 	@Transactional
-	public AppUser approvePendingUser(String userId) {
+	public AppUser approvePendingUser(String userId, AppUser currentAdmin) {
 		log.info("Attempting to approve pending user: {}", userId);
 
 		AppUser user = getUserById(userId);
@@ -173,13 +182,17 @@ public class UserService {
 		user.setActive(true);
 
 		AppUser savedUser = userRepository.save(user);
+
+		auditLogService.log("APPROVE_USER", currentAdmin.getName() + " approved " + user.getName() + " as RESIDENT",
+				currentAdmin);
+
 		log.info("User approved successfully: userId={}, githubLogin={}, new role={}", userId, user.getGithubLogin(),
 				savedUser.getRole());
 		return savedUser;
 	}
 
 	@Transactional
-	public void deleteUser(String userId) {
+	public void deleteUser(String userId, AppUser currentAdmin) {
 		log.info("🗑️ Starting deletion process for user: {}", userId);
 
 		AppUser user = getUserById(userId);
@@ -215,6 +228,10 @@ public class UserService {
 				"notifications");
 
 		userRepository.delete(user);
+
+		auditLogService.log("DELETE_USER", currentAdmin.getName() + " deleted user '" + user.getName() + "'",
+				currentAdmin);
+
 		log.info("User DELETED successfully: userId={}, githubLogin={}, role={}", userId, user.getGithubLogin(),
 				user.getRole());
 	}

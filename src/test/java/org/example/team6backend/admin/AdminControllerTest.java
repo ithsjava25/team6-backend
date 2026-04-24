@@ -1,5 +1,7 @@
 package org.example.team6backend.admin;
 
+import org.example.team6backend.auditlog.service.AuditLogService;
+import org.example.team6backend.security.CustomUserDetails;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
 import org.example.team6backend.user.mapper.UserMapper;
@@ -17,17 +19,19 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -46,9 +50,14 @@ class AdminControllerTest {
 	@MockitoBean
 	private UserMapper userMapper;
 
+	@MockitoBean
+	private AuditLogService auditLogService;
+
 	private AppUser testUser;
 	private AppUser pendingUser;
 	private AppUser handlerUser;
+	private AppUser adminUser;
+	private UsernamePasswordAuthenticationToken auth;
 
 	@BeforeEach
 	void setUp() {
@@ -84,6 +93,21 @@ class AdminControllerTest {
 		handlerUser.setActive(true);
 		handlerUser.setCreatedAt(Instant.now());
 		handlerUser.setUpdatedAt(Instant.now());
+
+		adminUser = new AppUser();
+		adminUser.setId(UUID.randomUUID().toString());
+		adminUser.setGithubId("admin123");
+		adminUser.setGithubLogin("admin");
+		adminUser.setName("Admin User");
+		adminUser.setEmail("admin@test.com");
+		adminUser.setRole(UserRole.ADMIN);
+		adminUser.setActive(true);
+		adminUser.setCreatedAt(Instant.now());
+		adminUser.setUpdatedAt(Instant.now());
+
+		CustomUserDetails principal = new CustomUserDetails(adminUser, Map.of());
+		auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(auth);
 	}
 
 	@Test
@@ -96,7 +120,7 @@ class AdminControllerTest {
 		when(userService.getAllUsersPaginated(any(Pageable.class))).thenReturn(userPage);
 		when(userMapper.toResponsePage(any(Page.class))).thenReturn(new PageImpl<>(Arrays.asList()));
 
-		mockMvc.perform(get("/api/admin/users")).andExpect(status().isOk())
+		mockMvc.perform(get("/api/admin/users").with(authentication(auth))).andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON));
 	}
 
@@ -111,7 +135,8 @@ class AdminControllerTest {
 		when(userService.searchUsers(eq(searchTerm), any(Pageable.class))).thenReturn(userPage);
 		when(userMapper.toResponsePage(any(Page.class))).thenReturn(new PageImpl<>(Arrays.asList()));
 
-		mockMvc.perform(get("/api/admin/users").param("search", searchTerm)).andExpect(status().isOk());
+		mockMvc.perform(get("/api/admin/users").param("search", searchTerm).with(authentication(auth)))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -124,7 +149,7 @@ class AdminControllerTest {
 		when(userService.getUsersByRolePaginated(eq(UserRole.PENDING), any(Pageable.class))).thenReturn(pendingPage);
 		when(userMapper.toResponsePage(any(Page.class))).thenReturn(new PageImpl<>(Arrays.asList()));
 
-		mockMvc.perform(get("/api/admin/users/pending")).andExpect(status().isOk());
+		mockMvc.perform(get("/api/admin/users/pending").with(authentication(auth))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -135,7 +160,7 @@ class AdminControllerTest {
 		when(userService.getUserById(userId)).thenReturn(testUser);
 		when(userMapper.toResponse(any(AppUser.class))).thenReturn(null);
 
-		mockMvc.perform(get("/api/admin/users/{userId}", userId)).andExpect(status().isOk());
+		mockMvc.perform(get("/api/admin/users/{userId}", userId).with(authentication(auth))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -145,10 +170,11 @@ class AdminControllerTest {
 		AppUser approvedUser = pendingUser;
 		approvedUser.setRole(UserRole.RESIDENT);
 
-		when(userService.approvePendingUser(userId)).thenReturn(approvedUser);
+		when(userService.approvePendingUser(eq(userId), any(AppUser.class))).thenReturn(approvedUser);
 		when(userMapper.toResponse(any(AppUser.class))).thenReturn(null);
 
-		mockMvc.perform(post("/api/admin/users/{userId}/approve", userId)).andExpect(status().isOk());
+		mockMvc.perform(post("/api/admin/users/{userId}/approve", userId).with(authentication(auth)))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -161,11 +187,11 @@ class AdminControllerTest {
 
 		when(userService.getUserById(userId)).thenReturn(testUser);
 		when(userService.getAllUsers()).thenReturn(Arrays.asList(testUser, updatedUser));
-		when(userService.updateUserRole(userId, UserRole.ADMIN)).thenReturn(updatedUser);
+		when(userService.updateUserRole(eq(userId), eq(UserRole.ADMIN), any(AppUser.class))).thenReturn(updatedUser);
 		when(userMapper.toResponse(any(AppUser.class))).thenReturn(null);
 
 		mockMvc.perform(patch("/api/admin/users/{userId}/role", userId).contentType(MediaType.APPLICATION_JSON)
-				.content(requestBody)).andExpect(status().isOk());
+				.content(requestBody).with(authentication(auth))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -176,11 +202,11 @@ class AdminControllerTest {
 		AppUser updatedUser = testUser;
 		updatedUser.setActive(false);
 
-		when(userService.updateUserActiveStatus(userId, false)).thenReturn(updatedUser);
+		when(userService.updateUserActiveStatus(eq(userId), eq(false), any(AppUser.class))).thenReturn(updatedUser);
 		when(userMapper.toResponse(any(AppUser.class))).thenReturn(null);
 
 		mockMvc.perform(patch("/api/admin/users/{userId}/status", userId).contentType(MediaType.APPLICATION_JSON)
-				.content(requestBody)).andExpect(status().isOk());
+				.content(requestBody).with(authentication(auth))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -189,11 +215,12 @@ class AdminControllerTest {
 		String userId = testUser.getId();
 
 		when(userService.getUserById(userId)).thenReturn(testUser);
-		doNothing().when(userService).deleteUser(userId);
+		doNothing().when(userService).deleteUser(eq(userId), any(AppUser.class));
 
-		mockMvc.perform(delete("/api/admin/users/{userId}", userId)).andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/admin/users/{userId}", userId).with(authentication(auth)))
+				.andExpect(status().isNoContent());
 
-		verify(userService).deleteUser(userId);
+		verify(userService).deleteUser(eq(userId), any(AppUser.class));
 	}
 
 	@Test
@@ -211,8 +238,9 @@ class AdminControllerTest {
 		when(userService.getUsersByRole(UserRole.HANDLER)).thenReturn(handlers);
 		when(userService.getUsersByRole(UserRole.ADMIN)).thenReturn(admins);
 
-		mockMvc.perform(get("/api/admin/stats")).andExpect(status().isOk()).andExpect(jsonPath("$.totalUsers").value(3))
-				.andExpect(jsonPath("$.pendingUsers").value(1)).andExpect(jsonPath("$.residents").value(1))
-				.andExpect(jsonPath("$.handlers").value(1)).andExpect(jsonPath("$.admins").value(0));
+		mockMvc.perform(get("/api/admin/stats").with(authentication(auth))).andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalUsers").value(3)).andExpect(jsonPath("$.pendingUsers").value(1))
+				.andExpect(jsonPath("$.residents").value(1)).andExpect(jsonPath("$.handlers").value(1))
+				.andExpect(jsonPath("$.admins").value(0));
 	}
 }

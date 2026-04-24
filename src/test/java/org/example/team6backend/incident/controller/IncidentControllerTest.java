@@ -1,4 +1,5 @@
 package org.example.team6backend.incident.controller;
+import org.example.team6backend.auditlog.service.AuditLogService;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.service.IncidentService;
 import org.example.team6backend.notification.service.NotificationService;
@@ -52,6 +53,9 @@ class IncidentControllerTest {
 
 	@MockitoBean
 	private NotificationService notificationService;
+
+	@MockitoBean
+	private AuditLogService auditLogService;
 
 	@AfterEach
 	void clearContext() {

@@ -17,7 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -31,6 +33,17 @@ public class AdminController {
 
 	private final UserService userService;
 	private final UserMapper userMapper;
+
+	private AppUser getCurrentUser(CustomUserDetails currentUser) {
+		if (currentUser != null && currentUser.getUser() != null) {
+			return currentUser.getUser();
+		}
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth != null && auth.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+			return customUserDetails.getUser();
+		}
+		throw new IllegalStateException("No authenticated user found!");
+	}
 
 	@GetMapping("/users")
 	public ResponseEntity<Page<UserResponse>> getUsers(@RequestParam(required = false) String email,
@@ -68,9 +81,13 @@ public class AdminController {
 	}
 
 	@PostMapping("/users/{userId}/approve")
-	public ResponseEntity<UserResponse> approveUser(@PathVariable String userId) {
+	public ResponseEntity<UserResponse> approveUser(@PathVariable String userId,
+			@AuthenticationPrincipal CustomUserDetails currentUser) {
+		AppUser admin = getCurrentUser(currentUser);
+
 		log.info("POST /api/admin/users/{}/approve - Approving pending user", userId);
-		AppUser approvedUser = userService.approvePendingUser(userId);
+
+		AppUser approvedUser = userService.approvePendingUser(userId, admin);
 		log.info("User {} approved successfully. New role: {}", approvedUser.getGithubLogin(), approvedUser.getRole());
 
 		return ResponseEntity.ok(userMapper.toResponse(approvedUser));
@@ -80,14 +97,12 @@ public class AdminController {
 	public ResponseEntity<UserResponse> updateUserRole(@PathVariable String userId,
 			@Valid @RequestBody UpdateUserRoleRequest request, @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-		String currentUserLogin = currentUser != null && currentUser.getUser() != null
-				? currentUser.getUser().getGithubLogin()
-				: "unknown";
+		AppUser admin = getCurrentUser(currentUser);
 
-		log.info("PATCH /api/admin/users/{}/role - Admin {} changing role to {}", userId, currentUserLogin,
+		log.info("PATCH /api/admin/users/{}/role - Admin {} changing role to {}", userId, admin.getGithubLogin(),
 				request.role());
 
-		if (currentUser != null && currentUser.getUser() != null && currentUser.getUser().getId().equals(userId)) {
+		if (admin.getId().equals(userId)) { // ← FÖRENKLAT kollen
 			log.warn("User {} attempted to change their own role", userId);
 			throw new IllegalStateException("You cannot change your own role");
 		}
@@ -97,15 +112,15 @@ public class AdminController {
 			if (targetUser.getRole() == UserRole.ADMIN) {
 				long adminCount = userService.getAllUsers().stream().filter(u -> u.getRole() == UserRole.ADMIN).count();
 				if (adminCount <= 1) {
-					log.warn("Attempt to remove last admin user {} by {}", userId, currentUserLogin);
+					log.warn("Attempt to remove last admin user {} by {}", userId, admin.getGithubLogin());
 					throw new IllegalStateException("Cannot remove the last admin user");
 				}
 			}
 		}
 
-		AppUser updatedUser = userService.updateUserRole(userId, request.role());
+		AppUser updatedUser = userService.updateUserRole(userId, request.role(), admin); // ← SKICKA MED ADMIN
 		log.info("User {} role changed to {} by admin {}", updatedUser.getGithubLogin(), request.role(),
-				currentUserLogin);
+				admin.getGithubLogin());
 
 		return ResponseEntity.ok(userMapper.toResponse(updatedUser));
 	}
@@ -115,22 +130,20 @@ public class AdminController {
 			@Valid @RequestBody UpdateUserStatusRequest request,
 			@AuthenticationPrincipal CustomUserDetails currentUser) {
 
-		String currentUserLogin = currentUser != null && currentUser.getUser() != null
-				? currentUser.getUser().getGithubLogin()
-				: "unknown";
+		AppUser admin = getCurrentUser(currentUser);
 
-		log.info("PATCH /api/admin/users/{}/status - Admin {} setting active={}", userId, currentUserLogin,
+		log.info("PATCH /api/admin/users/{}/status - Admin {} setting active={}", userId, admin.getGithubLogin(),
 				request.active());
 
-		if (currentUser != null && currentUser.getUser() != null && currentUser.getUser().getId().equals(userId)
-				&& !request.active()) {
+		if (admin.getId().equals(userId) && !request.active()) {
 			log.warn("User {} attempted to deactivate their own account", userId);
 			throw new IllegalStateException("You cannot deactivate your own account");
 		}
 
-		AppUser updatedUser = userService.updateUserActiveStatus(userId, request.active());
+		AppUser updatedUser = userService.updateUserActiveStatus(userId, request.active(), admin);
+
 		log.info("User {} active status changed to {} by admin {}", updatedUser.getGithubLogin(),
-				updatedUser.isActive(), currentUserLogin);
+				updatedUser.isActive(), admin.getGithubLogin());
 
 		return ResponseEntity.ok(userMapper.toResponse(updatedUser));
 	}
@@ -139,21 +152,19 @@ public class AdminController {
 	public ResponseEntity<Void> deleteUser(@PathVariable String userId,
 			@AuthenticationPrincipal CustomUserDetails currentUser) {
 
-		String currentUserLogin = currentUser != null && currentUser.getUser() != null
-				? currentUser.getUser().getGithubLogin()
-				: "unknown";
+		AppUser admin = getCurrentUser(currentUser);
 
-		log.info("DELETE /api/admin/users/{} - Admin {} attempting to delete user", userId, currentUserLogin);
+		log.info("DELETE /api/admin/users/{} - Admin {} attempting to delete user", userId, admin.getGithubLogin());
 
-		if (currentUser != null && currentUser.getUser() != null && currentUser.getUser().getId().equals(userId)) {
+		if (admin.getId().equals(userId)) { // ← FÖRENKLAT
 			log.warn("User {} attempted to delete their own account", userId);
 			throw new IllegalStateException("You cannot delete your own account");
 		}
 
 		var userToDelete = userService.getUserById(userId);
-		userService.deleteUser(userId);
+		userService.deleteUser(userId, admin); // ← SKICKA MED ADMIN
 		log.info("User {} ({}) deleted by admin {}", userToDelete.getGithubLogin(), userToDelete.getRole(),
-				currentUserLogin);
+				admin.getGithubLogin());
 
 		return ResponseEntity.noContent().build();
 	}

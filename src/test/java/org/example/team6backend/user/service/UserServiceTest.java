@@ -2,6 +2,7 @@ package org.example.team6backend.user.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import org.example.team6backend.auditlog.service.AuditLogService;
 import org.example.team6backend.user.entity.AppUser;
 import org.example.team6backend.user.entity.UserRole;
 import org.example.team6backend.exception.UserNotFoundException;
@@ -36,6 +37,9 @@ class UserServiceTest {
 
 	@Mock
 	private Query mockQuery;
+
+	@Mock
+	private AuditLogService auditLogService;
 
 	@InjectMocks
 	private UserService userService;
@@ -355,10 +359,11 @@ class UserServiceTest {
 		when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser updated = userService.updateUserRole(testUserId, newRole);
+		AppUser updated = userService.updateUserRole(testUserId, newRole, adminUser);
 
 		assertThat(updated.getRole()).isEqualTo(newRole);
 		verify(userRepository).save(testUser);
+		verify(auditLogService).log(anyString(), anyString(), eq(adminUser));
 	}
 
 	@Test
@@ -368,7 +373,7 @@ class UserServiceTest {
 		when(userRepository.findById(handlerUserId)).thenReturn(Optional.of(handlerUser));
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser updated = userService.updateUserRole(handlerUserId, newRole);
+		AppUser updated = userService.updateUserRole(handlerUserId, newRole, adminUser);
 
 		assertThat(updated.getRole()).isEqualTo(UserRole.ADMIN);
 		verify(userRepository).save(handlerUser);
@@ -381,7 +386,7 @@ class UserServiceTest {
 		when(userRepository.findById(adminUserId)).thenReturn(Optional.of(adminUser));
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser updated = userService.updateUserRole(adminUserId, newRole);
+		AppUser updated = userService.updateUserRole(adminUserId, newRole, adminUser);
 
 		assertThat(updated.getRole()).isEqualTo(UserRole.HANDLER);
 		verify(userRepository).save(adminUser);
@@ -394,7 +399,7 @@ class UserServiceTest {
 		when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser updated = userService.updateUserActiveStatus(testUserId, newStatus);
+		AppUser updated = userService.updateUserActiveStatus(testUserId, newStatus, adminUser);
 
 		assertThat(updated.isActive()).isFalse();
 		verify(userRepository).save(testUser);
@@ -406,7 +411,7 @@ class UserServiceTest {
 		when(userRepository.findById(inactiveUserId)).thenReturn(Optional.of(inactiveUser));
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser updated = userService.updateUserActiveStatus(inactiveUserId, true);
+		AppUser updated = userService.updateUserActiveStatus(inactiveUserId, true, adminUser);
 
 		assertThat(updated.isActive()).isTrue();
 		verify(userRepository).save(inactiveUser);
@@ -418,7 +423,7 @@ class UserServiceTest {
 		when(userRepository.findById(adminUserId)).thenReturn(Optional.of(adminUser));
 		when(userRepository.countByRoleAndActiveTrue(UserRole.ADMIN)).thenReturn(1L);
 
-		assertThatThrownBy(() -> userService.updateUserActiveStatus(adminUserId, false))
+		assertThatThrownBy(() -> userService.updateUserActiveStatus(adminUserId, false, adminUser))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("Cannot deactivate the last active admin user");
 		verify(userRepository, never()).save(any());
@@ -432,7 +437,7 @@ class UserServiceTest {
 		when(userRepository.countByRoleAndActiveTrue(UserRole.ADMIN)).thenReturn(2L);
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser updated = userService.updateUserActiveStatus(adminUserId, newStatus);
+		AppUser updated = userService.updateUserActiveStatus(adminUserId, newStatus, adminUser);
 
 		assertThat(updated.isActive()).isFalse();
 		verify(userRepository).save(adminUser);
@@ -444,7 +449,7 @@ class UserServiceTest {
 		when(userRepository.findById(pendingUserId)).thenReturn(Optional.of(pendingUser));
 		when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		AppUser approved = userService.approvePendingUser(pendingUserId);
+		AppUser approved = userService.approvePendingUser(pendingUserId, adminUser);
 
 		assertThat(approved.getRole()).isEqualTo(UserRole.RESIDENT);
 		assertThat(approved.isActive()).isTrue();
@@ -456,8 +461,8 @@ class UserServiceTest {
 
 		when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
-		assertThatThrownBy(() -> userService.approvePendingUser(testUserId)).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("User is not pending approval");
+		assertThatThrownBy(() -> userService.approvePendingUser(testUserId, adminUser))
+				.isInstanceOf(IllegalStateException.class).hasMessageContaining("User is not pending approval");
 		verify(userRepository, never()).save(any());
 	}
 
@@ -466,8 +471,8 @@ class UserServiceTest {
 
 		when(userRepository.findById(adminUserId)).thenReturn(Optional.of(adminUser));
 
-		assertThatThrownBy(() -> userService.approvePendingUser(adminUserId)).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("User is not pending approval");
+		assertThatThrownBy(() -> userService.approvePendingUser(adminUserId, adminUser))
+				.isInstanceOf(IllegalStateException.class).hasMessageContaining("User is not pending approval");
 		verify(userRepository, never()).save(any());
 	}
 
@@ -476,7 +481,8 @@ class UserServiceTest {
 
 		when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
-		assertThatThrownBy(() -> userService.approvePendingUser(testUserId)).isInstanceOf(IllegalStateException.class);
+		assertThatThrownBy(() -> userService.approvePendingUser(testUserId, adminUser))
+				.isInstanceOf(IllegalStateException.class);
 		verify(userRepository, never()).save(any());
 	}
 
@@ -490,7 +496,7 @@ class UserServiceTest {
 		lenient().when(mockQuery.executeUpdate()).thenReturn(1);
 		lenient().doNothing().when(userRepository).delete(testUser);
 
-		userService.deleteUser(testUserId);
+		userService.deleteUser(testUserId, adminUser);
 
 		verify(userRepository).delete(testUser);
 		verify(entityManager, atLeast(6)).createNativeQuery(anyString());
@@ -502,8 +508,8 @@ class UserServiceTest {
 		when(userRepository.findById(adminUserId)).thenReturn(Optional.of(adminUser));
 		when(userRepository.countByRole(UserRole.ADMIN)).thenReturn(1L);
 
-		assertThatThrownBy(() -> userService.deleteUser(adminUserId)).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot delete the last admin user");
+		assertThatThrownBy(() -> userService.deleteUser(adminUserId, adminUser))
+				.isInstanceOf(IllegalStateException.class).hasMessageContaining("Cannot delete the last admin user");
 		verify(userRepository, never()).delete(any());
 	}
 
@@ -517,7 +523,7 @@ class UserServiceTest {
 		when(mockQuery.executeUpdate()).thenReturn(1);
 		doNothing().when(userRepository).delete(adminUser);
 
-		userService.deleteUser(adminUserId);
+		userService.deleteUser(adminUserId, adminUser);
 
 		verify(userRepository).delete(adminUser);
 		verify(entityManager, atLeast(6)).createNativeQuery(anyString());

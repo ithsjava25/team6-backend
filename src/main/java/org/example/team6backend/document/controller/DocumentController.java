@@ -50,7 +50,7 @@ public class DocumentController {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
 
-		InputStream inputStream = documentService.downloadFile(fileKey);
+		InputStream inputStream = documentService.downloadFile(fileKey, user);
 		MediaType mediaType = document.getContentType() != null
 				? MediaType.parseMediaType(document.getContentType())
 				: MediaType.APPLICATION_OCTET_STREAM;
@@ -72,7 +72,7 @@ public class DocumentController {
 
 		for (MultipartFile file : files) {
 			if (!file.isEmpty()) {
-				Document doc = documentService.uploadFile(file, incident);
+				Document doc = documentService.uploadFile(file, incident, user);
 				DocumentDTO dto = new DocumentDTO();
 				dto.setFileName(doc.getFileName());
 				dto.setFileKey(doc.getFileKey());
@@ -93,10 +93,12 @@ public class DocumentController {
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		log.info("DELETE /documents/{} - Deleting file", documentId);
+		AppUser user = userDetails.getUser();
+
 		Document document = documentService.getById(documentId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-		documentService.deleteFile(document);
+		documentService.deleteFile(document, user);
 		return ResponseEntity.noContent().build();
 	}
 }

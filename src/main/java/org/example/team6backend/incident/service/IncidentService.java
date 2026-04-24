@@ -2,6 +2,7 @@ package org.example.team6backend.incident.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.activity.service.ActivityLogService;
+import org.example.team6backend.auditlog.service.AuditLogService;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.service.DocumentService;
 import org.example.team6backend.document.service.MinioService;
@@ -38,16 +39,18 @@ public class IncidentService {
 	private final AppUserRepository userRepository;
 	private final NotificationService notificationService;
 	private final MinioService minioService;
+	private final AuditLogService auditLogService;
 
 	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
 			DocumentService documentService, AppUserRepository userRepository, NotificationService notificationService,
-			MinioService minioService) {
+			MinioService minioService, AuditLogService auditLogService) {
 		this.incidentRepository = incidentRepository;
 		this.activityLogService = activityLogService;
 		this.documentService = documentService;
 		this.userRepository = userRepository;
 		this.notificationService = notificationService;
 		this.minioService = minioService;
+		this.auditLogService = auditLogService;
 	}
 
 	/**
@@ -83,12 +86,15 @@ public class IncidentService {
 			if (files != null) {
 				for (MultipartFile file : files) {
 					if (!file.isEmpty()) {
-						Document savedDocument = documentService.uploadFile(file, savedIncident);
+						Document savedDocument = documentService.uploadFile(file, savedIncident, user);
 						uploadedKeys.add(savedDocument.getFileKey());
 					}
 				}
 			}
 			activityLogService.log("INCIDENT_CREATED", user.getName() + " created incident.", savedIncident, user);
+
+			auditLogService.log("CREATE_INCIDENT", user.getName() + " created incident #" + savedIncident.getId(),
+					user);
 
 			return savedIncident;
 
@@ -141,16 +147,19 @@ public class IncidentService {
 		boolean isOwner = incident.getCreatedBy() != null && incident.getCreatedBy().getId().equals(user.getId());
 
 		if (isAdmin || isAssignedHandler || isOwner) {
+			auditLogService.log("VIEW_INCIDENT", user.getName() + " viewed incident #" + incident.getId(), user);
 			return incident;
 		}
 		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed!");
 	}
 
 	@Transactional
-	public void deleteIncident(Long incidentId) {
+	public void deleteIncident(Long incidentId, AppUser currentUser) {
 
 		Incident incident = incidentRepository.findByIdWithDocuments(incidentId)
 				.orElseThrow(() -> new ResourceNotFoundException("Incident not found!"));
+
+		String incidentSubject = incident.getSubject();
 
 		for (Document document : incident.getDocuments()) {
 			try {
@@ -160,6 +169,9 @@ public class IncidentService {
 			}
 		}
 		incidentRepository.delete(incident);
+
+		auditLogService.log("DELETE_INCIDENT",
+				currentUser.getName() + " deleted incident #" + incidentId + " '" + incidentSubject + "'", currentUser);
 	}
 
 	@Transactional
@@ -193,6 +205,9 @@ public class IncidentService {
 				currentUser.getName() + " assigned incident from " + oldHandlerName + " to " + handler.getName(),
 				savedIncident, currentUser);
 
+		auditLogService.log("ASSIGN_INCIDENT",
+				currentUser.getName() + " assigned incident #" + incidentId + " to " + handler.getName(), currentUser);
+
 		notificationService.createNotification("You have been assigned to an incident", handler, savedIncident);
 
 		if (!handler.getId().equals(savedIncident.getCreatedBy().getId())) {
@@ -223,6 +238,9 @@ public class IncidentService {
 		activityLogService.log("STATUS_CHANGED",
 				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus, savedIncident,
 				currentUser);
+
+		auditLogService.log("UPDATE_STATUS", currentUser.getName() + " changed incident #" + incidentId
+				+ " status from " + oldStatus + " to " + newStatus, currentUser);
 
 		if (savedIncident.getCreatedBy() != null && !savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
 
@@ -265,6 +283,10 @@ public class IncidentService {
 				currentUser.getName() + " unassigned incident from " + previousHandler.getName(), savedIncident,
 				currentUser);
 
+		auditLogService.log("UNASSIGN_INCIDENT",
+				currentUser.getName() + " unassigned incident #" + incidentId + " from " + previousHandler,
+				currentUser);
+
 		notificationService.createNotification(
 				"Incident #" + incident.getId() + " has been unassigned from you by " + currentUser.getName(),
 				previousHandler, savedIncident);
@@ -300,6 +322,8 @@ public class IncidentService {
 		activityLogService.log("INCIDENT_CLOSED",
 				currentUser.getName() + " closed incident (status changed from " + oldStatus + " to CLOSED)",
 				savedIncident, currentUser);
+
+		auditLogService.log("CLOSE_INCIDENT", currentUser.getName() + " closed incident #" + incidentId, currentUser);
 
 		notificationService.createNotification(
 				"Incident #" + incident.getId() + " has been closed by " + currentUser.getName(),
@@ -340,6 +364,9 @@ public class IncidentService {
 		activityLogService.log("INCIDENT_RESOLVED",
 				currentUser.getName() + " resolved incident (status changed from " + oldStatus + " to RESOLVED)",
 				savedIncident, currentUser);
+
+		auditLogService.log("RESOLVE_INCIDENT", currentUser.getName() + " resolved incident #" + incidentId,
+				currentUser);
 
 		notificationService.createNotification(
 				"Incident #" + incident.getId() + " has been marked as resolved by " + currentUser.getName(),
