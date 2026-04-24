@@ -84,25 +84,20 @@
             const r = await fetch(`/api/incidents/${incidentId}`);
             if (!r.ok) throw new Error();
             const i = await r.json();
-            console.log("INCIDENT DATA: ", i);
             let docsHtml = '';
             if (i.hasDocuments && i.documents?.length > 0) {
                 docsHtml = `<div style="margin-top:10px; display:flex; gap:12px; flex-wrap:wrap;">` + i.documents.map(doc => {
                     const url = `/documents/${encodeURIComponent(doc.fileKey)}`;
                     return /\.(jpg|jpeg|png|gif|webp)$/i.test(doc.fileName)
                         ? `<a href="${url}" target="_blank">
-                    <img src="${url}" class="incident-img"
-                         style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #2a2a2a;">
-               </a>`
+    <img src="${url}"
+         onerror="this.parentElement.remove()"
+         style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #2a2a2a;">
+</a>`
                         : `<a href="${url}" target="_blank" class="btn">📄 ${escapeHtml(doc.fileName)}</a>`;
                 }).join('') + `</div>`;
             }
             document.getElementById('incident').innerHTML = `<div class="card"><div class="incident-header"><div class="incident-title">${escapeHtml(i.subject)}</div><div class="incident-category">${i.incidentCategory}</div></div><div class="incident-description">${escapeHtml(i.description || 'No description')}${docsHtml}</div><div class="incident-footer" style="margin-top:1rem;display:flex;gap:1rem;font-size:0.75rem;color:#6b7280;"><span>ID: ${i.id}</span><span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span><span>Created: ${formatDate(i.createdAt)}</span></div></div>`;
-            document.querySelectorAll('.incident-img').forEach(img => {
-                img.onerror = () => {
-                    img.parentElement.remove();
-                };
-            });
         } catch(e) { document.getElementById('incident').innerHTML = '<div class="card"><p>Failed to load incident.</p></div>'; }
     }
 

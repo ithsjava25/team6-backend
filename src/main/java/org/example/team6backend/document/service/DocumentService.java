@@ -60,8 +60,8 @@ public class DocumentService {
 	public InputStream downloadFile(String objectKey) {
 		try {
 			return minioService.downloadFile(objectKey);
-		} catch (Exception e) {
-			log.warn("Missing file in Minio: {}", objectKey);
+		} catch (MinioService.FileMissingException e) {
+			log.warn("Missing file in Minio: {}", objectKey, e);
 
 			var docOpt = documentRepository.findByFileKey(objectKey);
 
@@ -71,7 +71,12 @@ public class DocumentService {
 			} else {
 				log.warn("NO document found in DB for: {}", objectKey);
 			}
+
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
+
+		} catch (Exception e) {
+			log.error("Failed to download file from Minio: {}", objectKey, e);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to download file");
 		}
 	}
 
