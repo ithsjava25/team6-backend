@@ -1,4 +1,5 @@
 package org.example.team6backend.incident.service;
+import org.example.team6backend.auditlog.service.AuditLogService;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.notification.service.NotificationService;
 import org.example.team6backend.activity.service.ActivityLogService;
@@ -53,6 +54,9 @@ class IncidentServiceTest {
 	@Mock
 	private NotificationService notificationService;
 
+	@Mock
+	private AuditLogService auditLogService;
+
 	private Incident incident;
 	private AppUser user;
 	private AppUser handler;
@@ -102,12 +106,12 @@ class IncidentServiceTest {
 		document.setFileKey("abc123");
 
 		when(incidentRepository.save(any())).thenReturn(incident);
-		when(documentService.uploadFile(file, incident)).thenReturn(document);
+		when(documentService.uploadFile(eq(file), eq(incident), eq(user))).thenReturn(document);
 
 		Incident result = incidentService.createIncident(new IncidentRequest(), List.of(file), user);
 
 		assertNotNull(result);
-		verify(documentService).uploadFile(file, incident);
+		verify(documentService).uploadFile(eq(file), eq(incident), eq(user));
 	}
 
 	@Test
@@ -201,7 +205,7 @@ class IncidentServiceTest {
 
 		incident.setDocuments(List.of());
 
-		incidentService.deleteIncident(1L);
+		incidentService.deleteIncident(1L, user);
 		verify(incidentRepository).delete(incident);
 	}
 }

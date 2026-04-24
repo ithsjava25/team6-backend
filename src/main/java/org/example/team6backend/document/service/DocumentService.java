@@ -2,9 +2,11 @@ package org.example.team6backend.document.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.team6backend.auditlog.service.AuditLogService;
 import org.example.team6backend.document.entity.Document;
 import org.example.team6backend.document.repository.DocumentRepository;
 import org.example.team6backend.incident.entity.Incident;
+import org.example.team6backend.user.entity.AppUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +25,11 @@ public class DocumentService {
 
 	private final MinioService minioService;
 	private final DocumentRepository documentRepository;
+	private final AuditLogService auditLogService;
 
 	/** Upload file */
 	@Transactional
-	public Document uploadFile(MultipartFile file, Incident incident) {
+	public Document uploadFile(MultipartFile file, Incident incident, AppUser user) {
 		String fileKey = UUID.randomUUID() + "_" + file.getOriginalFilename();
 		boolean uploaded = false;
 
@@ -41,7 +44,12 @@ public class DocumentService {
 			document.setFileSize(file.getSize());
 			document.setIncident(incident);
 
-			return documentRepository.save(document);
+			Document savedDocument = documentRepository.save(document);
+
+			auditLogService.log("UPLOAD_DOCUMENT", user.getName() + " uploaded '" + file.getOriginalFilename() + "'",
+					user, "Document", savedDocument.getId().toString());
+
+			return savedDocument;
 
 		} catch (Exception e) {
 			if (uploaded) {
@@ -57,9 +65,14 @@ public class DocumentService {
 
 	/** Download file */
 	@Transactional
-	public InputStream downloadFile(String objectKey) {
+	public InputStream downloadFile(String objectKey, AppUser user) {
 		try {
-			return minioService.downloadFile(objectKey);
+			InputStream stream = minioService.downloadFile(objectKey);
+
+			auditLogService.log("DOWNLOAD_DOCUMENT", user.getName() + " downloaded file '" + objectKey + "'", user);
+
+			return stream;
+
 		} catch (MinioService.FileMissingException e) {
 			log.warn("Missing file in Minio: {}", objectKey, e);
 
@@ -82,14 +95,20 @@ public class DocumentService {
 
 	/** Delete file */
 	@Transactional
-	public void deleteFile(Document document) {
+	public void deleteFile(Document document, AppUser user) {
+		String fileName = document.getFileName();
+		String fileKey = document.getFileKey();
+
 		documentRepository.delete(document);
+		auditLogService.log("DELETE_DOCUMENT", user.getName() + " deleted file '" + fileName + "'", user, "Document",
+				document.getId().toString());
 
 		try {
-			minioService.deleteFile(document.getFileKey());
+			minioService.deleteFile(fileKey);
 		} catch (Exception e) {
-			log.warn("Could not delete file: {}", document.getFileKey(), e);
+			log.warn("Could not delete file: {}", fileKey, e);
 		}
+
 	}
 
 	/** Fetch all files connected to one incident */
