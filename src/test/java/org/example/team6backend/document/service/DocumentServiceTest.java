@@ -66,11 +66,11 @@ class DocumentServiceTest {
 		when(file.getSize()).thenReturn(100L);
 
 		Document document = new Document();
-        document.setId(1L);
+		document.setId(1L);
 		document.setFileName("test.pdf");
 
 		when(documentRepository.save(any(Document.class))).thenReturn(document);
-        doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
+		doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
 		Document result = documentService.uploadFile(file, incident, testUser);
 
 		assertEquals("test.pdf", result.getFileName());
@@ -98,10 +98,10 @@ class DocumentServiceTest {
 	@Test
 	void deleteFile_shouldDeleteRepoAndMinio() {
 		Document document = new Document();
-        document.setId(1L);
+		document.setId(1L);
 		document.setFileKey("abc");
 
-        doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
+		doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
 
 		documentService.deleteFile(document, testUser);
 
@@ -112,13 +112,13 @@ class DocumentServiceTest {
 	@Test
 	void deleteFile_shouldIgnoreMinioFail() {
 		Document document = new Document();
-        document.setId(1L);
+		document.setId(1L);
 		document.setFileKey("abc");
 
 		doThrow(new RuntimeException("MinIO Failure")).when(minioService).deleteFile(anyString());
 		System.out.println(minioService.getClass());
 
-        doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
+		doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
 
 		assertDoesNotThrow(() -> documentService.deleteFile(document, testUser));
 		verify(minioService).deleteFile("abc");
