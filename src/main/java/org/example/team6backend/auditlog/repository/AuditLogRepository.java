@@ -1,18 +1,17 @@
 package org.example.team6backend.auditlog.repository;
 
 import org.example.team6backend.auditlog.entity.AuditLog;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
-	@Query("SELECT a FROM AuditLog a " + "WHERE LOWER(a.userName) LIKE LOWER(CONCAT('%', :s, '%')) "
+	@Query("SELECT a FROM AuditLog a " + "WHERE LOWER(a.performedBy.name) LIKE LOWER(CONCAT('%', :s, '%')) "
 			+ "OR LOWER(a.action) LIKE LOWER(CONCAT('%', :s, '%'))")
+	Page<AuditLog> searchLogs(@Param("s") String search, Pageable pageable);
 
-	List<AuditLog> searchLogs(@Param("s") String search, Sort sort);
-
-	List<AuditLog> findByPerformedBy(Long userId);
+	Page<AuditLog> findByPerformedByIdOrderByCreatedAtDesc(String userId);
 }

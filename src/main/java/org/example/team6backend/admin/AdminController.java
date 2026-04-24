@@ -21,8 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
+import org.springframework.security.access.AccessDeniedException;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -42,7 +42,7 @@ public class AdminController {
 		if (auth != null && auth.getPrincipal() instanceof CustomUserDetails customUserDetails) {
 			return customUserDetails.getUser();
 		}
-		throw new IllegalStateException("No authenticated user found!");
+		throw new AccessDeniedException("NNot authenticated!");
 	}
 
 	@GetMapping("/users")

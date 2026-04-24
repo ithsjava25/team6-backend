@@ -93,8 +93,8 @@ public class IncidentService {
 			}
 			activityLogService.log("INCIDENT_CREATED", user.getName() + " created incident.", savedIncident, user);
 
-			auditLogService.log("CREATE_INCIDENT", user.getName() + " created incident #" + savedIncident.getId(),
-					user);
+			auditLogService.log("CREATE_INCIDENT", user.getName() + " created incident #" + savedIncident.getId(), user,
+					"Incident", savedIncident.getId().toString());
 
 			return savedIncident;
 
@@ -147,7 +147,8 @@ public class IncidentService {
 		boolean isOwner = incident.getCreatedBy() != null && incident.getCreatedBy().getId().equals(user.getId());
 
 		if (isAdmin || isAssignedHandler || isOwner) {
-			auditLogService.log("VIEW_INCIDENT", user.getName() + " viewed incident #" + incident.getId(), user);
+			auditLogService.log("VIEW_INCIDENT", user.getName() + " viewed incident #" + incident.getId(), user,
+					"Incident", incident.getId().toString());
 			return incident;
 		}
 		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed!");
@@ -170,8 +171,8 @@ public class IncidentService {
 		}
 		incidentRepository.delete(incident);
 
-		auditLogService.log("DELETE_INCIDENT",
-				currentUser.getName() + " deleted incident #" + incidentId + " '" + incidentSubject + "'", currentUser);
+		auditLogService.log("DELETE_INCIDENT", currentUser.getName() + " deleted incident #" + incidentId, currentUser,
+				"Incident", incidentId.toString());
 	}
 
 	@Transactional
@@ -206,7 +207,8 @@ public class IncidentService {
 				savedIncident, currentUser);
 
 		auditLogService.log("ASSIGN_INCIDENT",
-				currentUser.getName() + " assigned incident #" + incidentId + " to " + handler.getName(), currentUser);
+				currentUser.getName() + " assigned incident #" + incidentId + " to " + handler.getName(), currentUser,
+				"Incident", incidentId.toString());
 
 		notificationService.createNotification("You have been assigned to an incident", handler, savedIncident);
 
@@ -284,7 +286,7 @@ public class IncidentService {
 				currentUser);
 
 		auditLogService.log("UNASSIGN_INCIDENT",
-				currentUser.getName() + " unassigned incident #" + incidentId + " from " + previousHandler,
+				currentUser.getName() + " unassigned incident #" + incidentId + " from " + previousHandler.getName(),
 				currentUser);
 
 		notificationService.createNotification(

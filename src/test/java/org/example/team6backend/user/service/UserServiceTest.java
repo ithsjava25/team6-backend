@@ -363,8 +363,8 @@ class UserServiceTest {
 
 		assertThat(updated.getRole()).isEqualTo(newRole);
 		verify(userRepository).save(testUser);
-		verify(auditLogService).log(anyString(), anyString(), eq(adminUser));
-	}
+        verify(auditLogService).log(anyString(), anyString(), eq(adminUser), anyString(), anyString());
+    }
 
 	@Test
 	void updateUserRole_ShouldUpdateFromHandlerToAdmin() {

@@ -46,9 +46,9 @@ public class DocumentService {
 
 			Document savedDocument = documentRepository.save(document);
 
-			auditLogService.log("UPLOAD_DOCUMENT",
-					user.getName() + " uploaded '" + file.getOriginalFilename() + "' to incident #" + incident.getId(),
-					user);
+			auditLogService.log("UPLOAD_DOCUMENT", user.getName() + " uploaded '" + file.getOriginalFilename() + "'",
+					user, "Document", savedDocument.getId().toString());
+
 			return savedDocument;
 
 		} catch (Exception e) {
@@ -100,13 +100,15 @@ public class DocumentService {
 		String fileKey = document.getFileKey();
 
 		documentRepository.delete(document);
+		auditLogService.log("DELETE_DOCUMENT", user.getName() + " deleted file '" + fileName + "'", user, "Document",
+				document.getId().toString());
 
 		try {
-			minioService.deleteFile(document.getFileKey());
+			minioService.deleteFile(fileKey);
 		} catch (Exception e) {
-			log.warn("Could not delete file: {}", document.getFileKey(), e);
+			log.warn("Could not delete file: {}", fileKey, e);
 		}
-		auditLogService.log("DELETE_DOCUMENT", user.getName() + " deleted file '" + fileName + "'", user);
+
 	}
 
 	/** Fetch all files connected to one incident */

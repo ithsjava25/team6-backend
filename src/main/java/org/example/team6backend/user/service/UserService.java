@@ -130,7 +130,7 @@ public class UserService {
 
 		auditLogService.log("UPDATE_USER_ROLE",
 				currentAdmin.getName() + " changed " + user.getName() + "'s role from " + oldRole + " to " + newRole,
-				currentAdmin);
+				currentAdmin, "User", userId);
 
 		log.info("Role updated for userId={} from {} to {}", userId, oldRole, newRole);
 		return savedUser;
@@ -230,7 +230,7 @@ public class UserService {
 		userRepository.delete(user);
 
 		auditLogService.log("DELETE_USER", currentAdmin.getName() + " deleted user '" + user.getName() + "'",
-				currentAdmin);
+				currentAdmin, "User", userId);
 
 		log.info("User DELETED successfully: userId={}, githubLogin={}, role={}", userId, user.getGithubLogin(),
 				user.getRole());
