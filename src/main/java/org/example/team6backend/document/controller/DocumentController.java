@@ -50,7 +50,7 @@ public class DocumentController {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
 
-		InputStream inputStream = minioService.getFile(fileKey);
+		InputStream inputStream = documentService.downloadFile(fileKey);
 		MediaType mediaType = document.getContentType() != null
 				? MediaType.parseMediaType(document.getContentType())
 				: MediaType.APPLICATION_OCTET_STREAM;

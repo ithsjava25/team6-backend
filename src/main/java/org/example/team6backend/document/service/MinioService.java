@@ -1,6 +1,7 @@
 package org.example.team6backend.document.service;
 
 import io.minio.*;
+import io.minio.errors.ErrorResponseException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,8 +48,13 @@ public class MinioService {
 	public InputStream downloadFile(String fileKey) {
 		try {
 			return minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(fileKey).build());
+		} catch (ErrorResponseException e) {
+			if ("NoSuchKey".equals(e.errorResponse().code())) {
+				throw new FileMissingException("File not found: " + fileKey, e);
+			}
+			throw new RuntimeException("Failed to download file: " + fileKey, e);
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to download file " + fileKey, e);
+			throw new RuntimeException("Failed to download file: " + fileKey, e);
 		}
 	}
 
@@ -66,6 +72,11 @@ public class MinioService {
 			return minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(fileKey).build());
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found: " + fileKey);
+		}
+	}
+	public class FileMissingException extends RuntimeException {
+		public FileMissingException(String message, Throwable cause) {
+			super(message, cause);
 		}
 	}
 }

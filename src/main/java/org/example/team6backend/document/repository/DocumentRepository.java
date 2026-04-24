@@ -14,4 +14,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 	List<Document> findByIncidentId(Long incidentId);
 
 	Optional<Document> findByFileKey(String fileKey);
+
+	void deleteByFileKey(String fileKey);
 }

@@ -89,7 +89,11 @@
                 docsHtml = `<div style="margin-top:10px; display:flex; gap:12px; flex-wrap:wrap;">` + i.documents.map(doc => {
                     const url = `/documents/${encodeURIComponent(doc.fileKey)}`;
                     return /\.(jpg|jpeg|png|gif|webp)$/i.test(doc.fileName)
-                        ? `<a href="${url}" target="_blank"><img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #2a2a2a;"></a>`
+                        ? `<a href="${url}" target="_blank">
+    <img src="${url}"
+         onerror="this.parentElement.remove()"
+         style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #2a2a2a;">
+</a>`
                         : `<a href="${url}" target="_blank" class="btn">📄 ${escapeHtml(doc.fileName)}</a>`;
                 }).join('') + `</div>`;
             }
