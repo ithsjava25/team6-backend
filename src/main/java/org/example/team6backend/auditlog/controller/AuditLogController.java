@@ -32,8 +32,9 @@ public class AuditLogController {
 	}
 
 	@GetMapping("/user/{userId}")
-	public ResponseEntity<Page<AuditLog>> getLogsByUser(@PathVariable String userId) {
-		Page<AuditLog> logs = auditLogRepository.findByPerformedByIdOrderByCreatedAtDesc(userId);
+	public ResponseEntity<Page<AuditLog>> getLogsByUser(@PathVariable String userId,
+			@PageableDefault(size = 20) Pageable pageable) {
+		Page<AuditLog> logs = auditLogRepository.findByPerformedByIdOrderByCreatedAtDesc(userId, pageable);
 		return ResponseEntity.ok(logs);
 	}
 }
