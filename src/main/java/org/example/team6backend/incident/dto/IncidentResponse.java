@@ -10,6 +10,7 @@ import org.hibernate.Hibernate;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class IncidentResponse {
@@ -49,8 +50,8 @@ public class IncidentResponse {
 			if (Hibernate.isInitialized(incident.getDocuments()) && incident.getDocuments() != null) {
 				response.setHasDocuments(!incident.getDocuments().isEmpty());
 				if (!incident.getDocuments().isEmpty()) {
-					List<DocumentDTO> documentDTOs = incident.getDocuments().stream()
-							.filter(document -> document != null).map(document -> {
+					List<DocumentDTO> documentDTOs = incident.getDocuments().stream().filter(Objects::nonNull)
+							.map(document -> {
 								DocumentDTO dto = new DocumentDTO();
 								dto.setFileName(document.getFileName());
 								dto.setFileKey(document.getFileKey());
@@ -59,7 +60,7 @@ public class IncidentResponse {
 					response.setDocuments(documentDTOs);
 				}
 			}
-		} catch (Exception e) {
+		} catch (Exception _) {
 			response.setHasDocuments(false);
 			response.setDocuments(new ArrayList<>());
 		}

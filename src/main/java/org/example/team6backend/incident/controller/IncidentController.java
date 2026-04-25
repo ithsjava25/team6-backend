@@ -43,6 +43,18 @@ public class IncidentController {
 	private final UserMapper userMapper;
 	private final NotificationService notificationService;
 
+	private AppUser getUser(CustomUserDetails userDetails) {
+		System.out.println("DEBUG getUser - userDetails.getUser(): " + userDetails.getUser());
+		if (userDetails == null) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cd) {
+				return cd.getUser();
+			}
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+		}
+		return userDetails.getUser();
+	}
+
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
@@ -50,10 +62,10 @@ public class IncidentController {
 			@RequestParam(value = "description", required = false) String description,
 			@RequestParam("incidentCategory") IncidentCategory incidentCategory,
 			@RequestParam(value = "files", required = false) List<MultipartFile> files,
-			@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		log.info("POST /api/incidents - Creating new incident with {} files", files != null ? files.size() : 0);
-		AppUser user = customUserDetails.getUser();
+		AppUser user = getUser(userDetails);
 
 		IncidentRequest incidentRequest = new IncidentRequest();
 		incidentRequest.setSubject(subject);
@@ -68,10 +80,10 @@ public class IncidentController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PreAuthorize("hasAnyRole('RESIDENT', 'ADMIN')")
 	public ResponseEntity<IncidentResponse> createIncident(@RequestBody @Valid IncidentRequest incidentRequest,
-			@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		log.info("POST /api/incidents (JSON) - Creating new incident");
-		AppUser user = customUserDetails.getUser();
+		AppUser user = getUser(userDetails);
 		Incident saved = incidentService.createIncident(incidentRequest, null, user);
 		return ResponseEntity.status(HttpStatus.CREATED).body(IncidentResponse.fromEntityBasic(saved));
 	}
@@ -81,7 +93,7 @@ public class IncidentController {
 	public ResponseEntity<Page<IncidentResponse>> getMyIncidents(@AuthenticationPrincipal CustomUserDetails userDetails,
 			Pageable pageable) {
 		log.info("GET /api/incidents/my - Fetching my incidents");
-		AppUser user = userDetails.getUser();
+		AppUser user = getUser(userDetails);
 		return ResponseEntity
 				.ok(incidentService.findByCreatedBy(user, pageable).map(IncidentResponse::fromEntityBasic));
 	}
@@ -91,7 +103,7 @@ public class IncidentController {
 	public ResponseEntity<Page<IncidentResponse>> getAssignedIncidents(
 			@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
 		log.info("GET /api/incidents/assigned - Fetching assigned incidents");
-		AppUser user = userDetails.getUser();
+		AppUser user = getUser(userDetails);
 		return ResponseEntity
 				.ok(incidentService.findByAssignedTo(user, pageable).map(IncidentResponse::fromEntityBasic));
 	}
@@ -106,35 +118,33 @@ public class IncidentController {
 	@PreAuthorize("hasAnyRole('RESIDENT', 'HANDLER', 'ADMIN')")
 	@GetMapping("/{id}")
 	public ResponseEntity<IncidentResponse> getIncidentById(@PathVariable Long id) {
-		log.info("GET /api/incidents/{} - Fetching incident", id);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-		if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
+		if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails cd)) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 		}
-
-		AppUser currentUser = userDetails.getUser();
+		AppUser currentUser = cd.getUser();
+		log.info("GET /api/incidents/{} - Fetching incident", id);
 		notificationService.markNotificationAsReadForIncident(currentUser.getId(), id);
-
 		return ResponseEntity.ok(IncidentResponse.fromEntityWithDocuments(incidentService.getById(id, currentUser)));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{incidentId}/assign")
 	public ResponseEntity<IncidentResponse> assignIncident(@PathVariable Long incidentId,
-			@Valid @RequestBody AssignIncidentRequest request, @AuthenticationPrincipal CustomUserDetails adminUser) {
+			@Valid @RequestBody AssignIncidentRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
 		log.info("PATCH /api/incidents/{}/assign - Assigning to handler {}", incidentId, request.handlerId());
-		Incident updatedIncident = incidentService.assignIncidentToHandler(incidentId, request.handlerId(),
-				adminUser.getUser());
+		AppUser user = getUser(userDetails);
+		Incident updatedIncident = incidentService.assignIncidentToHandler(incidentId, request.handlerId(), user);
 		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(updatedIncident));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{incidentId}/unassign")
 	public ResponseEntity<IncidentResponse> unassignIncident(@PathVariable Long incidentId,
-			@AuthenticationPrincipal CustomUserDetails adminUser) {
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		log.info("PATCH /api/incidents/{}/unassign - Unassigning incident", incidentId);
-		Incident updatedIncident = incidentService.unassignIncident(incidentId, adminUser.getUser());
+		AppUser user = getUser(userDetails);
+		Incident updatedIncident = incidentService.unassignIncident(incidentId, user);
 		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(updatedIncident));
 	}
 
@@ -160,10 +170,10 @@ public class IncidentController {
 	@PatchMapping("/{incidentId}/status")
 	public ResponseEntity<IncidentResponse> updateStatus(@PathVariable Long incidentId,
 			@Valid @RequestBody UpdateIncidentStatusRequest request,
-			@AuthenticationPrincipal CustomUserDetails adminUser) {
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		log.info("PATCH /api/incidents/{}/status - Updating status to {}", incidentId, request.status());
-		Incident updatedIncident = incidentService.updateIncidentStatus(incidentId, request.status(),
-				adminUser.getUser());
+		AppUser user = getUser(userDetails);
+		Incident updatedIncident = incidentService.updateIncidentStatus(incidentId, request.status(), user);
 		return ResponseEntity.ok(IncidentResponse.fromEntity(updatedIncident));
 	}
 
