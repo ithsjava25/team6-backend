@@ -44,10 +44,12 @@ public class IncidentController {
 	private final NotificationService notificationService;
 
 	private AppUser getUser(CustomUserDetails userDetails) {
-		System.out.println("DEBUG getUser - userDetails.getUser(): " + userDetails.getUser());
 		if (userDetails == null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cd) {
+				if (cd.getUser() == null) {
+					throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid user details");
+				}
 				return cd.getUser();
 			}
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");

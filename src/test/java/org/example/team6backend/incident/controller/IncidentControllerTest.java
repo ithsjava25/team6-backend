@@ -131,7 +131,7 @@ class IncidentControllerTest {
 
 	@Test
 	void getById_shouldBlockIfAnonymous() throws Exception {
-		mockMvc.perform(get("/api/incidents/1").with(anonymous())).andExpect(status().is4xxClientError());
+		mockMvc.perform(get("/api/incidents/1").with(anonymous())).andExpect(status().isUnauthorized());
 	}
 
 	@Test

@@ -1,6 +1,7 @@
 package org.example.team6backend.incident.dto;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.document.dto.DocumentDTO;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.entity.IncidentCategory;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Data
 public class IncidentResponse {
 
@@ -60,7 +62,8 @@ public class IncidentResponse {
 					response.setDocuments(documentDTOs);
 				}
 			}
-		} catch (Exception _) {
+		} catch (Exception e) {
+			log.warn("Failed to load documents for incident ", e);
 			response.setHasDocuments(false);
 			response.setDocuments(new ArrayList<>());
 		}

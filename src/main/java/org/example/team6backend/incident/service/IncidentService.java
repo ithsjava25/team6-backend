@@ -251,7 +251,7 @@ public class IncidentService {
 				currentUser);
 
 		auditLogService.log("UPDATE_STATUS", currentUser.getName() + " changed " + INCIDENT_PREFIX + incidentId
-				+ " status from " + oldStatus + " to " + newStatus, currentUser);
+				+ " status from " + oldStatus + " to " + newStatus, currentUser, TARGET_TYPE, incidentId.toString());
 
 		if (savedIncident.getCreatedBy() != null && !savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
 
@@ -293,7 +293,7 @@ public class IncidentService {
 				currentUser);
 
 		auditLogService.log("UNASSIGN_INCIDENT", currentUser.getName() + " unassigned " + INCIDENT_PREFIX + incidentId
-				+ " from " + previousHandler.getName(), currentUser);
+				+ " from " + previousHandler.getName(), currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification(
 				INCIDENT_PREFIX + incident.getId() + " has been unassigned from you by " + currentUser.getName(),
@@ -321,7 +321,7 @@ public class IncidentService {
 				savedIncident, currentUser);
 
 		auditLogService.log("CLOSE_INCIDENT", currentUser.getName() + " closed " + INCIDENT_PREFIX + incidentId,
-				currentUser);
+				currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification(
 				INCIDENT_PREFIX + incident.getId() + " has been closed by " + currentUser.getName(),
@@ -354,7 +354,7 @@ public class IncidentService {
 				savedIncident, currentUser);
 
 		auditLogService.log("RESOLVE_INCIDENT", currentUser.getName() + " resolved " + INCIDENT_PREFIX + incidentId,
-				currentUser);
+				currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification(
 				INCIDENT_PREFIX + incident.getId() + " has been marked as resolved by " + currentUser.getName(),
