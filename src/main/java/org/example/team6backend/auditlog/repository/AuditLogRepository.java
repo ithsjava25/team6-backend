@@ -13,5 +13,5 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 			+ "OR LOWER(a.action) LIKE LOWER(CONCAT('%', :s, '%'))")
 	Page<AuditLog> searchLogs(@Param("s") String search, Pageable pageable);
 
-	Page<AuditLog> findByPerformedByIdOrderByCreatedAtDesc(String userId);
+	Page<AuditLog> findByPerformedByIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 }
