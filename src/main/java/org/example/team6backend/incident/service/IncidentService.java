@@ -1,5 +1,6 @@
 package org.example.team6backend.incident.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.team6backend.activity.service.ActivityLogService;
 import org.example.team6backend.auditlog.service.AuditLogService;
@@ -31,7 +32,12 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class IncidentService {
+
+	private static final String TARGET_TYPE = "Incident";
+	private static final String INCIDENT_PREFIX = "Incident #";
+	private static final String NOT_FOUND_MESSAGE = "Incident not found with id: ";
 
 	private final IncidentRepository incidentRepository;
 	private final ActivityLogService activityLogService;
@@ -41,26 +47,29 @@ public class IncidentService {
 	private final MinioService minioService;
 	private final AuditLogService auditLogService;
 
-	public IncidentService(IncidentRepository incidentRepository, ActivityLogService activityLogService,
-			DocumentService documentService, AppUserRepository userRepository, NotificationService notificationService,
-			MinioService minioService, AuditLogService auditLogService) {
-		this.incidentRepository = incidentRepository;
-		this.activityLogService = activityLogService;
-		this.documentService = documentService;
-		this.userRepository = userRepository;
-		this.notificationService = notificationService;
-		this.minioService = minioService;
-		this.auditLogService = auditLogService;
-	}
-
-	/**
-	 * Help-method for sorting
-	 **/
 	private Pageable withDefaultSort(Pageable pageable) {
 		if (pageable.isUnpaged() || pageable.getSort().isSorted()) {
 			return pageable;
 		}
 		return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "id"));
+	}
+
+	private void validateNotClosed(Incident incident, String message) {
+		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
+			throw new IllegalStateException(message);
+		}
+	}
+
+	private void validateHandlerOrAdmin(Incident incident, AppUser currentUser, String action) {
+		if (currentUser.getRole() != UserRole.HANDLER && currentUser.getRole() != UserRole.ADMIN) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+					"Only Handlers or Admins can " + action + " incidents!");
+		}
+		if (currentUser.getRole() != UserRole.ADMIN && (incident.getAssignedTo() == null
+				|| !incident.getAssignedTo().getId().equals(currentUser.getId()))) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+					"You can only " + action + " incidents assigned to you!");
+		}
 	}
 
 	/**
@@ -93,8 +102,9 @@ public class IncidentService {
 			}
 			activityLogService.log("INCIDENT_CREATED", user.getName() + " created incident.", savedIncident, user);
 
-			auditLogService.log("CREATE_INCIDENT", user.getName() + " created incident #" + savedIncident.getId(), user,
-					"Incident", savedIncident.getId().toString());
+			auditLogService.log("CREATE_INCIDENT",
+					user.getName() + " created " + INCIDENT_PREFIX + savedIncident.getId(), user, TARGET_TYPE,
+					savedIncident.getId().toString());
 
 			return savedIncident;
 
@@ -147,8 +157,8 @@ public class IncidentService {
 		boolean isOwner = incident.getCreatedBy() != null && incident.getCreatedBy().getId().equals(user.getId());
 
 		if (isAdmin || isAssignedHandler || isOwner) {
-			auditLogService.log("VIEW_INCIDENT", user.getName() + " viewed incident #" + incident.getId(), user,
-					"Incident", incident.getId().toString());
+			auditLogService.log("VIEW_INCIDENT", user.getName() + " viewed " + INCIDENT_PREFIX + incident.getId(), user,
+					TARGET_TYPE, incident.getId().toString());
 			return incident;
 		}
 		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed!");
@@ -158,7 +168,7 @@ public class IncidentService {
 	public void deleteIncident(Long incidentId, AppUser currentUser) {
 
 		Incident incident = incidentRepository.findByIdWithDocuments(incidentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found!"));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
 		String incidentSubject = incident.getSubject();
 
@@ -166,23 +176,22 @@ public class IncidentService {
 			try {
 				minioService.deleteFile(document.getFileKey());
 			} catch (Exception e) {
-				log.warn("Failed to delete file from S3: " + document.getFileKey(), e);
+				log.warn("Failed to delete file from S3: {}", document.getFileKey(), e);
 			}
 		}
 		incidentRepository.delete(incident);
 
-		auditLogService.log("DELETE_INCIDENT", currentUser.getName() + " deleted incident #" + incidentId, currentUser,
-				"Incident", incidentId.toString());
+		auditLogService.log("DELETE_INCIDENT",
+				currentUser.getName() + " deleted " + INCIDENT_PREFIX + incidentId + " '" + incidentSubject + "'",
+				currentUser, TARGET_TYPE, incidentId.toString());
 	}
 
 	@Transactional
 	public Incident assignIncidentToHandler(Long incidentId, String handlerId, AppUser currentUser) {
 		Incident incident = incidentRepository.findById(incidentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
-		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
-			throw new IllegalStateException("Cannot modify a closed incident. Status: " + incident.getIncidentStatus());
-		}
+		validateNotClosed(incident, "Cannot modify a closed incident. Status: " + incident.getIncidentStatus());
 
 		AppUser handler = userRepository.findById(handlerId)
 				.orElseThrow(() -> new ResourceNotFoundException("Handler not found with id: " + handlerId));
@@ -207,8 +216,8 @@ public class IncidentService {
 				savedIncident, currentUser);
 
 		auditLogService.log("ASSIGN_INCIDENT",
-				currentUser.getName() + " assigned incident #" + incidentId + " to " + handler.getName(), currentUser,
-				"Incident", incidentId.toString());
+				currentUser.getName() + " assigned " + INCIDENT_PREFIX + incidentId + " to " + handler.getName(),
+				currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification("You have been assigned to an incident", handler, savedIncident);
 
@@ -224,7 +233,7 @@ public class IncidentService {
 	@Transactional
 	public Incident updateIncidentStatus(Long incidentId, IncidentStatus newStatus, AppUser currentUser) {
 		Incident incident = incidentRepository.findById(incidentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
 		IncidentStatus oldStatus = incident.getIncidentStatus();
 
@@ -241,8 +250,8 @@ public class IncidentService {
 				currentUser.getName() + " changed status from " + oldStatus + " to " + newStatus, savedIncident,
 				currentUser);
 
-		auditLogService.log("UPDATE_STATUS", currentUser.getName() + " changed incident #" + incidentId
-				+ " status from " + oldStatus + " to " + newStatus, currentUser);
+		auditLogService.log("UPDATE_STATUS", currentUser.getName() + " changed " + INCIDENT_PREFIX + incidentId
+				+ " status from " + oldStatus + " to " + newStatus, currentUser, TARGET_TYPE, incidentId.toString());
 
 		if (savedIncident.getCreatedBy() != null && !savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
 
@@ -251,7 +260,7 @@ public class IncidentService {
 					savedIncident.getCreatedBy(), savedIncident);
 		}
 		return incidentRepository.findByIdWithDocuments(savedIncident.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found"));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 	}
 
 	public Incident unassignIncident(Long incidentId, AppUser currentUser) {
@@ -260,11 +269,9 @@ public class IncidentService {
 		}
 
 		Incident incident = incidentRepository.findById(incidentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
-		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
-			throw new IllegalStateException("Cannot modify a closed incident. Status: " + incident.getIncidentStatus());
-		}
+		validateNotClosed(incident, "Cannot unassign a closed incident. Status: " + incident.getIncidentStatus());
 
 		AppUser previousHandler = incident.getAssignedTo();
 
@@ -285,12 +292,11 @@ public class IncidentService {
 				currentUser.getName() + " unassigned incident from " + previousHandler.getName(), savedIncident,
 				currentUser);
 
-		auditLogService.log("UNASSIGN_INCIDENT",
-				currentUser.getName() + " unassigned incident #" + incidentId + " from " + previousHandler.getName(),
-				currentUser);
+		auditLogService.log("UNASSIGN_INCIDENT", currentUser.getName() + " unassigned " + INCIDENT_PREFIX + incidentId
+				+ " from " + previousHandler.getName(), currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification(
-				"Incident #" + incident.getId() + " has been unassigned from you by " + currentUser.getName(),
+				INCIDENT_PREFIX + incident.getId() + " has been unassigned from you by " + currentUser.getName(),
 				previousHandler, savedIncident);
 
 		return savedIncident;
@@ -299,21 +305,10 @@ public class IncidentService {
 	@Transactional
 	public Incident closeIncident(Long incidentId, AppUser currentUser) {
 		Incident incident = incidentRepository.findById(incidentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
-		if (currentUser.getRole() != UserRole.HANDLER && currentUser.getRole() != UserRole.ADMIN) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only handlers or admins can close incidents");
-		}
-
-		if (currentUser.getRole() != UserRole.ADMIN && (incident.getAssignedTo() == null
-				|| !incident.getAssignedTo().getId().equals(currentUser.getId()))) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only close incidents assigned to you");
-		}
-
-		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
-			throw new IllegalStateException("Incident is already closed");
-		}
-
+		validateHandlerOrAdmin(incident, currentUser, "close");
+		validateNotClosed(incident, "Incident is already closed");
 		IncidentStatus oldStatus = incident.getIncidentStatus();
 
 		incident.setIncidentStatus(IncidentStatus.CLOSED);
@@ -325,10 +320,11 @@ public class IncidentService {
 				currentUser.getName() + " closed incident (status changed from " + oldStatus + " to CLOSED)",
 				savedIncident, currentUser);
 
-		auditLogService.log("CLOSE_INCIDENT", currentUser.getName() + " closed incident #" + incidentId, currentUser);
+		auditLogService.log("CLOSE_INCIDENT", currentUser.getName() + " closed " + INCIDENT_PREFIX + incidentId,
+				currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification(
-				"Incident #" + incident.getId() + " has been closed by " + currentUser.getName(),
+				INCIDENT_PREFIX + incident.getId() + " has been closed by " + currentUser.getName(),
 				savedIncident.getCreatedBy(), savedIncident);
 
 		log.info("Closed incident {} by {} (role: {})", incidentId, currentUser.getId(), currentUser.getRole());
@@ -338,20 +334,10 @@ public class IncidentService {
 	@Transactional
 	public Incident resolveIncident(Long incidentId, AppUser currentUser) {
 		Incident incident = incidentRepository.findById(incidentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + incidentId));
+				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
-		if (currentUser.getRole() != UserRole.HANDLER && currentUser.getRole() != UserRole.ADMIN) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only handlers or admins can resolve incidents");
-		}
-
-		if (currentUser.getRole() != UserRole.ADMIN && (incident.getAssignedTo() == null
-				|| !incident.getAssignedTo().getId().equals(currentUser.getId()))) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only resolve incidents assigned to you");
-		}
-
-		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
-			throw new IllegalStateException("Cannot resolve a closed incident");
-		}
+		validateHandlerOrAdmin(incident, currentUser, "resolve");
+		validateNotClosed(incident, "Cannot resolve a closed incident");
 
 		if (incident.getIncidentStatus() == IncidentStatus.RESOLVED) {
 			throw new IllegalStateException("Incident is already resolved");
@@ -367,11 +353,11 @@ public class IncidentService {
 				currentUser.getName() + " resolved incident (status changed from " + oldStatus + " to RESOLVED)",
 				savedIncident, currentUser);
 
-		auditLogService.log("RESOLVE_INCIDENT", currentUser.getName() + " resolved incident #" + incidentId,
-				currentUser);
+		auditLogService.log("RESOLVE_INCIDENT", currentUser.getName() + " resolved " + INCIDENT_PREFIX + incidentId,
+				currentUser, TARGET_TYPE, incidentId.toString());
 
 		notificationService.createNotification(
-				"Incident #" + incident.getId() + " has been marked as resolved by " + currentUser.getName(),
+				INCIDENT_PREFIX + incident.getId() + " has been marked as resolved by " + currentUser.getName(),
 				savedIncident.getCreatedBy(), savedIncident);
 
 		log.info("Resolved incident {} by {} (role: {})", incidentId, currentUser.getId(), currentUser.getRole());

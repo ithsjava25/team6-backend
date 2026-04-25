@@ -106,30 +106,25 @@ class IncidentControllerTest {
 	@Test
 	@WithMockUser(roles = "RESIDENT")
 	void shouldGetMyIncidents() throws Exception {
-
 		when(incidentService.findByCreatedBy(any(), any())).thenReturn(new PageImpl<>(List.of()));
 
 		mockMvc.perform(get("/api/incidents/my")).andExpect(status().isOk());
 	}
 
 	@Test
-	@WithMockUser(roles = "RESIDENT")
 	void getIncidentById() throws Exception {
-
 		AppUser user = new AppUser();
 		user.setId("1");
 		user.setRole(UserRole.RESIDENT);
 
 		CustomUserDetails principal = new CustomUserDetails(user, Map.of());
-
-		Incident incident = new Incident();
-		incident.setId(1L);
-
-		when(incidentService.getById(eq(1L), any())).thenReturn(incident);
-
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
 		SecurityContextHolder.setContext(context);
+
+		Incident incident = new Incident();
+		incident.setId(1L);
+		when(incidentService.getById(eq(1L), any())).thenReturn(incident);
 
 		mockMvc.perform(get("/api/incidents/1")).andExpect(status().isOk());
 	}
@@ -147,6 +142,7 @@ class IncidentControllerTest {
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(auth);
 		SecurityContextHolder.setContext(context);
+
 		mockMvc.perform(get("/api/incidents/1")).andExpect(status().isUnauthorized());
 	}
 
