@@ -43,7 +43,7 @@ public class MinioServiceTest {
 	}
 
 	@Test
-	void uploadFIle_shouldThrowMinioOperationException_whenMinioFails() throws Exception {
+	void uploadFile_shouldThrowMinioOperationException_whenMinioFails() throws Exception {
 		ReflectionTestUtils.setField(minioService, "bucketName", "test");
 		doThrow(new RuntimeException("MinIO down")).when(minioClient).putObject(any(PutObjectArgs.class));
 
