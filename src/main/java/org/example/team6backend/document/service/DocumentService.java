@@ -59,7 +59,7 @@ public class DocumentService {
 					log.warn("Failed to cleanup Minio file: {}", fileKey, cleanupEx);
 				}
 			}
-			throw new RuntimeException("File upload failed", e);
+			throw new FileUploadException("File upload failed", e);
 		}
 	}
 
@@ -129,5 +129,10 @@ public class DocumentService {
 	/** Fetch documents by incident ID */
 	public List<Document> getDocumentsByIncidentId(Long incidentId) {
 		return documentRepository.findByIncidentId(incidentId);
+	}
+	public static class FileUploadException extends RuntimeException {
+		public FileUploadException(String message, Throwable cause) {
+			super(message, cause);
+		}
 	}
 }

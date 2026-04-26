@@ -35,12 +35,19 @@ public class DocumentController {
 	private final IncidentService incidentService;
 	private final MinioService minioService;
 
+	private AppUser getUser(CustomUserDetails userDetails) {
+		if (userDetails == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
+		return userDetails.getUser();
+	}
+
 	@GetMapping("/{fileKey}")
 	public ResponseEntity<Resource> getFile(@PathVariable String fileKey,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		log.info("GET /documents/{} - Fetching file", fileKey);
-		AppUser user = userDetails.getUser();
+		AppUser user = getUser(userDetails);
 
 		Document document = documentService.getByFileKey(fileKey)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -66,7 +73,7 @@ public class DocumentController {
 			@RequestParam("files") List<MultipartFile> files, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		log.info("POST /documents/upload/{} - Uploading {} files", incidentId, files.size());
-		AppUser user = userDetails.getUser();
+		AppUser user = getUser(userDetails);
 		Incident incident = incidentService.getById(incidentId, user);
 		List<DocumentDTO> uploadedDocs = new ArrayList<>();
 
@@ -93,7 +100,7 @@ public class DocumentController {
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		log.info("DELETE /documents/{} - Deleting file", documentId);
-		AppUser user = userDetails.getUser();
+		AppUser user = getUser(userDetails);
 
 		Document document = documentService.getById(documentId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));

@@ -1,5 +1,7 @@
 package org.example.team6backend.exception;
 
+import org.example.team6backend.document.service.DocumentService;
+import org.example.team6backend.document.service.MinioService;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +45,19 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
 		return new ResponseEntity<>(new ErrorResponse(401, "Unauthorized!", Instant.now()), HttpStatus.UNAUTHORIZED);
 	}
+	@ExceptionHandler(DocumentService.FileUploadException.class)
+	public ResponseEntity<ErrorResponse> handleFileUpload(DocumentService.FileUploadException ex) {
+		ErrorResponse error = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(),
+				Instant.now());
+		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
+	@ExceptionHandler(MinioService.MinioOperationException.class)
+	public ResponseEntity<ErrorResponse> handleMinioOperation(MinioService.MinioOperationException ex) {
+		ErrorResponse error = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(),
+				Instant.now());
+		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
 		ex.printStackTrace();

@@ -116,7 +116,6 @@ class DocumentServiceTest {
 		document.setFileKey("abc");
 
 		doThrow(new RuntimeException("MinIO Failure")).when(minioService).deleteFile(anyString());
-		System.out.println(minioService.getClass());
 
 		doNothing().when(auditLogService).log(anyString(), anyString(), any(AppUser.class), anyString(), anyString());
 
