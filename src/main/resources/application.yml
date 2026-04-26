@@ -22,6 +22,11 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  data:
+    web:
+      pageable:
+        serialization-mode: via-dto
+
   security:
     oauth2:
       client:
