@@ -102,7 +102,7 @@ public class AdminController {
 		log.info("PATCH /api/admin/users/{}/role - Admin {} changing role to {}", userId, admin.getGithubLogin(),
 				request.role());
 
-		if (admin.getId().equals(userId)) { // ← FÖRENKLAT kollen
+		if (admin.getId().equals(userId)) {
 			log.warn("User {} attempted to change their own role", userId);
 			throw new IllegalStateException("You cannot change your own role");
 		}
@@ -156,13 +156,13 @@ public class AdminController {
 
 		log.info("DELETE /api/admin/users/{} - Admin {} attempting to delete user", userId, admin.getGithubLogin());
 
-		if (admin.getId().equals(userId)) { // ← FÖRENKLAT
+		if (admin.getId().equals(userId)) {
 			log.warn("User {} attempted to delete their own account", userId);
 			throw new IllegalStateException("You cannot delete your own account");
 		}
 
 		var userToDelete = userService.getUserById(userId);
-		userService.deleteUser(userId, admin); // ← SKICKA MED ADMIN
+		userService.deleteUser(userId, admin);
 		log.info("User {} ({}) deleted by admin {}", userToDelete.getGithubLogin(), userToDelete.getRole(),
 				admin.getGithubLogin());
 
