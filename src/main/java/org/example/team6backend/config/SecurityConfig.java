@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -19,6 +20,11 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+		SimpleUrlAuthenticationSuccessHandler successHandler = new SimpleUrlAuthenticationSuccessHandler();
+		successHandler.setDefaultTargetUrl("/dashboard.html");
+		successHandler.setAlwaysUseDefaultTargetUrl(true);
+
 		http.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/", "/index.html", "/dashboard.html", "/incidents.html", "/profile.html",
 						"/createincident.html", "/viewincident.html", "/admin.html", "/demo.html", "/error",
@@ -32,7 +38,7 @@ public class SecurityConfig {
 				.authenticated())
 				.oauth2Login(
 						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-								.defaultSuccessUrl("/dashboard.html", true))
+								.successHandler(successHandler).failureUrl("/?error=true"))
 				.logout(logout -> logout.logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true)
 						.deleteCookies("JSESSIONID"))
 				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/admin/**", "/api/incidents/**", "/comments", "/dev/**",

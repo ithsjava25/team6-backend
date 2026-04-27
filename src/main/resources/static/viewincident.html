@@ -6,30 +6,51 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #000; color: #fff; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #1a1a1a; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid #1a1a1a; flex-wrap: wrap; gap: 1rem; }
         .logo a { text-decoration: none; color: #fff; font-weight: 600; }
-        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
         .nav-links a { text-decoration: none; color: #6b7280; }
+        .nav-links a:hover { color: #fff; }
         .user-info { display: flex; gap: 1rem; align-items: center; }
         .logout-btn { background: transparent; border: 1px solid #2a2a2a; color: #6b7280; padding: 0.5rem 1rem; border-radius: 9999px; cursor: pointer; }
         .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; }
-        .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+        .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #10b981; }
         .incident-header { display: flex; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
-        .incident-title { font-size: 1.1rem; font-weight: 600; }
+        .incident-title { font-size: 1.25rem; font-weight: 600; }
         .incident-category { font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: #1f2937; }
+        .incident-description { color: #9ca3af; line-height: 1.5; margin-bottom: 1rem; }
         .incident-status { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; display: inline-block; }
-        .status-OPEN { background: #f59e0b; }
-        .status-IN_PROGRESS { background: #3b82f6; }
-        .status-RESOLVED { background: #10b981; }
-        .status-CLOSED { background: #6b7280; }
+        .status-OPEN { background: #f59e0b; color: white; }
+        .status-IN_PROGRESS { background: #3b82f6; color: white; }
+        .status-RESOLVED { background: #10b981; color: white; }
+        .status-CLOSED { background: #6b7280; color: white; }
+        .status-select { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; border: none; cursor: pointer; color: white; }
+        .status-select option { background: #1a1a1a; color: white; }
+        .incident-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #1a1a1a; }
+        .incident-meta { font-size: 0.75rem; color: #6b7280; }
         .comment { padding: 1rem 0; border-bottom: 1px solid #1a1a1a; }
+        .comment:last-child { border-bottom: none; }
         .comment-message { color: #d1d5db; margin-bottom: 0.4rem; }
         .comment-meta { font-size: 0.75rem; color: #6b7280; }
-        .btn { padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid #2a2a2a; background: transparent; color: #9ca3af; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn { padding: 0.5rem 1rem; border-radius: 999px; border: 1px solid #2a2a2a; background: transparent; color: #9ca3af; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.875rem; transition: all 0.2s; }
         .btn:hover { border-color: #10b981; color: #10b981; }
+        .btn-primary { background: #10b981; border: none; color: white; }
+        .btn-primary:hover { background: #059669; color: white; }
         textarea { width: 100%; background: #111; color: white; border: 1px solid #2a2a2a; border-radius: 0.75rem; padding: 1rem; resize: vertical; font-family: inherit; }
+        textarea:focus { outline: none; border-color: #10b981; }
         .back-link { display: inline-block; margin-bottom: 1rem; }
+        .docs-grid { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .doc-image { width: 100px; height: 100px; object-fit: cover; border-radius: 0.5rem; border: 1px solid #2a2a2a; cursor: pointer; transition: transform 0.2s; }
+        .doc-image:hover { transform: scale(1.05); border-color: #10b981; }
+        .doc-link { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #1a1a1a; border-radius: 0.5rem; text-decoration: none; color: #9ca3af; font-size: 0.875rem; }
+        .doc-link:hover { color: #10b981; border-color: #10b981; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.5rem; background: #1a1a1a; border-left: 4px solid; z-index: 1000; animation: slideIn 0.3s ease; }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .loading { text-align: center; padding: 2rem; color: #6b7280; }
+        @media (max-width: 768px) { .navbar { flex-direction: column; } .incident-header { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -45,14 +66,24 @@
 
 <div class="container">
     <a href="dashboard.html" class="btn back-link">← Back to dashboard</a>
-    <h2>Incident details</h2>
-    <div id="incident"></div>
-    <div class="card"><div class="section-title">Comments</div><div id="comments"></div></div>
-    <div class="card"><div class="section-title">Add comment</div>
-        <textarea id="commentMessage" rows="3" placeholder="Write a comment..."></textarea>
-        <button class="btn" onclick="addComment()" style="margin-top: 0.75rem;">Add comment</button>
+    <h2>Incident Details</h2>
+    <div id="incident"><div class="loading">Loading incident...</div></div>
+
+    <div class="card">
+        <div class="section-title">Comments</div>
+        <div id="comments"><div class="loading">Loading comments...</div></div>
     </div>
-    <div class="card"><div class="section-title">Activity</div><div id="activity-log"></div></div>
+
+    <div class="card">
+        <div class="section-title">Add Comment</div>
+        <textarea id="commentMessage" rows="3" placeholder="Write a comment..."></textarea>
+        <button class="btn btn-primary" onclick="addComment()" style="margin-top: 0.75rem;">Add Comment</button>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Activity Log</div>
+        <div id="activity-log"><div class="loading">Loading activity...</div></div>
+    </div>
 </div>
 
 <script>
@@ -70,11 +101,44 @@
             if (r.ok) {
                 currentUser = await r.json();
                 document.getElementById('userName').textContent = currentUser.name || currentUser.githubLogin;
+                loadIncident();
+                loadComments();
+                loadActivityLog();
             } else {
                 window.location.href = '/';
             }
         } catch(e) {
             window.location.href = '/';
+        }
+    }
+
+    function getStatusColor(status) {
+        switch(status) {
+            case 'OPEN': return '#f59e0b';
+            case 'IN_PROGRESS': return '#3b82f6';
+            case 'RESOLVED': return '#10b981';
+            case 'CLOSED': return '#6b7280';
+            default: return '#6b7280';
+        }
+    }
+
+    async function updateIncidentStatus(incidentId, newStatus) {
+        try {
+            const r = await fetch(`/api/incidents/${incidentId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (r.ok) {
+                showToast(`Status changed to ${newStatus}!`, 'success');
+                loadIncident();
+                loadActivityLog();
+            } else {
+                const e = await r.text();
+                showToast('Failed to update status: ' + e, 'error');
+            }
+        } catch(e) {
+            showToast('Error updating status', 'error');
         }
     }
 
@@ -84,21 +148,71 @@
             const r = await fetch(`/api/incidents/${incidentId}`);
             if (!r.ok) throw new Error();
             const i = await r.json();
+
             let docsHtml = '';
             if (i.hasDocuments && i.documents?.length > 0) {
-                docsHtml = `<div style="margin-top:10px; display:flex; gap:12px; flex-wrap:wrap;">` + i.documents.map(doc => {
-                    const url = `/documents/${encodeURIComponent(doc.fileKey)}`;
-                    return /\.(jpg|jpeg|png|gif|webp)$/i.test(doc.fileName)
-                        ? `<a href="${url}" target="_blank">
-    <img src="${url}"
-         onerror="this.parentElement.remove()"
-         style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #2a2a2a;">
-</a>`
-                        : `<a href="${url}" target="_blank" class="btn">📄 ${escapeHtml(doc.fileName)}</a>`;
-                }).join('') + `</div>`;
+                docsHtml = `<div class="section-title" style="margin-top:1rem;">Attachments</div><div class="docs-grid">` +
+                    i.documents.map(doc => {
+                        const url = `/documents/${encodeURIComponent(doc.fileKey)}`;
+                        if (/\.(jpg|jpeg|png|gif|webp)$/i.test(doc.fileName)) {
+                            return `<a href="${url}" target="_blank"><img src="${url}" class="doc-image" onerror="this.parentElement.remove()"></a>`;
+                        } else {
+                            return `<a href="${url}" target="_blank" class="doc-link">📄 ${escapeHtml(doc.fileName)}</a>`;
+                        }
+                    }).join('') + `</div>`;
             }
-            document.getElementById('incident').innerHTML = `<div class="card"><div class="incident-header"><div class="incident-title">${escapeHtml(i.subject)}</div><div class="incident-category">${i.incidentCategory}</div></div><div class="incident-description">${escapeHtml(i.description || 'No description')}${docsHtml}</div><div class="incident-footer" style="margin-top:1rem;display:flex;gap:1rem;font-size:0.75rem;color:#6b7280;"><span>ID: ${i.id}</span><span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span><span>Created: ${formatDate(i.createdAt)}</span></div></div>`;
-        } catch(e) { document.getElementById('incident').innerHTML = '<div class="card"><p>Failed to load incident.</p></div>'; }
+
+            const isAssignedToMe = currentUser && (
+                i.assignedTo === currentUser.email ||
+                i.assignedTo === currentUser.name ||
+                i.assignedTo === currentUser.githubLogin ||
+                (i.assignedTo && currentUser.email && i.assignedTo.includes(currentUser.email))
+            );
+
+            const canEditStatus = currentUser && (
+                currentUser.role === 'ADMIN' ||
+                (currentUser.role === 'HANDLER' && isAssignedToMe)
+            );
+
+            let statusHtml = '';
+            if (canEditStatus && i.incidentStatus !== 'CLOSED') {
+                const bgColor = getStatusColor(i.incidentStatus);
+                statusHtml = `
+                    <select onchange="updateIncidentStatus(${i.id}, this.value)"
+                            style="background:${bgColor}; color:white; padding:0.4rem 0.75rem; border-radius:9999px; border:none; cursor:pointer; font-size:0.75rem; font-weight:500;">
+                        <option value="OPEN" ${i.incidentStatus === 'OPEN' ? 'selected' : ''} style="background:#f59e0b;">OPEN</option>
+                        <option value="IN_PROGRESS" ${i.incidentStatus === 'IN_PROGRESS' ? 'selected' : ''} style="background:#3b82f6;">IN PROGRESS</option>
+                        <option value="RESOLVED" ${i.incidentStatus === 'RESOLVED' ? 'selected' : ''} style="background:#10b981;">RESOLVED</option>
+                        <option value="CLOSED" ${i.incidentStatus === 'CLOSED' ? 'selected' : ''} style="background:#6b7280;">CLOSED</option>
+                    </select>
+                `;
+            } else {
+                statusHtml = `<span class="incident-status status-${i.incidentStatus}">${i.incidentStatus}</span>`;
+            }
+
+            document.getElementById('incident').innerHTML = `
+                <div class="card">
+                    <div class="incident-header">
+                        <div class="incident-title">${escapeHtml(i.subject)}</div>
+                        <div class="incident-category">${i.incidentCategory}</div>
+                    </div>
+                    <div class="incident-description">${escapeHtml(i.description || 'No description')}</div>
+                    <div class="incident-footer">
+                        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                            <span class="incident-meta">ID: ${i.id}</span>
+                            <span class="incident-meta">Created: ${formatDate(i.createdAt)}</span>
+                            <span class="incident-meta">By: ${escapeHtml(i.createdBy || 'Unknown')}</span>
+                            ${i.assignedTo ? `<span class="incident-meta" style="color:#10b981;">Handler: ${escapeHtml(i.assignedTo)}</span>` : '<span class="incident-meta">Unassigned</span>'}
+                        </div>
+                        ${statusHtml}
+                    </div>
+                    ${docsHtml}
+                </div>
+            `;
+        } catch(e) {
+            console.error('Error loading incident:', e);
+            document.getElementById('incident').innerHTML = '<div class="card"><p class="loading">Failed to load incident.</p></div>';
+        }
     }
 
     async function loadComments() {
@@ -107,9 +221,20 @@
             const r = await fetch(`/comments/incident/${incidentId}`);
             if (!r.ok) throw new Error();
             const comments = await r.json();
-            if (!comments.length) { document.getElementById('comments').innerHTML = '<p style="color:#6b7280;">No comments yet.</p>'; return; }
-            document.getElementById('comments').innerHTML = comments.map(c => `<div class="comment"><div class="comment-message">${escapeHtml(c.message)}</div><div class="comment-meta">${escapeHtml(c.user?.name || 'Unknown')} • ${formatDate(c.createdAt)}</div></div>`).join('');
-        } catch(e) { document.getElementById('comments').innerHTML = '<p style="color:#6b7280;">Failed to load comments.</p>'; }
+            const container = document.getElementById('comments');
+            if (!comments.length) {
+                container.innerHTML = '<p style="color:#6b7280;">No comments yet.</p>';
+                return;
+            }
+            container.innerHTML = comments.map(c => `
+                <div class="comment">
+                    <div class="comment-message">${escapeHtml(c.message)}</div>
+                    <div class="comment-meta">${escapeHtml(c.user?.name || 'Unknown')} • ${formatDate(c.createdAt)}</div>
+                </div>
+            `).join('');
+        } catch(e) {
+            document.getElementById('comments').innerHTML = '<p style="color:#6b7280;">Failed to load comments.</p>';
+        }
     }
 
     async function loadActivityLog() {
@@ -118,33 +243,83 @@
             const r = await fetch(`/activity/incident/${incidentId}`);
             if (!r.ok) throw new Error();
             const activities = await r.json();
-            if (!activities.length) { document.getElementById('activity-log').innerHTML = '<p style="color:#6b7280;">No activity yet.</p>'; return; }
-            document.getElementById('activity-log').innerHTML = activities.map(a => `<div class="comment"><div class="comment-message">${escapeHtml(a.description)}</div><div class="comment-meta">${escapeHtml(a.userName || 'Unknown')} • ${formatDate(a.createdAt)}</div></div>`).join('');
-        } catch(e) { document.getElementById('activity-log').innerHTML = '<p style="color:#6b7280;">Failed to load activity.</p>'; }
+            const container = document.getElementById('activity-log');
+            if (!activities.length) {
+                container.innerHTML = '<p style="color:#6b7280;">No activity yet.</p>';
+                return;
+            }
+            container.innerHTML = activities.map(a => `
+                <div class="comment">
+                    <div class="comment-message">${escapeHtml(a.description)}</div>
+                    <div class="comment-meta">${escapeHtml(a.userName || 'Unknown')} • ${formatDate(a.createdAt)}</div>
+                </div>
+            `).join('');
+        } catch(e) {
+            document.getElementById('activity-log').innerHTML = '<p style="color:#6b7280;">Failed to load activity.</p>';
+        }
     }
 
     async function addComment() {
         const message = document.getElementById('commentMessage').value.trim();
-        if (!message) { alert('Please enter a comment'); return; }
+        if (!message) {
+            showToast('Please enter a comment', 'error');
+            return;
+        }
         try {
             const r = await fetch('/comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ incidentId: parseInt(incidentId), userId: currentUser?.id, message })
+                body: JSON.stringify({
+                    incidentId: parseInt(incidentId),
+                    userId: currentUser?.id,
+                    message: message
+                })
             });
             if (r.ok) {
                 document.getElementById('commentMessage').value = '';
+                showToast('Comment added!', 'success');
                 loadComments();
                 loadActivityLog();
-            } else { alert('Failed to add comment'); }
-        } catch(e) { alert('Error adding comment'); }
+            } else {
+                showToast('Failed to add comment', 'error');
+            }
+        } catch(e) {
+            showToast('Error adding comment', 'error');
+        }
     }
 
-    function escapeHtml(t){if(!t)return '';const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
-    function formatDate(ds){if(!ds)return "-";return new Date(ds).toLocaleString("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});}
-    async function logout(){await fetch('/logout',{method:'POST'});window.location.href='/';}
+    function escapeHtml(t) {
+        if (!t) return '';
+        const d = document.createElement('div');
+        d.textContent = t;
+        return d.innerHTML;
+    }
 
-    loadUser().then(() => { loadIncident(); loadComments(); loadActivityLog(); });
+    function formatDate(ds) {
+        if (!ds) return "-";
+        return new Date(ds).toLocaleString("sv-SE", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function logout() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+    }
+
+    loadUser();
 </script>
 </body>
 </html>
