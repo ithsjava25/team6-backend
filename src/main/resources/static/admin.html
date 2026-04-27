@@ -547,6 +547,14 @@
             color: #6b7280;
         }
 
+        .audit-action-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .navbar { flex-direction: column; }
             .filters-bar { flex-direction: column; }
@@ -581,7 +589,7 @@
 <div class="container">
     <div class="admin-header">
         <h1>Admin Panel</h1>
-        <p>Manage users, roles, and incidents</p>
+        <p>Manage users, roles, incidents and audit logs</p>
     </div>
 
     <div class="stats-grid" id="statsGrid">
@@ -596,6 +604,7 @@
     <div class="tabs">
         <button class="tab-btn active" data-tab="users" onclick="switchTab('users')">Users</button>
         <button class="tab-btn" data-tab="incidents" onclick="switchTab('incidents')">Incidents</button>
+        <button class="tab-btn" data-tab="audit" onclick="switchTab('audit')">Audit Log</button>
     </div>
 
     <div id="usersTab">
@@ -692,6 +701,41 @@
             </div>
         </div>
     </div>
+
+    <div id="auditTab" style="display: none;">
+        <div class="filters-bar">
+            <div class="search-box">
+                <input type="text" id="auditSearchInput" placeholder="Search by user or action...">
+                <button onclick="searchAuditLogs()">Search</button>
+            </div>
+            <button class="clear-filters" onclick="clearAuditFilters()">Clear</button>
+        </div>
+
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                <tr><th>Time</th><th>User</th><th>Action</th><th>Target</th><th>Details</th></tr>
+                </thead>
+                <tbody id="auditTableBody">
+                <tr><td colspan="5" class="loading">Loading audit logs...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <div class="pagination-info" id="auditPaginationInfo">Showing 0-0 of 0 logs</div>
+            <div class="pagination-controls" id="auditPaginationControls"></div>
+            <div class="page-size-selector">
+                <label>Rows:</label>
+                <select id="auditPageSizeSelect" onchange="changeAuditPageSize()">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="roleModal" class="modal">
@@ -765,6 +809,12 @@
     let incidentPageSize = 20;
     let handlersList = [];
 
+    let currentAuditPage = 0;
+    let currentAuditSearch = '';
+    let auditTotalPages = 0;
+    let auditTotalElements = 0;
+    let auditPageSize = 20;
+
     async function loadCurrentUser() {
         try {
             const r = await fetch('/api/users/me');
@@ -772,6 +822,11 @@
                 const u = await r.json();
                 document.getElementById('userName').textContent = u.name || u.githubLogin;
                 document.getElementById('userRole').textContent = u.role;
+                if (u.role !== 'ADMIN') {
+                    window.location.href = '/dashboard.html';
+                }
+            } else {
+                window.location.href = '/';
             }
         } catch(e) { console.error(e); }
     }
@@ -782,6 +837,7 @@
         loadUsers();
         loadHandlers();
 
+        // Load saved page sizes
         const sps = localStorage.getItem('adminPageSize');
         if (sps) {
             pageSize = parseInt(sps);
@@ -791,6 +847,11 @@
         if (sips) {
             incidentPageSize = parseInt(sips);
             document.getElementById('incidentPageSizeSelect').value = incidentPageSize;
+        }
+        const aps = localStorage.getItem('adminAuditPageSize');
+        if (aps) {
+            auditPageSize = parseInt(aps);
+            document.getElementById('auditPageSizeSelect').value = auditPageSize;
         }
     });
 
@@ -803,53 +864,14 @@
                 btn.classList.remove('active');
             }
         });
-        if (tab === 'users') {
-            document.getElementById('usersTab').style.display = 'block';
-            document.getElementById('incidentsTab').style.display = 'none';
-            loadUsers();
-        } else {
-            document.getElementById('usersTab').style.display = 'none';
-            document.getElementById('incidentsTab').style.display = 'block';
-            loadIncidents();
-        }
-    }
 
-    document.getElementById('searchInput')?.addEventListener('keypress', e => {
-        if (e.key === 'Enter') searchUsers();
-    });
-    document.getElementById('roleFilter')?.addEventListener('change', e => {
-        currentRole = e.target.value;
-        currentPage = 0;
-        loadUsers();
-    });
-    document.getElementById('statusFilter')?.addEventListener('change', e => {
-        currentStatus = e.target.value;
-        currentPage = 0;
-        loadUsers();
-    });
+        document.getElementById('usersTab').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('incidentsTab').style.display = tab === 'incidents' ? 'block' : 'none';
+        document.getElementById('auditTab').style.display = tab === 'audit' ? 'block' : 'none';
 
-    function searchUsers() {
-        currentSearch = document.getElementById('searchInput').value;
-        currentPage = 0;
-        loadUsers();
-    }
-
-    function clearFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('roleFilter').value = '';
-        document.getElementById('statusFilter').value = '';
-        currentSearch = '';
-        currentRole = '';
-        currentStatus = '';
-        currentPage = 0;
-        loadUsers();
-    }
-
-    function changePageSize() {
-        pageSize = parseInt(document.getElementById('pageSizeSelect').value);
-        localStorage.setItem('adminPageSize', pageSize);
-        currentPage = 0;
-        loadUsers();
+        if (tab === 'users') loadUsers();
+        else if (tab === 'incidents') loadIncidents();
+        else if (tab === 'audit') loadAuditLogs();
     }
 
     async function loadStats() {
@@ -952,6 +974,44 @@
         document.querySelector('.users-table-container').scrollIntoView({ behavior: 'smooth' });
     }
 
+    function changePageSize() {
+        pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+        localStorage.setItem('adminPageSize', pageSize);
+        currentPage = 0;
+        loadUsers();
+    }
+
+    function searchUsers() {
+        currentSearch = document.getElementById('searchInput').value;
+        currentPage = 0;
+        loadUsers();
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('roleFilter').value = '';
+        document.getElementById('statusFilter').value = '';
+        currentSearch = '';
+        currentRole = '';
+        currentStatus = '';
+        currentPage = 0;
+        loadUsers();
+    }
+
+    document.getElementById('searchInput')?.addEventListener('keypress', e => {
+        if (e.key === 'Enter') searchUsers();
+    });
+    document.getElementById('roleFilter')?.addEventListener('change', e => {
+        currentRole = e.target.value;
+        currentPage = 0;
+        loadUsers();
+    });
+    document.getElementById('statusFilter')?.addEventListener('change', e => {
+        currentStatus = e.target.value;
+        currentPage = 0;
+        loadUsers();
+    });
+
     async function loadIncidents() {
         let params = new URLSearchParams();
         params.append('page', currentIncidentPage);
@@ -994,21 +1054,21 @@
                 actionButton = `<span style="background:#4a4a4a;color:#9ca3af;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.75rem;">Closed</span>`;
             }
             return `
-            <tr>
-                <td>#${incident.id}</td>
-                <td><div style="font-weight:500;">${escapeHtml(incident.subject)}</div><div style="font-size:0.7rem;color:#6b7280;">${escapeHtml((incident.description || '').substring(0, 50))}${(incident.description || '').length > 50 ? '...' : ''}</div></div></td>
-                <td><span class="role-badge-small">${incident.incidentCategory}</span></td>
-                <td><select class="status-select status-${incident.incidentStatus.toLowerCase()}" onchange="updateIncidentStatus(${incident.id}, this.value)">
-                    <option value="OPEN" ${incident.incidentStatus === 'OPEN' ? 'selected' : ''}>OPEN</option>
-                    <option value="IN_PROGRESS" ${incident.incidentStatus === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
-                    <option value="RESOLVED" ${incident.incidentStatus === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
-                    <option value="CLOSED" ${incident.incidentStatus === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
-                </select></td>
-                <td style="font-size:0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
-                <td>${incident.assignedTo ? `<span style="color:#10b981;">✓ ${escapeHtml(incident.assignedTo)}</span>` : '<span style="color:#6b7280;">Unassigned</span>'}</td>
-                <td style="font-size:0.8rem;">${formatDate(incident.createdAt)}</td>
-                <td><div class="action-buttons">${actionButton}</div></td>
-            </tr>
+                <tr>
+                    <td>#${incident.id}</td>
+                    <td><div style="font-weight:500;">${escapeHtml(incident.subject)}</div><div style="font-size:0.7rem;color:#6b7280;">${escapeHtml((incident.description || '').substring(0, 50))}${(incident.description || '').length > 50 ? '...' : ''}</div></div></td>
+                    <td><span class="role-badge-small">${incident.incidentCategory}</span></td>
+                    <td><select class="status-select status-${incident.incidentStatus.toLowerCase()}" onchange="updateIncidentStatus(${incident.id}, this.value)">
+                        <option value="OPEN" ${incident.incidentStatus === 'OPEN' ? 'selected' : ''}>OPEN</option>
+                        <option value="IN_PROGRESS" ${incident.incidentStatus === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                        <option value="RESOLVED" ${incident.incidentStatus === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
+                        <option value="CLOSED" ${incident.incidentStatus === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
+                    </select></td>
+                    <td style="font-size:0.8rem;">${escapeHtml(incident.createdBy || 'Unknown')}</td>
+                    <td>${incident.assignedTo ? `<span style="color:#10b981;">✓ ${escapeHtml(incident.assignedTo)}</span>` : '<span style="color:#6b7280;">Unassigned</span>'}</td>
+                    <td style="font-size:0.8rem;">${formatDate(incident.createdAt)}</td>
+                    <td><div class="action-buttons">${actionButton}</div></td>
+                </tr>
             `;
         }).join('');
     }
@@ -1075,6 +1135,42 @@
         if (e.key === 'Enter') searchIncidents();
     });
 
+    async function updateIncidentStatus(incidentId, newStatus) {
+        try {
+            const r = await fetch(`/api/incidents/${incidentId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (r.ok) {
+                showToast('Status updated!', 'success');
+                loadIncidents();
+                loadStats();
+            } else {
+                const e = await r.text();
+                showToast('Failed to update incident status: ' + e, 'error');
+            }
+        } catch(e) {
+            showToast('Error updating incident status', 'error');
+        }
+    }
+
+    async function unassignIncident(incidentId) {
+        if (!confirm('Are you sure you want to unassign this incident?')) return;
+        try {
+            const r = await fetch(`/api/incidents/${incidentId}/unassign`, { method: 'PATCH' });
+            if (r.ok) {
+                showToast('Incident unassigned successfully!', 'success');
+                loadIncidents();
+            } else {
+                const e = await r.text();
+                showToast('Failed to unassign incident: ' + e, 'error');
+            }
+        } catch(e) {
+            showToast('Error unassigning incident', 'error');
+        }
+    }
+
     function openAssignModal(incidentId) {
         selectedIncidentId = incidentId;
         if (handlersList.length === 0) {
@@ -1112,44 +1208,109 @@
         }
     }
 
-    async function updateIncidentStatus(incidentId, newStatus) {
-        try {
-            const r = await fetch(`/api/incidents/${incidentId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-            if (r.ok) {
-                showToast('Status updated!', 'success');
-                loadIncidents();
-            } else {
-                const e = await r.text();
-                showToast('Failed to update incident status: ' + e, 'error');
-            }
-        } catch(e) {
-            showToast('Error updating incident status', 'error');
-        }
-    }
-
-    async function unassignIncident(incidentId) {
-        if (!confirm('Are you sure you want to unassign this incident?')) return;
-        try {
-            const r = await fetch(`/api/incidents/${incidentId}/unassign`, { method: 'PATCH' });
-            if (r.ok) {
-                showToast('Incident unassigned successfully!', 'success');
-                loadIncidents();
-            } else {
-                const e = await r.text();
-                showToast('Failed to unassign incident: ' + e, 'error');
-            }
-        } catch(e) {
-            showToast('Error unassigning incident', 'error');
-        }
-    }
-
     function closeAssignModal() {
         document.getElementById('assignModal').classList.remove('active');
         selectedIncidentId = null;
+    }
+
+    async function loadAuditLogs() {
+        let params = new URLSearchParams();
+        params.append('page', currentAuditPage);
+        params.append('size', auditPageSize);
+        if (currentAuditSearch) params.append('search', currentAuditSearch);
+
+        try {
+            const r = await fetch('/api/admin/audit?' + params.toString());
+            if (!r.ok) throw new Error('Failed to load audit logs');
+            const data = await r.json();
+            auditTotalPages = data.totalPages;
+            auditTotalElements = data.totalElements;
+            renderAuditTable(data.content || []);
+            renderAuditPagination();
+            updateAuditPaginationInfo();
+        } catch(e) {
+            console.error(e);
+            document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="5" class="loading">Error loading audit logs</td></tr>';
+        }
+    }
+
+    function renderAuditTable(logs) {
+        const tbody = document.getElementById('auditTableBody');
+        if (!logs.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="loading">No audit logs found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = logs.map(log => `
+            <tr>
+                <td style="white-space: nowrap;">${formatDate(log.createdAt)}</td>
+                <td>${escapeHtml(log.userName || '-')}</td>
+                <td><span class="audit-action-badge" style="background:${getActionColor(log.action)}; color:white;">${escapeHtml(log.action)}</span></td>
+                <td>${escapeHtml(log.targetType || '-')} ${log.targetId ? '#' + log.targetId : ''}</td>
+                <td>${escapeHtml((log.details || '-').substring(0, 100))}${(log.details || '').length > 100 ? '...' : ''}</td>
+            </tr>
+        `).join('');
+    }
+
+    function getActionColor(action) {
+        if (!action) return '#6b7280';
+        if (action.includes('CREATE') || action.includes('APPROVE')) return '#10b981';
+        if (action.includes('DELETE')) return '#ef4444';
+        if (action.includes('UPDATE') || action.includes('EDIT')) return '#3b82f6';
+        if (action.includes('ASSIGN')) return '#8b5cf6';
+        if (action.includes('CLOSE')) return '#f59e0b';
+        if (action.includes('VIEW')) return '#6b7280';
+        return '#6b7280';
+    }
+
+    function renderAuditPagination() {
+        const div = document.getElementById('auditPaginationControls');
+        if (auditTotalPages <= 1) {
+            div.innerHTML = '';
+            return;
+        }
+        let html = '';
+        html += `<button class="pagination-btn" onclick="goToAuditPage(0)" ${currentAuditPage === 0 ? 'disabled' : ''}>« First</button>`;
+        html += `<button class="pagination-btn" onclick="goToAuditPage(${currentAuditPage - 1})" ${currentAuditPage === 0 ? 'disabled' : ''}>‹ Previous</button>`;
+        let startPage = Math.max(0, currentAuditPage - 2);
+        let endPage = Math.min(auditTotalPages - 1, startPage + 4);
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="pagination-btn ${i === currentAuditPage ? 'active' : ''}" onclick="goToAuditPage(${i})">${i + 1}</button>`;
+        }
+        html += `<button class="pagination-btn" onclick="goToAuditPage(${currentAuditPage + 1})" ${currentAuditPage >= auditTotalPages - 1 ? 'disabled' : ''}>Next ›</button>`;
+        html += `<button class="pagination-btn" onclick="goToAuditPage(${auditTotalPages - 1})" ${currentAuditPage >= auditTotalPages - 1 ? 'disabled' : ''}>Last »</button>`;
+        div.innerHTML = html;
+    }
+
+    function updateAuditPaginationInfo() {
+        const start = auditTotalElements === 0 ? 0 : currentAuditPage * auditPageSize + 1;
+        const end = Math.min((currentAuditPage + 1) * auditPageSize, auditTotalElements);
+        document.getElementById('auditPaginationInfo').textContent = `Showing ${start}-${end} of ${auditTotalElements} logs`;
+    }
+
+    function goToAuditPage(page) {
+        if (page < 0 || page >= auditTotalPages) return;
+        currentAuditPage = page;
+        loadAuditLogs();
+    }
+
+    function changeAuditPageSize() {
+        auditPageSize = parseInt(document.getElementById('auditPageSizeSelect').value);
+        localStorage.setItem('adminAuditPageSize', auditPageSize);
+        currentAuditPage = 0;
+        loadAuditLogs();
+    }
+
+    function searchAuditLogs() {
+        currentAuditSearch = document.getElementById('auditSearchInput').value;
+        currentAuditPage = 0;
+        loadAuditLogs();
+    }
+
+    function clearAuditFilters() {
+        document.getElementById('auditSearchInput').value = '';
+        currentAuditSearch = '';
+        currentAuditPage = 0;
+        loadAuditLogs();
     }
 
     async function approveUser(userId) {

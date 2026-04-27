@@ -9,6 +9,7 @@ import org.example.team6backend.incident.dto.IncidentResponse;
 import org.example.team6backend.incident.dto.UpdateIncidentStatusRequest;
 import org.example.team6backend.incident.entity.Incident;
 import org.example.team6backend.incident.entity.IncidentCategory;
+import org.example.team6backend.incident.entity.IncidentStatus;
 import org.example.team6backend.incident.service.IncidentService;
 import org.example.team6backend.notification.service.NotificationService;
 import org.example.team6backend.security.CustomUserDetails;
@@ -112,9 +113,20 @@ public class IncidentController {
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/all")
-	public ResponseEntity<Page<IncidentResponse>> getAllIncidents(Pageable pageable) {
-		log.info("GET /api/incidents/all - Fetching all incidents");
-		return ResponseEntity.ok(incidentService.findAll(pageable).map(IncidentResponse::fromEntityBasic));
+	public ResponseEntity<Page<IncidentResponse>> getAllIncidents(@RequestParam(required = false) String search,
+			@RequestParam(required = false) IncidentStatus status, Pageable pageable) {
+		log.info("GET /api/incidents/all - Fetching all incidents with search={}, status={}", search, status);
+
+		Page<Incident> incidents;
+		if (search != null && !search.trim().isEmpty()) {
+			incidents = incidentService.searchIncidents(search.trim(), pageable);
+		} else if (status != null) {
+			incidents = incidentService.findByStatus(status, pageable);
+		} else {
+			incidents = incidentService.findAll(pageable);
+		}
+
+		return ResponseEntity.ok(incidents.map(IncidentResponse::fromEntityBasic));
 	}
 
 	@PreAuthorize("hasAnyRole('RESIDENT', 'HANDLER', 'ADMIN')")

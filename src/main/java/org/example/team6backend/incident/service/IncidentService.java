@@ -141,6 +141,25 @@ public class IncidentService {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
 
+	/**
+	 * Find incidents by status (Admin)
+	 */
+	public Page<Incident> findByStatus(IncidentStatus status, Pageable pageable) {
+		log.info("Finding incidents by status: {}", status);
+		return incidentRepository.findByIncidentStatus(status, withDefaultSort(pageable));
+	}
+
+	/**
+	 * Search incidents by subject or description (Admin)
+	 */
+	public Page<Incident> searchIncidents(String search, Pageable pageable) {
+		log.info("Searching incidents with term: {}", search);
+		if (search == null || search.trim().isEmpty()) {
+			return incidentRepository.findAll(withDefaultSort(pageable));
+		}
+		return incidentRepository.searchIncidents(search.trim(), withDefaultSort(pageable));
+	}
+
 	public Incident getById(Long id, AppUser user) {
 		Incident incident = incidentRepository.findByIdWithDocuments(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found"));
