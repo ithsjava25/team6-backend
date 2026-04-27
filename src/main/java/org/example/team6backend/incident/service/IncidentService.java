@@ -72,9 +72,6 @@ public class IncidentService {
 		}
 	}
 
-	/**
-	 * Create incident
-	 **/
 	@Transactional
 	public Incident createIncident(IncidentRequest incidentRequest, List<MultipartFile> files, AppUser user) {
 
@@ -120,38 +117,23 @@ public class IncidentService {
 		}
 	}
 
-	/**
-	 * Find all incidents (Admin)
-	 **/
 	public Page<Incident> findAll(Pageable pageable) {
 		return incidentRepository.findAll(withDefaultSort(pageable));
 	}
 
-	/**
-	 * Find your own incidents (user)
-	 **/
 	public Page<Incident> findByCreatedBy(AppUser user, Pageable pageable) {
 		return incidentRepository.findByCreatedBy(user, withDefaultSort(pageable));
 	}
 
-	/**
-	 * Find assigned incidents per HANDLER
-	 **/
 	public Page<Incident> findByAssignedTo(AppUser user, Pageable pageable) {
 		return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
 	}
 
-	/**
-	 * Find incidents by status (Admin)
-	 */
 	public Page<Incident> findByStatus(IncidentStatus status, Pageable pageable) {
 		log.info("Finding incidents by status: {}", status);
 		return incidentRepository.findByIncidentStatus(status, withDefaultSort(pageable));
 	}
 
-	/**
-	 * Search incidents by subject or description (Admin)
-	 */
 	public Page<Incident> searchIncidents(String search, Pageable pageable) {
 		log.info("Searching incidents with term: {}", search);
 		if (search == null || search.trim().isEmpty()) {
@@ -169,10 +151,8 @@ public class IncidentService {
 		}
 
 		boolean isAdmin = user.getRole() == UserRole.ADMIN;
-
 		boolean isAssignedHandler = incident.getAssignedTo() != null
 				&& incident.getAssignedTo().getId().equals(user.getId());
-
 		boolean isOwner = incident.getCreatedBy() != null && incident.getCreatedBy().getId().equals(user.getId());
 
 		if (isAdmin || isAssignedHandler || isOwner) {
@@ -254,6 +234,21 @@ public class IncidentService {
 		Incident incident = incidentRepository.findById(incidentId)
 				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 
+		if (currentUser.getRole() != UserRole.ADMIN) {
+			if (incident.getAssignedTo() == null) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+						"This incident is not assigned to anyone. Only admins can update unassigned incidents.");
+			}
+			if (!incident.getAssignedTo().getId().equals(currentUser.getId())) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+						"You can only update status on incidents assigned to you!");
+			}
+		}
+
+		if (incident.getIncidentStatus() == IncidentStatus.CLOSED) {
+			throw new IllegalStateException("Cannot update status of a closed incident");
+		}
+
 		IncidentStatus oldStatus = incident.getIncidentStatus();
 
 		if (oldStatus == newStatus) {
@@ -273,15 +268,16 @@ public class IncidentService {
 				+ " status from " + oldStatus + " to " + newStatus, currentUser, TARGET_TYPE, incidentId.toString());
 
 		if (savedIncident.getCreatedBy() != null && !savedIncident.getCreatedBy().getId().equals(currentUser.getId())) {
-
 			notificationService.createNotification(
 					"Your incident status was changed from " + oldStatus + " to " + newStatus,
 					savedIncident.getCreatedBy(), savedIncident);
 		}
+
 		return incidentRepository.findByIdWithDocuments(savedIncident.getId())
 				.orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_MESSAGE + incidentId));
 	}
 
+	@Transactional
 	public Incident unassignIncident(Long incidentId, AppUser currentUser) {
 		if (currentUser.getRole() != UserRole.ADMIN) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can unassign incidents");
@@ -381,5 +377,18 @@ public class IncidentService {
 
 		log.info("Resolved incident {} by {} (role: {})", incidentId, currentUser.getId(), currentUser.getRole());
 		return savedIncident;
+	}
+
+	public Page<Incident> findAssignedByStatus(AppUser user, IncidentStatus status, Pageable pageable) {
+		log.info("Finding assigned incidents by status: {} for user: {}", status, user.getEmail());
+		return incidentRepository.findByAssignedToAndIncidentStatus(user, status, withDefaultSort(pageable));
+	}
+
+	public Page<Incident> searchAssignedIncidents(AppUser user, String search, Pageable pageable) {
+		log.info("Searching assigned incidents with term: {} for user: {}", search, user.getEmail());
+		if (search == null || search.trim().isEmpty()) {
+			return incidentRepository.findByAssignedTo(user, withDefaultSort(pageable));
+		}
+		return incidentRepository.searchAssignedIncidents(user, search.trim(), withDefaultSort(pageable));
 	}
 }

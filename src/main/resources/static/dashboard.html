@@ -103,6 +103,98 @@
             color: #ef4444;
         }
 
+        .dev-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dev-dropdown-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dev-dropdown-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .dev-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 120%;
+            right: 0;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0.75rem;
+            min-width: 250px;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .dev-dropdown.show .dev-dropdown-content {
+            display: block;
+        }
+
+        .dev-user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #ffffff;
+            border-bottom: 1px solid #1a1a1a;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .dev-user-item:hover {
+            background: #1a1a1a;
+        }
+
+        .dev-user-item:last-child {
+            border-bottom: none;
+        }
+
+        .dev-user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dev-user-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .dev-user-email {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+
+        .dev-user-role {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .dev-user-role.RESIDENT { background: #10b981; }
+        .dev-user-role.HANDLER { background: #f97316; }
+        .dev-user-role.ADMIN { background: #ef4444; }
+        .dev-user-role.PENDING { background: #6b7280; }
+
+        .dev-inactive {
+            opacity: 0.5;
+        }
+
         .container {
             max-width: 1200px;
             margin: 2rem auto;
@@ -254,7 +346,6 @@
             .navbar {
                 flex-direction: column;
             }
-
             .stats-grid {
                 grid-template-columns: 1fr;
             }
@@ -283,6 +374,7 @@
             border-color: #ffffff;
             color: #ffffff;
         }
+
         .notification-badge {
             position: absolute;
             top: -8px;
@@ -350,7 +442,6 @@
             color: #6b7280;
             text-align: center;
         }
-
     </style>
 </head>
 <body>
@@ -360,14 +451,27 @@
         <a href="dashboard.html">Home</a>
         <a href="incidents.html" id="incidentsLink" style="display: none;">Incidents</a>
         <a href="profile.html">Profile</a>
-        <a href="admin.html" id="adminLink" style="display: none;">Admin</a>  <!-- Ändrad: Default hidden -->
+        <a href="admin.html" id="adminLink" style="display: none;">Admin</a>
+
+        <div class="dev-dropdown" id="devDropdown" style="display: none;">
+            <button class="dev-dropdown-btn" id="devDropdownBtn">
+                Test User ▼
+            </button>
+            <div class="dev-dropdown-content" id="devDropdownContent">
+                <div style="padding: 0.5rem 1rem; border-bottom: 1px solid #1a1a1a; color: #6b7280; font-size: 0.7rem;">
+                    Test Users
+                </div>
+                <div id="devUserList">
+                    <div style="padding: 0.75rem; text-align: center; color: #6b7280;">Loading users...</div>
+                </div>
+            </div>
+        </div>
 
         <div class="notification-wrapper" id="notificationWrapper" style="display: none;">
             <button class="notification-btn" id="notificationBtn" type="button">
                 🔔
                 <span class="notification-badge" id="notificationBadge">0</span>
             </button>
-
             <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
                 <div class="notification-dropdown-header">Notifications</div>
                 <div id="notificationList">
@@ -375,7 +479,6 @@
                 </div>
             </div>
         </div>
-
 
         <div class="user-info">
             <span class="user-name" id="userName">Loading...</span>
@@ -417,6 +520,80 @@
 
 <script>
     let currentUser = null;
+    let allUsers = [];
+
+    async function checkDevMode() {
+        try {
+            const response = await fetch('/dev/enabled');
+            const data = await response.json();
+            if (data.enabled) {
+                document.getElementById('devDropdown').style.display = 'block';
+                loadDevUsers();
+            }
+        } catch (error) {
+            console.error('Failed to check dev mode:', error);
+        }
+    }
+
+    async function loadDevUsers() {
+        try {
+            const response = await fetch('/dev/all-users');
+            if (response.ok) {
+                allUsers = await response.json();
+                renderDevUserList();
+            }
+        } catch (error) {
+            console.error('Failed to load users:', error);
+            document.getElementById('devUserList').innerHTML = '<div style="padding: 0.75rem; text-align: center; color: #ef4444;">Failed to load users</div>';
+        }
+    }
+
+    function renderDevUserList() {
+        const container = document.getElementById('devUserList');
+        if (!allUsers.length) {
+            container.innerHTML = '<div style="padding: 0.75rem; text-align: center; color: #6b7280;">No users found</div>';
+            return;
+        }
+
+        container.innerHTML = allUsers.map(user => `
+            <div class="dev-user-item ${!user.active ? 'dev-inactive' : ''}" onclick="switchToUser('${user.githubLogin}')">
+                <div class="dev-user-info">
+                    <span class="dev-user-name">${escapeHtml(user.name)} ${!user.active ? '(Inactive)' : ''}</span>
+                    <span class="dev-user-email">${escapeHtml(user.email || 'no email')}</span>
+                </div>
+                <span class="dev-user-role ${user.role}">${user.role}</span>
+            </div>
+        `).join('');
+    }
+
+    async function switchToUser(githubLogin) {
+        try {
+            const response = await fetch(`/dev/switch-user?githubLogin=${githubLogin}`);
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (!response.ok) {
+                const text = await response.text();
+                alert('Failed to switch user: ' + text);
+            }
+        } catch (error) {
+            console.error('Error switching user:', error);
+            alert('Failed to switch user');
+        }
+    }
+
+    function setupDevDropdown() {
+        const btn = document.getElementById('devDropdownBtn');
+        const dropdown = document.getElementById('devDropdown');
+
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            dropdown.classList.remove('show');
+        });
+    }
 
     async function loadCurrentUser() {
         try {
@@ -514,33 +691,23 @@
     async function loadNotifications() {
         try {
             const response = await fetch('/notifications/user');
-
-            if (!response.ok) {
-                throw new Error('Failed to load notifications')
-            }
-
+            if (!response.ok) throw new Error('Failed to load notifications');
             notifications = await response.json();
-
             const list = document.getElementById('notificationList');
             const badge = document.getElementById('notificationBadge');
             const wrapper = document.getElementById('notificationWrapper');
-
             wrapper.style.display = 'inline-flex';
-
             const unreadCount = notifications.filter(notification => !notification.read).length;
-
             if (unreadCount > 0) {
                 badge.textContent = unreadCount;
-                badge.style.display = 'inline-flex'
+                badge.style.display = 'inline-flex';
             } else {
                 badge.style.display = 'none';
             }
-
             if (!notifications.length) {
                 list.innerHTML = `<div class="notification-empty">No notifications yet.</div>`;
                 return;
             }
-
             list.innerHTML = notifications.map(notification => `
                 <div class="notification-item ${notification.read ? '' : 'unread'}"
                      onclick="openNotification(${notification.id}, ${notification.incidentId})">
@@ -550,8 +717,7 @@
             `).join('');
         } catch (error) {
             console.error('Error loading notifications:', error);
-            document.getElementById('notificationList').innerHTML =
-                `<div class="notification-empty">Failed to load notifications.</div>`;
+            document.getElementById('notificationList').innerHTML = `<div class="notification-empty">Failed to load notifications.</div>`;
         }
     }
 
@@ -559,12 +725,10 @@
         const btn = document.getElementById('notificationBtn');
         const dropdown = document.getElementById('notificationDropdown');
         const wrapper = document.getElementById('notificationWrapper');
-
         btn.addEventListener('click', (event) => {
             event.stopPropagation();
             dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
         });
-
         document.addEventListener('click', (event) => {
             if (!wrapper.contains(event.target)) {
                 dropdown.style.display = 'none';
@@ -574,14 +738,7 @@
 
     async function openNotification(notificationId, incidentId) {
         try {
-            const response = await fetch(`/notifications/${notificationId}/read`, {
-                method: 'PATCH'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to mark notification as read');
-            }
-
+            await fetch(`/notifications/${notificationId}/read`, { method: 'PATCH' });
             window.location.href = `/viewincident.html?id=${incidentId}`;
         } catch (error) {
             console.error('Error opening notification:', error);
@@ -590,6 +747,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        checkDevMode();
+        setupDevDropdown();
         loadCurrentUser();
     });
 </script>

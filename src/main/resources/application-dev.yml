@@ -7,3 +7,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/team6_db
     username: team6
     password: team6-backend
+
+logging:
+  level:
+    org.example.team6backend: DEBUG
+    org.springframework.security: DEBUG

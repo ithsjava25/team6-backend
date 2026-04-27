@@ -104,11 +104,21 @@ public class IncidentController {
 	@PreAuthorize("hasRole('HANDLER')")
 	@GetMapping("/assigned")
 	public ResponseEntity<Page<IncidentResponse>> getAssignedIncidents(
-			@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
-		log.info("GET /api/incidents/assigned - Fetching assigned incidents");
+			@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(required = false) String search,
+			@RequestParam(required = false) IncidentStatus status, Pageable pageable) {
+		log.info("GET /api/incidents/assigned - Fetching assigned incidents with search={}, status={}", search, status);
 		AppUser user = getUser(userDetails);
-		return ResponseEntity
-				.ok(incidentService.findByAssignedTo(user, pageable).map(IncidentResponse::fromEntityBasic));
+
+		Page<Incident> incidents;
+		if (search != null && !search.trim().isEmpty()) {
+			incidents = incidentService.searchAssignedIncidents(user, search.trim(), pageable);
+		} else if (status != null) {
+			incidents = incidentService.findAssignedByStatus(user, status, pageable);
+		} else {
+			incidents = incidentService.findByAssignedTo(user, pageable);
+		}
+
+		return ResponseEntity.ok(incidents.map(IncidentResponse::fromEntityBasic));
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
@@ -180,7 +190,7 @@ public class IncidentController {
 		return ResponseEntity.ok(IncidentResponse.fromEntityBasic(resolvedIncident));
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'HANDLER')")
 	@PatchMapping("/{incidentId}/status")
 	public ResponseEntity<IncidentResponse> updateStatus(@PathVariable Long incidentId,
 			@Valid @RequestBody UpdateIncidentStatusRequest request,

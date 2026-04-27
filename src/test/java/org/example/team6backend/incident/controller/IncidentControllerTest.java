@@ -201,4 +201,47 @@ class IncidentControllerTest {
 
 		mockMvc.perform(patch("/api/incidents/1/resolve")).andExpect(status().isOk());
 	}
+
+	@Test
+	@WithMockUser(roles = "HANDLER")
+	void shouldSearchAssignedIncidents() throws Exception {
+		when(incidentService.searchAssignedIncidents(any(), anyString(), any(Pageable.class)))
+				.thenReturn(new PageImpl<>(List.of()));
+
+		mockMvc.perform(get("/api/incidents/assigned?search=water")).andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "HANDLER")
+	void shouldFilterAssignedIncidentsByStatus() throws Exception {
+		when(incidentService.findAssignedByStatus(any(), any(), any(Pageable.class)))
+				.thenReturn(new PageImpl<>(List.of()));
+
+		mockMvc.perform(get("/api/incidents/assigned?status=OPEN")).andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "HANDLER")
+	void shouldSearchAndFilterAssignedIncidents() throws Exception {
+		when(incidentService.searchAssignedIncidents(any(), anyString(), any(Pageable.class)))
+				.thenReturn(new PageImpl<>(List.of()));
+
+		mockMvc.perform(get("/api/incidents/assigned?search=water&status=OPEN")).andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "ADMIN")
+	void shouldSearchAllIncidents() throws Exception {
+		when(incidentService.searchIncidents(anyString(), any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+		mockMvc.perform(get("/api/incidents/all?search=water")).andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(roles = "ADMIN")
+	void shouldFilterAllIncidentsByStatus() throws Exception {
+		when(incidentService.findByStatus(any(), any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+		mockMvc.perform(get("/api/incidents/all?status=OPEN")).andExpect(status().isOk());
+	}
 }

@@ -187,14 +187,39 @@ class IncidentServiceTest {
 	}
 
 	@Test
-	void updateStatus_shouldChangeStatus() {
+	@DisplayName("Should update status as assigned Handler")
+	void updateStatus_shouldChangeStatusAsAssignedHandler() {
+		incident.setAssignedTo(handler);
+
 		when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
-
 		when(incidentRepository.save(any())).thenReturn(incident);
-
 		when(incidentRepository.findByIdWithDocuments(1L)).thenReturn(Optional.of(incident));
 
-		incidentService.updateIncidentStatus(1L, IncidentStatus.RESOLVED, user);
+		incidentService.updateIncidentStatus(1L, IncidentStatus.RESOLVED, handler);
+
+		assertEquals(IncidentStatus.RESOLVED, incident.getIncidentStatus());
+		verify(incidentRepository, atLeastOnce()).save(incident);
+	}
+
+	@Test
+	@DisplayName("Should not update status as Handler if not assigned to incident")
+	void updateStatus_shouldThrowWhenHandlerNotAssigned() {
+		incident.setAssignedTo(null);
+		when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
+
+		assertThrows(ResponseStatusException.class,
+				() -> incidentService.updateIncidentStatus(1L, IncidentStatus.RESOLVED, handler));
+	}
+
+	@Test
+	@DisplayName("Should update status as Admin even if not assigned")
+	void updateStatus_shouldChangeStatusAsAdmin() {
+		incident.setAssignedTo(null);
+		when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
+		when(incidentRepository.save(any())).thenReturn(incident);
+		when(incidentRepository.findByIdWithDocuments(1L)).thenReturn(Optional.of(incident));
+
+		incidentService.updateIncidentStatus(1L, IncidentStatus.RESOLVED, admin);
 
 		assertEquals(IncidentStatus.RESOLVED, incident.getIncidentStatus());
 	}
@@ -207,5 +232,45 @@ class IncidentServiceTest {
 
 		incidentService.deleteIncident(1L, user);
 		verify(incidentRepository).delete(incident);
+	}
+
+	@Test
+	@DisplayName("Should search assigned incidents as Handler")
+	void searchAssignedIncidents_shouldReturnResults() {
+		when(incidentRepository.searchAssignedIncidents(eq(handler), eq("water"), any()))
+				.thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(incident)));
+
+		var result = incidentService.searchAssignedIncidents(handler, "water",
+				org.springframework.data.domain.PageRequest.of(0, 10));
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		verify(incidentRepository).searchAssignedIncidents(eq(handler), eq("water"), any());
+	}
+
+	@Test
+	@DisplayName("Should return all assigned incidents when search is empty")
+	void searchAssignedIncidents_shouldReturnAllWhenSearchEmpty() {
+		when(incidentRepository.findByAssignedTo(eq(handler), any()))
+				.thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(incident)));
+
+		var result = incidentService.searchAssignedIncidents(handler, null,
+				org.springframework.data.domain.PageRequest.of(0, 10));
+
+		assertNotNull(result);
+		verify(incidentRepository).findByAssignedTo(eq(handler), any());
+	}
+
+	@Test
+	@DisplayName("Should filter assigned incidents by status")
+	void findAssignedByStatus_shouldReturnResults() {
+		when(incidentRepository.findByAssignedToAndIncidentStatus(eq(handler), eq(IncidentStatus.OPEN), any()))
+				.thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(incident)));
+
+		var result = incidentService.findAssignedByStatus(handler, IncidentStatus.OPEN,
+				org.springframework.data.domain.PageRequest.of(0, 10));
+
+		assertNotNull(result);
+		verify(incidentRepository).findByAssignedToAndIncidentStatus(eq(handler), eq(IncidentStatus.OPEN), any());
 	}
 }

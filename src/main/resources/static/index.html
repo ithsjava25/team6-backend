@@ -3,41 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Incident Manager</title>
+    <title>Incident Manager | Smart Housing Management</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #000000;
-            color: #ffffff;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+            color: #ffffff;
+            overflow-x: hidden;
         }
-        .container { text-align: center; padding: 2rem; }
-        h1 { font-size: 2rem; margin-bottom: 1rem; }
-        p { color: #6b7280; margin-bottom: 2rem; }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/IncidentMS.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.7);
+            z-index: -2;
+            animation: slowZoom 20s ease-in-out infinite;
+        }
+
+        @keyframes slowZoom {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 2rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 650px;
+            margin: 2rem;
+            animation: fadeInUp 0.8s ease-out;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff, #10b981);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+        }
+
+        .description {
+            color: #d1d5db;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 0.95rem;
+        }
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .feature-item {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.4rem 0.9rem;
+            border-radius: 9999px;
+            backdrop-filter: blur(5px);
+        }
+
         .btn {
-            background: #ffffff;
-            color: #000000;
-            border: none;
             padding: 0.875rem 2rem;
             border-radius: 9999px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
+            transition: all 0.3s ease;
+            border: none;
         }
-        .btn:hover { background: #e6e6e6; transform: scale(1.02); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .dev-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .dev-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+
+        .dev-hint {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-family: monospace;
+            background: rgba(16, 185, 129, 0.1);
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 9999px;
+            backdrop-filter: blur(5px);
+        }
+
+        .dev-hint code {
+            background: transparent;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .dev-hint-wrapper {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .tagline {
+                font-size: 0.85rem;
+            }
+
+            .description {
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                padding: 0.7rem 1.5rem;
+                font-size: 0.85rem;
+            }
+
+            .feature-item {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.7rem;
+            }
+
+            .dev-hint {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.6rem;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 750px;
+                padding: 3.5rem;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>Incident Management System</h1>
-    <p>Track, manage and resolve housing-related issues</p>
-    <a href="/oauth2/authorization/github" class="btn">Sign in with GitHub</a>
+    <div class="tagline">Smart Housing Management Platform</div>
+    <p class="description">
+        Streamline the way you track, manage, and resolve housing-related issues.
+        Fast, efficient, and user-friendly.
+    </p>
+
+    <div class="features">
+        <div class="feature-item">Real-time tracking</div>
+        <div class="feature-item">Smart assignments</div>
+        <div class="feature-item">Document management</div>
+        <div class="feature-item">Instant notifications</div>
+    </div>
+
+    <div class="button-group" id="buttonGroup">
+        <a href="/oauth2/authorization/github" class="btn btn-primary" id="githubBtn">Sign in with GitHub</a>
+        <a href="/dev/users" class="btn dev-btn" id="devModeBtn" style="display: none;">Developer Mode</a>
+    </div>
+
+    <div class="dev-hint-wrapper" id="devHintWrapper">
+        <div class="dev-hint">
+            <code>try dev mode → --spring.profiles.active=dev</code>
+        </div>
+    </div>
 </div>
+
+<script>
+    async function checkDevMode() {
+        try {
+            const response = await fetch('/dev/enabled');
+            const data = await response.json();
+
+            if (data.enabled) {
+                document.getElementById('githubBtn').style.display = 'none';
+                document.getElementById('devModeBtn').style.display = 'inline-block';
+                document.getElementById('devHintWrapper').style.display = 'none';
+            } else {
+                document.getElementById('githubBtn').style.display = 'inline-block';
+                document.getElementById('devModeBtn').style.display = 'none';
+                document.getElementById('devHintWrapper').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Failed to check dev mode:', error);
+            document.getElementById('githubBtn').style.display = 'inline-block';
+            document.getElementById('devModeBtn').style.display = 'none';
+            document.getElementById('devHintWrapper').style.display = 'block';
+        }
+    }
+
+    checkDevMode();
+</script>
 </body>
 </html>

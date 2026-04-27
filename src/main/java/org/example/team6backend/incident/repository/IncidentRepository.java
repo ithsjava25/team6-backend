@@ -26,10 +26,19 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 	@EntityGraph(attributePaths = {"documents", "createdBy", "assignedTo"})
 	Page<Incident> findByIncidentStatus(IncidentStatus status, Pageable pageable);
 
+	@EntityGraph(attributePaths = {"documents", "createdBy", "assignedTo"})
+	Page<Incident> findByAssignedToAndIncidentStatus(AppUser user, IncidentStatus status, Pageable pageable);
+
 	@Query("SELECT i FROM Incident i LEFT JOIN FETCH i.documents WHERE i.id = :id")
 	Optional<Incident> findByIdWithDocuments(@Param("id") Long id);
 
 	@Query("SELECT i FROM Incident i WHERE " + "LOWER(i.subject) LIKE LOWER(CONCAT('%', :search, '%')) OR "
 			+ "LOWER(COALESCE(i.description, '')) LIKE LOWER(CONCAT('%', :search, '%'))")
 	Page<Incident> searchIncidents(@Param("search") String search, Pageable pageable);
+
+	@Query("SELECT i FROM Incident i WHERE i.assignedTo = :user AND "
+			+ "(LOWER(i.subject) LIKE LOWER(CONCAT('%', :search, '%')) OR "
+			+ "LOWER(COALESCE(i.description, '')) LIKE LOWER(CONCAT('%', :search, '%')))")
+	Page<Incident> searchAssignedIncidents(@Param("user") AppUser user, @Param("search") String search,
+			Pageable pageable);
 }
