@@ -35,7 +35,6 @@
 
 <script>
     const API = '/api/admin/audit';
-    const token = localStorage.getItem('token');
 
     document.getElementById('searchInput').addEventListener('keypress', e => {
         if (e.key === 'Enter') searchLogs();
@@ -54,7 +53,7 @@
 
     async function fetchLogs(url) {
         try {
-            const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+            const res = await fetch(url, { credentials: 'same-origin' });
             if (!res.ok) {
                 console.warn('Audit log fetch failed:', res.status);
                 document.getElementById('logBody').innerHTML =
